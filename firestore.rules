@@ -1,0 +1,72 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Functionalities Helpers
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function getUserBengkelId() {
+      return request.auth.token.bengkelId;
+    }
+
+    function isOwner() {
+      return request.auth.token.role == 'owner';
+    }
+
+    function isStaff() {
+      return request.auth.token.role == 'staff';
+    }
+
+    // Bengkels Collection
+    match /bengkels/{bengkelId} {
+      // Any authenticated user can create a bengkel
+      allow create: if isSignedIn();
+      // Only users belonging to this bengkel can read it
+      allow read: if isSignedIn() && getUserBengkelId() == bengkelId;
+      // Only the owner of the bengkel can write/update it
+      allow update, delete: if isSignedIn() && getUserBengkelId() == bengkelId && isOwner();
+      
+      // Nested collections inside Bengkel (Transactions, Stok, Pelanggan, Staff)
+      match /{subcollection}/{documentId} {
+        // Staff and Owners can read/write data that belongs to their bengkel
+        // To enforce read scoping, queries must filter by bengkelId matching their token bengkelId.
+        // Wait, since these are subcollections of the bengkel, the bengkelId is in the path!
+        allow read: if isSignedIn() && getUserBengkelId() == bengkelId;
+        
+        // Owners can write to any collection. Staff can write to specific ones if needed, 
+        // or for MVP, staff can write to transactions and stok.
+        allow write: if isSignedIn() && getUserBengkelId() == bengkelId;
+      }
+    }
+
+    // Top-level collections (if used instead of subcollections)
+    // Based on Phase 2 implementation, entities might be top-level or subcollection.
+    // Assuming top-level collections partitioned by `bengkelId` field:
+    
+    match /transactions/{id} {
+      allow read, write: if isSignedIn() && resource.data.bengkelId == getUserBengkelId() 
+                         || (request.method == 'create' && request.resource.data.bengkelId == getUserBengkelId());
+    }
+
+    match /stok/{id} {
+      allow read, write: if isSignedIn() && resource.data.bengkelId == getUserBengkelId() 
+                         || (request.method == 'create' && request.resource.data.bengkelId == getUserBengkelId());
+    }
+
+    match /pelanggans/{id} {
+      allow read, write: if isSignedIn() && resource.data.bengkelId == getUserBengkelId() 
+                         || (request.method == 'create' && request.resource.data.bengkelId == getUserBengkelId());
+    }
+    
+    match /staff/{id} {
+      // Anyone in bengkel can read staff directory
+      allow read: if isSignedIn() && resource.data.bengkelId == getUserBengkelId();
+      // Only owner can write to staff collection
+      allow write: if isSignedIn() && isOwner() && (
+        resource.data.bengkelId == getUserBengkelId() || request.resource.data.bengkelId == getUserBengkelId()
+      );
+    }
+  }
+}

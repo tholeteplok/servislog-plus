@@ -1,0 +1,47 @@
+import 'package:objectbox/objectbox.dart';
+import 'package:uuid/uuid.dart';
+
+@Entity()
+class Sale {
+  @Id()
+  int id = 0;
+
+  @Unique()
+  String uuid;
+
+  @Index()
+  bool isDeleted = false; // Soft delete support STEP 3
+
+  @Index()
+  String itemName;
+
+  int quantity;
+  int totalPrice; // Fixed precision (Rp)
+  int costPrice = 0;
+  int totalProfit = 0;
+
+  @Index()
+  String? transactionId;
+
+  String? stokUuid; // Referensi ke Stok.uuid jika penjualan terkait stok
+  String? customerName;
+  String? paymentMethod; // Tunai, QRIS, Transfer
+
+  @Index()
+  DateTime createdAt;
+
+  Sale({
+    required this.itemName,
+    required this.quantity,
+    required this.totalPrice,
+    this.costPrice = 0,
+    this.customerName,
+    this.transactionId,
+    this.stokUuid, // ✅ FIX #1: Tambahkan sebagai parameter opsional
+    String? uuid,
+    DateTime? createdAt,
+  }) : uuid = uuid ?? const Uuid().v4(),
+       createdAt = createdAt ?? DateTime.now() {
+    totalProfit = totalPrice - (costPrice * quantity);
+  }
+}

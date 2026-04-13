@@ -1,0 +1,2671 @@
+[
+  {
+    "merk": "Daihatsu",
+    "tipe": "Taruna",
+    "tahun": "2000",
+    "varian": "CL",
+    "kode_produksi": "CX",
+    "warna": [
+      "FL",
+      "FGX",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Taruna",
+    "tahun": "2002",
+    "varian": "CL",
+    "kode_produksi": "CX",
+    "warna": [
+      "FL",
+      "FGX",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2004",
+    "varian": "1.0 Mi",
+    "kode_produksi": "1.0 Li",
+    "warna": [
+      "1.3 Xi",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2005",
+    "varian": "1.0 Mi",
+    "kode_produksi": "1.0 Li",
+    "warna": [
+      "1.3 Xi",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2006",
+    "varian": "1.0 Mi",
+    "kode_produksi": "1.0 Li",
+    "warna": [
+      "1.3 Xi (VVT-i)",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2008",
+    "varian": "1.0 Mi",
+    "kode_produksi": "1.0 Li",
+    "warna": [
+      "1.3 Xi",
+      "1.3 Xi Matic",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2010",
+    "varian": "1.0 Mi",
+    "kode_produksi": "1.0 Li",
+    "warna": [
+      "1.3 Xi",
+      "1.3 Xi Matic",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2011",
+    "varian": "1.0 D",
+    "kode_produksi": "1.0 M",
+    "warna": [
+      "1.3 X",
+      "1.3 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2012",
+    "varian": "1.0 D",
+    "kode_produksi": "1.0 M",
+    "warna": [
+      "1.3 X",
+      "1.3 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2014",
+    "varian": "1.0 D",
+    "kode_produksi": "1.0 M",
+    "warna": [
+      "1.3 X",
+      "1.3 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2015",
+    "varian": "1.0 M Deluxe",
+    "kode_produksi": "1.3 X Deluxe",
+    "warna": [
+      "1.3 R Sporty (Great New Xenia)",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2016",
+    "varian": "1.0 M Deluxe",
+    "kode_produksi": "1.3 X Deluxe",
+    "warna": [
+      "1.3 R Sporty (Great New Xenia)",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2018",
+    "varian": "1.0 M Deluxe",
+    "kode_produksi": "1.3 X Deluxe",
+    "warna": [
+      "1.3 R Sporty",
+      "1.5 R (Great New Xenia)",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2019",
+    "varian": "1.3 R",
+    "kode_produksi": "1.5 R (Grand New Xenia)",
+    "warna": [
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2020",
+    "varian": "1.3 R",
+    "kode_produksi": "1.5 R (Grand New Xenia)",
+    "warna": [
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2021",
+    "varian": "1.3 M",
+    "kode_produksi": "1.3 X",
+    "warna": [
+      "1.3 R",
+      "1.5 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2022",
+    "varian": "1.3 M",
+    "kode_produksi": "1.3 X",
+    "warna": [
+      "1.3 R",
+      "1.5 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2023",
+    "varian": "1.3 M",
+    "kode_produksi": "1.3 X",
+    "warna": [
+      "1.3 R",
+      "1.5 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2024",
+    "varian": "1.3 M",
+    "kode_produksi": "1.3 X",
+    "warna": [
+      "1.3 R",
+      "1.5 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Daihatsu",
+    "tipe": "Xenia",
+    "tahun": "2025",
+    "varian": "1.3 M",
+    "kode_produksi": "1.3 X",
+    "warna": [
+      "1.3 R",
+      "1.5 R",
+      "MFKKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Red",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "BR-V",
+    "tahun": "2016",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "Prestige",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "BR-V",
+    "tahun": "2019",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "Prestige",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "BR-V",
+    "tahun": "2022",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "Prestige",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "BR-V",
+    "tahun": "2024",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "Prestige",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "BR-V",
+    "tahun": "2025",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "Prestige",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2012",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2014",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2016",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2018",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2020",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2023",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2024",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Brio",
+    "tahun": "2025",
+    "varian": "Satya S",
+    "kode_produksi": "Satya E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2000",
+    "varian": "EXi",
+    "kode_produksi": "VTi",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2003",
+    "varian": "i-DSI",
+    "kode_produksi": "VTEC",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2005",
+    "varian": "i-DSI",
+    "kode_produksi": "VTEC",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2008",
+    "varian": "i-DSI",
+    "kode_produksi": "VTEC",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2009",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2011",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2014",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2017",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2021",
+    "varian": "RS",
+    "kode_produksi": "MFRKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2023",
+    "varian": "RS",
+    "kode_produksi": "MFRKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2024",
+    "varian": "RS",
+    "kode_produksi": "MFRKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "City",
+    "tahun": "2025",
+    "varian": "RS",
+    "kode_produksi": "MFRKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2004",
+    "varian": "i-DSI",
+    "kode_produksi": "VTEC",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2006",
+    "varian": "i-DSI",
+    "kode_produksi": "VTEC",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2008",
+    "varian": "S",
+    "kode_produksi": "RS",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2011",
+    "varian": "S",
+    "kode_produksi": "RS",
+    "warna": [
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2014",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2017",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Jazz",
+    "tahun": "2020",
+    "varian": "RS",
+    "kode_produksi": "MFRKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue",
+      "Yellow"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2014",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2016",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2019",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2021",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2024",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Honda",
+    "tipe": "Mobilio",
+    "tahun": "2025",
+    "varian": "S",
+    "kode_produksi": "E",
+    "warna": [
+      "RS",
+      "MFRKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Kuda",
+    "tahun": "2000",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Diamond",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Kuda",
+    "tahun": "2002",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Diamond",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Kuda",
+    "tahun": "2004",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Diamond",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2017",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Exceed",
+      "Sport",
+      "Ultimate",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2018",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Exceed",
+      "Sport",
+      "Ultimate",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2019",
+    "varian": "GLX",
+    "kode_produksi": "GLS",
+    "warna": [
+      "Exceed",
+      "Sport",
+      "Ultimate",
+      "Cross",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2020",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross (Facelift)",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2021",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross (CVT)",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2022",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2023",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2024",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross",
+      "Cross Elite",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Mitsubishi",
+    "tipe": "Xpander",
+    "tahun": "2025",
+    "varian": "GLS",
+    "kode_produksi": "Exceed",
+    "warna": [
+      "Ultimate",
+      "Cross",
+      "Cross Elite",
+      "Hybrid",
+      "MLMKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Red",
+      "Brown",
+      "Orange"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2004",
+    "varian": "Arena",
+    "kode_produksi": "Blind Van",
+    "warna": [
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2006",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2008",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2010",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2012",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2014",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2016",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2018",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2020",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2023",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2024",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "APV",
+    "tahun": "2025",
+    "varian": "Arena",
+    "kode_produksi": "Luxury",
+    "warna": [
+      "Blind Van",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Baleno",
+    "tahun": "2000",
+    "varian": "1.5i",
+    "kode_produksi": "MHYKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Baleno",
+    "tahun": "2002",
+    "varian": "1.5i",
+    "kode_produksi": "MHYKZE81S",
+    "warna": [
+      "White",
+      "Silver",
+      "Black",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2012",
+    "varian": "GA",
+    "kode_produksi": "GL",
+    "warna": [
+      "GX",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2014",
+    "varian": "GA",
+    "kode_produksi": "GL",
+    "warna": [
+      "GX",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2015",
+    "varian": "GA",
+    "kode_produksi": "GL",
+    "warna": [
+      "GX (New Ertiga)",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2016",
+    "varian": "GA",
+    "kode_produksi": "GL",
+    "warna": [
+      "GX",
+      "Dreza",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2018",
+    "varian": "GA",
+    "kode_produksi": "GL",
+    "warna": [
+      "GX",
+      "Dreza",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2019",
+    "varian": "All New Ertiga GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2020",
+    "varian": "All New Ertiga GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2022",
+    "varian": "Ertiga Hybrid GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2023",
+    "varian": "Ertiga Hybrid GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2024",
+    "varian": "Ertiga Hybrid GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "Ertiga",
+    "tahun": "2025",
+    "varian": "Ertiga Hybrid GL",
+    "kode_produksi": "GX",
+    "warna": [
+      "Sport",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Brown",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "XL7",
+    "tahun": "2020",
+    "varian": "Zeta",
+    "kode_produksi": "Beta",
+    "warna": [
+      "Alpha",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Orange",
+      "Khaki"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "XL7",
+    "tahun": "2022",
+    "varian": "Zeta",
+    "kode_produksi": "Beta",
+    "warna": [
+      "Alpha",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Orange",
+      "Khaki"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "XL7",
+    "tahun": "2023",
+    "varian": "Zeta",
+    "kode_produksi": "Beta",
+    "warna": [
+      "Alpha",
+      "Hybrid",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Orange",
+      "Khaki"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "XL7",
+    "tahun": "2024",
+    "varian": "Zeta",
+    "kode_produksi": "Beta",
+    "warna": [
+      "Alpha",
+      "Hybrid",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Orange",
+      "Khaki"
+    ]
+  },
+  {
+    "merk": "Suzuki",
+    "tipe": "XL7",
+    "tahun": "2025",
+    "varian": "Zeta",
+    "kode_produksi": "Beta",
+    "warna": [
+      "Alpha",
+      "Hybrid",
+      "MHYKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Orange",
+      "Khaki"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2003",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 G M/T",
+    "warna": [
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2004",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 G M/T",
+    "warna": [
+      "1.3 S A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2006",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 G M/T",
+    "warna": [
+      "1.3 S A/T",
+      "1.5 S M/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2008",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 G M/T",
+    "warna": [
+      "1.3 S A/T",
+      "1.5 S M/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2010",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 S M/T",
+      "1.5 S A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2011",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2012",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2014",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2015",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2016",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2018",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2020",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E A/T",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G A/T",
+      "1.5 G M/T",
+      "1.5 Veloz M/T",
+      "1.5 Veloz A/T",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2021",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E CVT",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G CVT",
+      "1.5 G M/T",
+      "1.5 G CVT",
+      "1.5 Veloz M/T",
+      "1.5 Veloz CVT",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2022",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E CVT",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G CVT",
+      "1.5 G M/T",
+      "1.5 G CVT",
+      "1.5 Veloz M/T",
+      "1.5 Veloz CVT",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2023",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E CVT",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G CVT",
+      "1.5 G M/T",
+      "1.5 G CVT",
+      "1.5 Veloz M/T",
+      "1.5 Veloz CVT",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2024",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E CVT",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G CVT",
+      "1.5 G M/T",
+      "1.5 G CVT",
+      "1.5 Veloz M/T",
+      "1.5 Veloz CVT",
+      "1.5 Veloz Q CVT",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Avanza",
+    "tahun": "2025",
+    "varian": "1.3 E M/T",
+    "kode_produksi": "1.3 E CVT",
+    "warna": [
+      "1.3 G M/T",
+      "1.3 G CVT",
+      "1.5 G M/T",
+      "1.5 G CVT",
+      "1.5 Veloz M/T",
+      "1.5 Veloz CVT",
+      "1.5 Veloz Q CVT",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Gray",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang",
+    "tahun": "2000",
+    "varian": "LGX",
+    "kode_produksi": "SGX",
+    "warna": [
+      "Kapsul",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang",
+    "tahun": "2002",
+    "varian": "LGX",
+    "kode_produksi": "SGX",
+    "warna": [
+      "Krista",
+      "Kapsul",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang",
+    "tahun": "2004",
+    "varian": "LGX",
+    "kode_produksi": "SGX",
+    "warna": [
+      "Krista",
+      "Kapsul",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2004",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2005",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "2.7 V (2.0 Bensin",
+      "2.5 Diesel",
+      "2.7 Bensin)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2006",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "V Xtra (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2008",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "J (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2010",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "J",
+      "Luxury (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2011",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "J",
+      "Luxury (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2013",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "J",
+      "Luxury (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2014",
+    "varian": "E",
+    "kode_produksi": "G",
+    "warna": [
+      "V",
+      "J",
+      "Luxury (2.0 Bensin",
+      "2.5 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Green",
+      "Bronze"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2015",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer (2.0 Bensin",
+      "2.4 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2016",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer (2.0 Bensin",
+      "2.4 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2018",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer (2.0 Bensin",
+      "2.4 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2020",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer (2.0 Bensin",
+      "2.4 Diesel)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2022",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer",
+      "Zenix (2.0 Bensin",
+      "2.4 Diesel",
+      "2.0 Hybrid)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2023",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer",
+      "Zenix (2.0 Bensin",
+      "2.4 Diesel",
+      "2.0 Hybrid)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2024",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer",
+      "Zenix (2.0 Bensin",
+      "2.4 Diesel",
+      "2.0 Hybrid)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Toyota",
+    "tipe": "Kijang Innova",
+    "tahun": "2025",
+    "varian": "G",
+    "kode_produksi": "V",
+    "warna": [
+      "Q",
+      "Venturer",
+      "Zenix (2.0 Bensin",
+      "2.4 Diesel",
+      "2.0 Hybrid)",
+      "MFFKZE81S",
+      "White",
+      "Silver",
+      "Black",
+      "Bronze",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2007",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2009",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2011",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2013",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2015",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2017",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2019",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2021",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2023",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Fino",
+    "tahun": "2025",
+    "varian": "Sporty",
+    "kode_produksi": "Premium",
+    "warna": [
+      "Grande",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Cream",
+      "Pink",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Lexi",
+    "tahun": "2018",
+    "varian": "Standard",
+    "kode_produksi": "S",
+    "warna": [
+      "VVA",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Silver",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Lexi",
+    "tahun": "2020",
+    "varian": "Standard",
+    "kode_produksi": "S",
+    "warna": [
+      "VVA",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Silver",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Lexi",
+    "tahun": "2022",
+    "varian": "Standard",
+    "kode_produksi": "S",
+    "warna": [
+      "VVA",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Silver",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Lexi",
+    "tahun": "2024",
+    "varian": "Standard",
+    "kode_produksi": "S",
+    "warna": [
+      "VVA",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Silver",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "Lexi",
+    "tahun": "2025",
+    "varian": "Standard",
+    "kode_produksi": "S",
+    "warna": [
+      "VVA",
+      "MLYKZE81S",
+      "Black",
+      "Red",
+      "Blue",
+      "White",
+      "Silver",
+      "Brown"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2017",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2019",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue",
+      "Gray"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2021",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue",
+      "Gray"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2023",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue",
+      "Gray"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2024",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue",
+      "Gray"
+    ]
+  },
+  {
+    "merk": "Yamaha",
+    "tipe": "XMAX",
+    "tahun": "2025",
+    "varian": "Standard",
+    "kode_produksi": "MLYKZE81S",
+    "warna": [
+      "Black",
+      "White",
+      "Silver",
+      "Red",
+      "Blue",
+      "Gray"
+    ]
+  }
+]
