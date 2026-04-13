@@ -1,17 +1,12 @@
-# servislog_core
+# servislog-plus
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Learn Flutter](https://docs.flutter.dev/get-started/learn-flutter)
-- [Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Flutter learning resources](https://docs.flutter.dev/reference/learning-resources)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+Aplikasi Mobile Flutter untuk Manajemen Bengkel
+Platform: Multi-platform (Android, iOS, Windows, macOS, Linux, Web)
+Arsitektur & Teknologi: Flutter dengan Clean Architecture, Firebase, ObjectBox, Riverpod
+Fitur Utama: Manajemen bengkel, transaksi, inventaris, pelanggan, staff, statistik
+Security System: Hybrid Security Policy dengan 3 zona, AES-GCM encryption, biometric auth, remote wipe
+Synchronization: Bidirectional sync ObjectBox-Firestore dengan conflict resolution
+Database: 11 domain entities dengan Firestore structure
+Backend: Firebase Cloud Functions dengan security rules
+Services: 20 core services untuk auth, sync, backup, business logic
+Providers: 36 Riverpod providers untuk state management
