@@ -67,7 +67,7 @@ class AppColors {
         radius: 1,
         colors: [
           precisionViolet,
-          obsidianBase,
+          obsidianBase.withValues(alpha: 0.2),
         ],
       );
     }
@@ -75,9 +75,10 @@ class AppColors {
       center: Alignment(-1.1, -1.1),
       radius: 2,
       colors: [
-        precisionViolet, lightSkyBlue, mintMajesty,
+        precisionViolet, 
+        mintMajesty.withValues(alpha: 0.2),
       ],
-      stops: [0.0, 0.5, 1.0],
+      stops: [0.6, 1.0],
     );
   }
 

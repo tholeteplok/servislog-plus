@@ -127,7 +127,7 @@ class _TentangScreenState extends State<TentangScreen>
                     icon: SolarIconsOutline.shieldCheck,
                     title: 'Kebijakan Privasi',
                     onTap: () =>
-                        _launchUrl('https://servislog.tholeteplok.com/privacy'),
+                        _launchUrl('https://tholeteplok.github.io/servislog-plus/'),
                   ),
                   _LinkTile(
                     icon: SolarIconsOutline.star,
@@ -139,7 +139,7 @@ class _TentangScreenState extends State<TentangScreen>
                   _LinkTile(
                     icon: SolarIconsOutline.letter,
                     title: 'Dukungan & Email',
-                    onTap: () => _launchUrl('mailto:support@tholeteplok.com'),
+                    onTap: () => _launchUrl('mailto:support.servislog@gmail.com'),
                   ),
 
                   const SizedBox(height: 60),
