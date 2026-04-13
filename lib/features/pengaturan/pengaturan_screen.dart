@@ -10,6 +10,7 @@ import './sub/sync_settings_screen.dart';
 import './sub/teknisi_screen.dart';
 import './sub/fitur_screen.dart';
 import './sub/tentang_screen.dart';
+import './sub/faq_screen.dart';
 import './sub/security_data_center_screen.dart';
 import '../../core/widgets/atelier_header.dart';
 import '../../core/widgets/atelier_list_card.dart';
@@ -133,6 +134,16 @@ class PengaturanScreen extends ConsumerWidget {
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TampilanScreen()),
+                      ),
+                    ),
+                    AtelierListTile(
+                      icon: Icons.help_outline_rounded,
+                      iconColor: Colors.orange,
+                      title: 'Bantuan & FAQ',
+                      subtitle: 'Pusat solusi & panduan',
+                      onTap: () => Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const FAQScreen()),
                       ),
                     ),
                     AtelierListTile(

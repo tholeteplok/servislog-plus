@@ -124,6 +124,12 @@ class _TentangScreenState extends State<TentangScreen>
                         _launchUrl('https://tholeteplok.github.io/servislog-plus/terms.html'),
                   ),
                   _LinkTile(
+                    icon: SolarIconsOutline.questionCircle,
+                    title: 'Bantuan & FAQ',
+                    onTap: () =>
+                        _launchUrl('https://tholeteplok.github.io/servislog-plus/faq.html'),
+                  ),
+                  _LinkTile(
                     icon: SolarIconsOutline.shieldCheck,
                     title: 'Kebijakan Privasi',
                     onTap: () =>
@@ -144,7 +150,7 @@ class _TentangScreenState extends State<TentangScreen>
 
                   const SizedBox(height: 60),
                   Text(
-                    'Dibuat dengan ❤️ oleh Precision Mechanic Team',
+                    'Dibuat dengan ❤️ oleh Pengembang ServisLog+',
                     textAlign: TextAlign.center,
                     style: TextStyle(
                       color: Colors.grey.shade500,
