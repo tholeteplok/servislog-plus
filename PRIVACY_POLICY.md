@@ -40,15 +40,16 @@ ServisLog+ menggunakan data yang dikumpulkan untuk:
 
 Keamanan data adalah prioritas utama kami. Kami menerapkan standar industri untuk melindungi informasi Anda:
 
-### A. Enkripsi Tingkat Tinggi
-Semua data sensitif dan PII (Personally Identifiable Information) dienkripsi menggunakan standar **AES-256-GCM** sebelum disimpan, baik di penyimpanan lokal maupun di awan. Kunci enkripsi dikelola secara aman menggunakan **Flutter Secure Storage**.
+### A. Enkripsi Tingkat Tinggi & Zero-Knowledge
+Semua data sensitif dan PII (Personally Identifiable Information) dienkripsi menggunakan standar **AES-256-GCM** sebelum disimpan, baik di penyimpanan lokal maupun di awan. Kami menerapkan prinsip **Zero-Knowledge Architecture**, yang berarti kunci enkripsi dibuat dan disimpan secara eksklusif pada perangkat Anda. Kami (pengembang) tidak memiliki akses teknis untuk membaca atau memulihkan data transaksi dan pelanggan Anda.
 
 ### B. Penyimpanan Lokal dan Awan
 - **Lokal:** Data disimpan di perangkat Anda menggunakan database **ObjectBox** yang berperforma tinggi.
-- **Awan (Cloud):** Data disinkronkan ke **Google Cloud Firestore**. Meskipun berada di server kami, data tetap terenkripsi dan hanya dapat dibuka oleh kunci enkripsi yang ada pada perangkat Anda atau Master Password Anda.
+- **Awan (Cloud):** Data disinkronkan ke **Google Cloud Firestore** dalam bentuk terenkripsi.
+- **Google Drive (Opsional):** Jika Anda mengaktifkan fitur pencadangan ke Google Drive, aplikasi hanya akan mengakses folder khusus `appData`. Data cadangan ini tetap berada di akun Google pribadi Anda, terisolasi dari aplikasi lain, dan tetap dalam format terenkripsi.
 
 ### C. Keamanan Akses
-Aplikasi mendukung penguncian biometrik (sidik jari/wajah) dan PIN untuk mencegah akses fisik yang tidak sah ke data aplikasi.
+Aplikasi mendukung penguncian biometrik (sidik jari/wajah) dan PIN untuk mencegah akses fisik yang tidak sah ke data aplikasi di perangkat Anda.
 
 ---
 

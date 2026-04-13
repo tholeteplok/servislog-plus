@@ -155,11 +155,14 @@
     </ul>
 
     <h2>3. Penyimpanan dan Keamanan Data</h2>
-    <h3>A. Enkripsi Tingkat Tinggi</h3>
-    <p>Semua data sensitif dienkripsi menggunakan standar <strong>AES-256-GCM</strong> sebelum disimpan di lokal maupun di awan.</p>
+    <h3>A. Enkripsi Tingkat Tinggi & Zero-Knowledge</h3>
+    <p>Semua data sensitif dienkripsi menggunakan standar <strong>AES-256-GCM</strong> sebelum disimpan di lokal maupun di awan. Kami menerapkan prinsip <strong>Zero-Knowledge Architecture</strong>, yang berarti kunci enkripsi dibuat dan disimpan secara eksklusif pada perangkat Anda. Kami tidak memiliki akses untuk membaca data Anda.</p>
 
     <h3>B. Penyimpanan Lokal dan Awan</h3>
     <p>Data disimpan di perangkat menggunakan database <strong>ObjectBox</strong> dan disinkronkan ke <strong>Google Cloud Firestore</strong> dalam bentuk terenkripsi.</p>
+    
+    <h3>C. Google Drive (Opsional)</h3>
+    <p>Jika Anda mengaktifkan fitur pencadangan ke Google Drive, aplikasi hanya akan mengakses folder khusus <code>appData</code> di akun Google pribadi Anda. Data cadangan tetap terenkripsi dan terisolasi dari aplikasi lain.</p>
 
     <h2>4. Berbagi Informasi Pihak Ketiga</h2>
     <p>Kami hanya berbagi informasi dengan penyedia layanan yang membantu operasional:</p>
