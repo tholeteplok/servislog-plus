@@ -64,10 +64,10 @@ class AppColors {
     if (isDark) {
       return RadialGradient(
         center: Alignment(-1.1, -1.1),
-        radius: 1,
+        radius: 1.5,
         colors: [
           precisionViolet,
-          obsidianBase.withValues(alpha: 0.2),
+          obsidianBase.withValues(alpha: 0.1),
         ],
       );
     }
@@ -76,7 +76,7 @@ class AppColors {
       radius: 2,
       colors: [
         precisionViolet, 
-        mintMajesty.withValues(alpha: 0.2),
+        mintMajesty.withValues(alpha: 0.1),
       ],
       stops: [0.6, 1.0],
     );

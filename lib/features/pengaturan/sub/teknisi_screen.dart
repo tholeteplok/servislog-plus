@@ -37,7 +37,7 @@ class TeknisiScreen extends ConsumerWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                staff == null ? 'TAMBAH TEKNISI' : 'EDIT TEKNISI',
+                staff == null ? 'Tambah Teknisi' : 'Edit Teknisi',
                 style: Theme.of(context).sectionLabelStyle,
               ),
               const SizedBox(height: 24),

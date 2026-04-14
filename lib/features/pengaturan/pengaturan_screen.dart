@@ -37,7 +37,7 @@ class PengaturanScreen extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AtelierListGroup(
-                  label: 'AKUN & KEAMANAN',
+                  label: 'Akun & Keamanan',
                   children: [
                     AtelierListTile(
                       icon: AppIcons.profile,
@@ -62,7 +62,7 @@ class PengaturanScreen extends ConsumerWidget {
                   ],
                 ),
                 AtelierListGroup(
-                  label: 'DATA & SINKRONISASI',
+                  label: 'Data & Sinkronisasi',
                   children: [
                     AtelierListTile(
                       icon: Icons.backup_outlined,
@@ -91,7 +91,7 @@ class PengaturanScreen extends ConsumerWidget {
                   ],
                 ),
                 AtelierListGroup(
-                  label: 'OPERASIONAL',
+                  label: 'Operasional',
                   children: [
                     AtelierListTile(
                       icon: AppIcons.service,
@@ -107,7 +107,7 @@ class PengaturanScreen extends ConsumerWidget {
                       icon: Icons.extension_outlined,
                       iconColor: Colors.purple,
                       title: 'Fitur Tambahan',
-                      subtitle: settings.barcodeEnabled ? 'Barcode AKTIF' : 'Opsi tambahan',
+                      subtitle: settings.barcodeEnabled ? 'Barcode Aktif' : 'Opsi tambahan',
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const FiturScreen()),
@@ -124,13 +124,13 @@ class PengaturanScreen extends ConsumerWidget {
                   ],
                 ),
                 AtelierListGroup(
-                  label: 'APLIKASI',
+                  label: 'Aplikasi',
                   children: [
                     AtelierListTile(
                       icon: AppIcons.appearance,
                       iconColor: Colors.pink,
                       title: 'Tampilan',
-                      subtitle: settings.themeMode.toUpperCase(),
+                      subtitle: settings.themeMode[0].toUpperCase() + settings.themeMode.substring(1).toLowerCase(),
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const TampilanScreen()),

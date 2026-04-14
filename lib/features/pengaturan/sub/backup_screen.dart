@@ -183,7 +183,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
       body: CustomScrollView(
         slivers: [
           const SliverAtelierHeaderSub(
-            title: 'Cadangkan & Pulihkan',
+            title: 'Cadang & Pulihkan',
             subtitle: 'Cadangkan foto, pengaturan, dan semua catatan Anda.',
             showBackButton: true,
           ),
@@ -194,7 +194,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   // --- Google Account Section ---
-                  _buildSectionHeader('AKUN GOOGLE'),
+                  _buildSectionHeader('Akun Google'),
                   Container(
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
@@ -243,7 +243,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                                   await _authService.signOut();
                                   setState(() {});
                                 },
-                          child: Text(user == null ? 'HUBUNGKAN' : 'PUTUSKAN'),
+                          child: Text(user == null ? 'Hubungkan' : 'Putuskan'),
                         ),
                       ],
                     ),
@@ -251,7 +251,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
 
                   const SizedBox(height: 24),
                   if (backupState.isUploading) ...[
-                    _buildSectionHeader('PROGRESS BACKUP'),
+                    _buildSectionHeader('Progres Cadangan'),
                     Container(
                       padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
@@ -302,11 +302,11 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     const SizedBox(height: 24),
                   ],
 
-                  _buildSectionHeader('JADWAL OTOMATIS'),
+                  _buildSectionHeader('Jadwal Otomatis'),
                   _buildFrequencySelector(settings),
 
                   const SizedBox(height: 24),
-                  _buildSectionHeader('TINDAKAN'),
+                  _buildSectionHeader('Tindakan'),
                   _buildActionButton(
                     icon: SolarIconsOutline.cloudUpload,
                     label: 'Backup Sekarang',
@@ -334,7 +334,7 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                   ),
 
                   const SizedBox(height: 32),
-                  _buildSectionHeader('EKSPOR DATA (CSV)'),
+                  _buildSectionHeader('Ekspor Data (CSV)'),
                   _buildSecurityWarning(theme),
                   const SizedBox(height: 12),
                   _buildActionButton(

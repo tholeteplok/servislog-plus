@@ -167,7 +167,10 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
         ],
         body: NotificationListener<ScrollNotification>(
           onNotification: (notification) {
+            // 🛠️ FIX: Only trigger page navigation for HORIZONTAL overscroll.
+            // This prevents vertical list overscroll (hitting top/bottom) from accidentally flipping screens.
             if (notification is OverscrollNotification &&
+                notification.metrics.axis == Axis.horizontal &&
                 widget.mainPageController != null) {
               if (notification.overscroll < 0 && _tabController.index == 0) {
                 // Swipe Right (drag right) -> Go to Home (index 0)

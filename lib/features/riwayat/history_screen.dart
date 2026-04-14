@@ -289,7 +289,7 @@ class _FilterBottomSheet extends ConsumerWidget {
             ],
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('PILIH TANGGAL'),
+          _buildFilterLabel('Pilih Tanggal'),
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
@@ -330,7 +330,7 @@ class _FilterBottomSheet extends ConsumerWidget {
             ),
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('TIPE TRANSAKSI'),
+          _buildFilterLabel('Tipe Transaksi'),
           const SizedBox(height: 8),
           _buildChoiceRow(
             ref,
@@ -341,7 +341,7 @@ class _FilterBottomSheet extends ConsumerWidget {
                 .update((s) => s.copyWith(type: val)),
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('METODE PEMBAYARAN'),
+          _buildFilterLabel('Metode Pembayaran'),
           const SizedBox(height: 8),
           _buildChoiceRow(
             ref,
@@ -466,7 +466,7 @@ class _HistoryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        item.type == 'SERVICE' ? 'SERVIS' : 'PRODUK',
+                        item.type == 'SERVICE' ? 'Servis' : 'Produk',
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,

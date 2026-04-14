@@ -121,19 +121,19 @@ class _TentangScreenState extends State<TentangScreen>
                     icon: SolarIconsOutline.fileText,
                     title: 'Syarat & Ketentuan',
                     onTap: () =>
-                        _launchUrl('https://tholeteplok.github.io/servislog-plus/terms.html'),
+                        _launchUrl('https://servislog-plus.web.app/terms.html'),
                   ),
                   _LinkTile(
                     icon: SolarIconsOutline.questionCircle,
                     title: 'Bantuan & FAQ',
                     onTap: () =>
-                        _launchUrl('https://tholeteplok.github.io/servislog-plus/faq.html'),
+                        _launchUrl('https://servislog-plus.web.app/faq.html'),
                   ),
                   _LinkTile(
                     icon: SolarIconsOutline.shieldCheck,
                     title: 'Kebijakan Privasi',
                     onTap: () =>
-                        _launchUrl('https://tholeteplok.github.io/servislog-plus/'),
+                        _launchUrl('https://servislog-plus.web.app/'),
                   ),
                   _LinkTile(
                     icon: SolarIconsOutline.star,

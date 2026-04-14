@@ -35,12 +35,12 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('BATAL'),
+            child: const Text('Batal'),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-            child: const Text('MIGRASI SEKARANG'),
+            child: const Text('Migrasi Sekarang'),
           ),
         ],
       ),
@@ -106,13 +106,13 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader('STATUS PENYIMPANAN'),
+                  _buildSectionHeader('Status Penyimpanan'),
                   _buildStatusCard(theme, isDark, isActive),
                   const SizedBox(height: 24),
-                  _buildSectionHeader('INFORMASI BENGKEL'),
+                  _buildSectionHeader('Informasi Bengkel'),
                   _buildInfoCard(theme, isDark, settings, profile, bengkelId),
                   const SizedBox(height: 32),
-                  _buildSectionHeader('AKSI PEMELIHARAAN'),
+                  _buildSectionHeader('Aksi Pemeliharaan'),
                   _buildMigrationButton(theme, isDark),
                   const SizedBox(height: 12),
                   _buildSecurityInfo(theme, isDark),
@@ -204,7 +204,10 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
     UserProfile? profile,
     String bengkelId,
   ) {
-    final role = profile?.role.toUpperCase() ?? 'OWNER (LOCAL)';
+    final currentRole = profile?.role;
+    final role = currentRole != null 
+        ? (currentRole[0].toUpperCase() + currentRole.substring(1).toLowerCase())
+        : 'Owner (Local)';
 
     return Container(
       padding: const EdgeInsets.all(20),

@@ -93,7 +93,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('INFORMASI BENGKEL', style: theme.sectionLabelStyle),
+                    Text('Informasi Bengkel', style: theme.sectionLabelStyle),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _namaBengkelCtrl,
@@ -128,7 +128,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                     ),
 
                     const SizedBox(height: 32),
-                    Text('INFORMASI OWNER', style: theme.sectionLabelStyle),
+                    Text('Informasi Owner', style: theme.sectionLabelStyle),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _namaOwnerCtrl,

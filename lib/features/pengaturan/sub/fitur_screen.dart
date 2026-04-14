@@ -154,7 +154,7 @@ class _FiturScreenState extends ConsumerState<FiturScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('OTOMATISASI', style: theme.sectionLabelStyle),
+                  Text('Otomatisasi', style: theme.sectionLabelStyle),
                   const SizedBox(height: 16),
 
                   _FeatureToggle(
@@ -282,7 +282,7 @@ class _FiturScreenState extends ConsumerState<FiturScreen> {
                   ],
 
                   const SizedBox(height: 40),
-                  Text('KOMUNIKASI', style: theme.sectionLabelStyle),
+                  Text('Komunikasi', style: theme.sectionLabelStyle),
                   const SizedBox(height: 16),
                   _FeatureToggle(
                     title: 'Notifikasi WhatsApp',
@@ -294,7 +294,7 @@ class _FiturScreenState extends ConsumerState<FiturScreen> {
                   ),
 
                   const SizedBox(height: 40),
-                  Text('KEAMANAN', style: theme.sectionLabelStyle),
+                  Text('Keamanan', style: theme.sectionLabelStyle),
                   const SizedBox(height: 16),
                   _FeatureToggle(
                     title: 'Kunci Biometrik & PIN',

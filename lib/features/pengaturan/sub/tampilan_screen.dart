@@ -52,7 +52,7 @@ class TampilanScreen extends ConsumerWidget {
           SliverList(
             delegate: SliverChildListDelegate([
               AtelierListGroup(
-                label: 'SISTEM TEMA',
+                label: 'Sistem Tema',
                 children: [
                   _ThemeTile(
                     title: 'Terang',
@@ -92,7 +92,7 @@ class TampilanScreen extends ConsumerWidget {
                 Padding(
                   padding: const EdgeInsets.only(top: 8),
                   child: AtelierListGroup(
-                    label: 'JADWAL TEMA TERANG',
+                    label: 'Jadwal Tema Terang',
                     children: [
                       AtelierListTile(
                         icon: SolarIconsOutline.sunrise,
@@ -126,7 +126,7 @@ class TampilanScreen extends ConsumerWidget {
                   ),
                 ),
               AtelierListGroup(
-                label: 'DESAIN VISUAL',
+                label: 'Desain Visual',
                 children: [
                   AtelierSwitchTile(
                     icon: SolarIconsOutline.globus,

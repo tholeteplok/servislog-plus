@@ -332,12 +332,12 @@ class PelangganDetailScreen extends ConsumerWidget {
         ),
         child: Row(
           children: [
-            _buildStatItem('KENDARAAN', vehicleCount.toString()),
+            _buildStatItem('Kendaraan', vehicleCount.toString()),
             _buildStatDivider(theme),
-            _buildStatItem('KUNJUNGAN', visitCount.toString()),
+            _buildStatItem('Kunjungan', visitCount.toString()),
             _buildStatDivider(theme),
             _buildStatItem(
-              'TOTAL',
+              'Total',
               NumberFormat.compactCurrency(
                 locale: 'id',
                 symbol: 'Rp',
@@ -475,7 +475,7 @@ class PelangganDetailScreen extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'KENDARAAN',
+                  'Kendaraan',
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 13,
                     fontWeight: FontWeight.w900,
@@ -662,7 +662,7 @@ class PelangganDetailScreen extends ConsumerWidget {
       child: Padding(
         padding: const EdgeInsets.fromLTRB(24, 12, 24, 4),
         child: Text(
-          'RIWAYAT AKTIVITAS',
+          'Riwayat Aktivitas',
           style: GoogleFonts.plusJakartaSans(
             fontSize: 13,
             fontWeight: FontWeight.w900,
@@ -863,7 +863,7 @@ class PelangganDetailScreen extends ConsumerWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'BATAL',
+              'Batal',
               style: GoogleFonts.plusJakartaSans(color: theme.hintColor),
             ),
           ),
@@ -874,7 +874,7 @@ class PelangganDetailScreen extends ConsumerWidget {
               Navigator.pop(context); // detail screen
             },
             child: Text(
-              'HAPUS',
+              'Hapus',
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.redAccent,
                 fontWeight: FontWeight.bold,
