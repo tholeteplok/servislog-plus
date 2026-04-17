@@ -33,7 +33,7 @@ class InactivityMonitor extends WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     final settings = _ref.read(settingsProvider);
-    if (!settings.autoLock30m) return;
+    if (settings.autoLockDuration <= 0) return;
 
     if (state == AppLifecycleState.paused || state == AppLifecycleState.inactive) {
       _backgroundTime = DateTime.now();
@@ -43,16 +43,16 @@ class InactivityMonitor extends WidgetsBindingObserver {
         final diff = DateTime.now().difference(_backgroundTime!);
         debugPrint('🕒 App resumed. Background duration: ${diff.inMinutes}m');
 
-        if (diff.inMinutes >= 30) {
-          _lockApp();
+        if (diff.inMinutes >= settings.autoLockDuration) {
+          _lockApp(settings.autoLockDuration);
         }
         _backgroundTime = null;
       }
     }
   }
 
-  void _lockApp() {
-    debugPrint('☢️ Auto-lock triggered (30m inactivity)');
+  void _lockApp(int duration) {
+    debugPrint('☢️ Auto-lock triggered (${duration}m inactivity)');
     // Clearing the in-memory encrypter will force AuthGate to show UnlockScreen
     EncryptionService().lock();
     

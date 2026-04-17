@@ -3,23 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syarat dan Ketentuan - ServisLog+</title>
+    <title>Syarat & Ketentuan - ServisLog+</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #9d50bb; /* Precision Violet/Amethyst */
+            --primary: #9d50bb;
             --secondary: #6e48aa;
-            --dark: #0f1218; /* Obsidian Base */
+            --dark: #0f1218;
             --light: #f8f9fa;
+            --accent: #6c5ce7;
             --text-main: #2d3436;
             --text-muted: #636e72;
+            --card-bg: #ffffff;
+            --border: #edf2f7;
         }
+
+        * { box-sizing: border-box; -webkit-font-smoothing: antialiased; }
 
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
-            line-height: 1.6;
+            line-height: 1.7;
             color: var(--text-main);
             background-color: var(--light);
             margin: 0;
@@ -29,136 +34,160 @@
         header {
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             color: white;
-            padding: 80px 20px;
+            padding: 100px 20px;
             text-align: center;
-            border-bottom-left-radius: 40px;
-            border-bottom-right-radius: 40px;
-            box-shadow: 0 10px 30px rgba(157, 80, 187, 0.2);
         }
 
         header h1 {
             margin: 0;
             font-weight: 800;
-            font-size: 2.5rem;
-            letter-spacing: -1px;
+            font-size: 3rem;
+            letter-spacing: -1.5px;
         }
 
         header p {
-            opacity: 0.9;
+            opacity: 0.95;
             font-weight: 600;
-            margin-top: 10px;
+            margin-top: 15px;
+            font-size: 1.1rem;
         }
 
         main {
-            max-width: 800px;
-            margin: -40px auto 60px;
-            background: white;
-            padding: 40px;
-            border-radius: 24px;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.05);
+            max-width: 900px;
+            margin: -60px auto 80px;
+            background: var(--card-bg);
+            padding: 60px;
+            border-radius: 32px;
+            box-shadow: 0 40px 100px rgba(15, 18, 24, 0.08);
+        }
+
+        .meta-info {
+            display: inline-block;
+            background: #f0f3ff;
+            color: var(--accent);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin-bottom: 30px;
         }
 
         h2 {
-            color: var(--primary);
-            border-left: 4px solid var(--primary);
-            padding-left: 15px;
-            margin-top: 40px;
+            color: var(--dark);
             font-weight: 800;
-            font-size: 1.25rem;
+            font-size: 1.6rem;
+            margin-top: 50px;
+            letter-spacing: -0.5px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 15px;
         }
 
         h3 {
             color: var(--dark);
-            margin-top: 25px;
-            font-weight: 600;
-            font-size: 1.1rem;
+            margin-top: 35px;
+            font-weight: 700;
+            font-size: 1.2rem;
         }
 
-        ul {
-            padding-left: 20px;
+        p, li {
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-muted);
         }
 
-        li {
-            margin-bottom: 10px;
+        .warning-box {
+            background: #fffafa;
+            padding: 30px;
+            border-radius: 20px;
+            border: 1px solid #ffebeb;
+            margin: 30px 0;
         }
 
-        hr {
-            border: 0;
-            height: 1px;
-            background: #eee;
-            margin: 40px 0;
-        }
-
-        .alert-box {
-            background: #fff5f5;
-            padding: 20px;
-            border-radius: 16px;
-            border: 1px solid #fed7d7;
-            margin: 20px 0;
+        .warning-box h3 {
+            color: #e74c3c;
+            margin-top: 0;
         }
 
         footer {
             text-align: center;
-            padding: 40px;
+            padding-bottom: 60px;
             color: var(--text-muted);
-            font-size: 0.9rem;
+            font-size: 0.95rem;
+            font-weight: 600;
         }
 
-        @media (max-width: 600px) {
-            header { padding: 40px 20px; }
-            main { margin: 0 15px; padding: 25px; border-radius: 0; }
-            header h1 { font-size: 1.8rem; }
+        @media (max-width: 768px) {
+            header { padding: 60px 20px; }
+            main { margin: -30px 15px 40px; padding: 35px 25px; border-radius: 24px; }
+            header h1 { font-size: 2.2rem; }
         }
     </style>
 </head>
 <body>
 
 <header>
-    <h1>ServisLog+</h1>
-    <p>Syarat dan Ketentuan Penggunaan</p>
+    <h1>Syarat & Ketentuan</h1>
+    <p>Ketentuan Penggunaan Layanan ServisLog+</p>
 </header>
 
 <main>
-    <p><strong>Terakhir Diperbarui: 14 April 2026</strong></p>
-    
-    <p>Terima kasih telah menggunakan <strong>ServisLog+</strong>. Dengan mengunduh, mengakses, atau menggunakan aplikasi ini, Anda setuju untuk terikat oleh Syarat dan Ketentuan berikut.</p>
+    <div class="meta-info">Terakhir Diperbarui: 14 April 2026</div>
 
-    <hr>
+    <p>Terima kasih telah menggunakan <strong>ServisLog+</strong>. Dengan mengunduh, mengakses, atau menggunakan aplikasi ini, Anda setuju untuk terikat oleh Syarat dan Ketentuan berikut. Jika Anda tidak menyetujui bagian mana pun dari ketentuan ini, Anda tidak diperbolehkan menggunakan aplikasi kami.</p>
 
     <h2>1. Definisi</h2>
     <ul>
         <li><strong>Aplikasi:</strong> Merujuk pada aplikasi Android ServisLog+.</li>
-        <li><strong>Pengguna:</strong> Pemilik bengkel atau staf yang terdaftar.</li>
+        <li><strong>Pengguna:</strong> Pemilik bengkel atau staf yang terdaftar dan menggunakan layanan ServisLog+.</li>
         <li><strong>Kami:</strong> Pengembang ServisLog+ dan tim manajemen terkait.</li>
     </ul>
 
     <h2>2. Lisensi Penggunaan</h2>
-    <p>Kami memberikan Anda lisensi terbatas untuk menggunakan Aplikasi guna kepentingan manajemen operasional bengkel Anda. Anda tidak diperbolehkan untuk melakukan rekayasa balik atau menjual kembali bagian mana pun dari Aplikasi.</p>
+    <p>Kami memberikan Anda lisensi terbatas, non-eksklusif, dan tidak dapat dipindahtangankan untuk menggunakan Aplikasi guna kepentingan manajemen operasional bengkel Anda. Anda tidak diperbolehkan untuk melakukan rekayasa balik (reverse engineering), menjual kembali, atau mendistribusikan bagian mana pun dari kode sumber Aplikasi tanpa izin tertulis dari kami.</p>
 
-    <h2>3. Akun dan Keamanan</h2>
-    <div class="alert-box">
-        <h3>PENTING: Tanggung Jawab Zero-Knowledge</h3>
-        <p>ServisLog+ menggunakan arsitektur <strong>Zero-Knowledge</strong>. Kami tidak memiliki salinan kunci enkripsi Anda.</p>
-        <p>Jika Anda lupa kata sandi atau kehilangan akses ke perangkat tanpa cadangan kunci yang benar, <strong>data Anda tidak dapat dipulihkan oleh kami.</strong></p>
+    <h2>3. Akun dan Keamanan (PENTING)</h2>
+    <div class="warning-box">
+        <h3>Tanggung Jawab Kata Sandi dan Master Key</h3>
+        <p>ServisLog+ menggunakan arsitektur <strong>Zero-Knowledge</strong>. Ini berarti kunci enkripsi data Anda hanya disimpan di perangkat Anda atau dilindungi oleh Master Password Anda.</p>
+        <ul>
+            <li><strong>Tanggung Jawab Mandiri:</strong> Anda bertanggung jawab penuh untuk menjaga kerahasiaan kata sandi dan Master Password Anda.</li>
+            <li><strong>Risiko Kehilangan:</strong> Kami tidak memiliki salinan kunci enkripsi Anda. Jika Anda lupa kata sandi atau kehilangan akses ke perangkat tanpa cadangan kunci yang benar, <strong>data Anda tidak dapat dipulihkan oleh kami.</strong></li>
+        </ul>
     </div>
 
-    <h2>4. Ketentuan Layanan Awan</h2>
-    <p>Layanan sinkronisasi disediakan melalui Google Firebase. Kami tidak menjamin ketersediaan layanan 100% tanpa gangguan dan kualitas sinkronisasi bergantung pada koneksi internet Anda.</p>
+    <h2>4. Ketentuan Layanan Awan (Cloud Sync)</h2>
+    <p>Aplikasi menyediakan fitur sinkronisasi data melalui layanan pihak ketiga (Google Firebase).</p>
+    <ul>
+        <li><strong>Ketersediaan:</strong> Kami berupaya menjaga ketersediaan layanan setinggi mungkin, namun kami tidak menjamin ketersediaan layanan 100% setiap saat tanpa gangguan.</li>
+        <li><strong>Koneksi Internet:</strong> Kualitas sinkronisasi sangat bergantung pada stabilitas koneksi internet perangkat Anda.</li>
+    </ul>
 
     <h2>5. Batasan Tanggung Jawab</h2>
-    <p>ServisLog+ disediakan "sebagaimana adanya". Kami tidak bertanggung jawab atas kerugian finansial, kehilangan data, atau gangguan bisnis yang timbul akibat penggunaan Aplikasi.</p>
+    <ul>
+        <li><strong>Layanan "Sebagaimana Adanya":</strong> ServisLog+ disediakan "sebagaimana adanya" tanpa jaminan apa pun, baik tersurat maupun tersirat.</li>
+        <li><strong>Kerugian Bisnis:</strong> Kami tidak bertanggung jawab atas segala kerugian finansial, kehilangan data, gangguan bisnis, atau konsekuensi hukum yang timbul akibat penggunaan Aplikasi ini.</li>
+        <li><strong>Akurasi Data:</strong> Anda bertanggung jawab penuh atas akurasi data transaksi, inventaris, dan pelanggan yang dimasukkan ke dalam Aplikasi.</li>
+    </ul>
 
     <h2>6. Penggunaan yang Dilarang</h2>
-    <p>Dilarang menggunakan aplikasi untuk menyimpan data ilegal atau melakukan aktivitas yang merugikan infrastruktur sistem kami.</p>
+    <p>Anda setuju untuk tidak menggunakan Aplikasi untuk:</p>
+    <ol>
+        <li>Menyimpan data yang melanggar hukum atau hak privasi pihak lain.</li>
+        <li>Melakukan aktivitas yang dapat merusak, mengganggu, atau membebani server layanan cloud kami secara berlebihan.</li>
+        <li>Menggunakan Aplikasi untuk tujuan penipuan atau aktivitas ilegal lainnya.</li>
+    </ol>
 
-    <hr>
+    <h2>7. Perubahan Layanan dan Ketentuan</h2>
+    <p>Kami berhak untuk mengubah, menangguhkan, atau menghentikan bagian apa pun dari Aplikasi kapan saja. Keluar penggunaan Aplikasi setelah pembaruan berarti Anda menyetujui ketentuan yang baru.</p>
 
-    <h3>Kontak Bantuan</h3>
-    <p>Email: <a href="mailto:support.servislog@gmail.com">support.servislog@gmail.com</a></p>
+    <div style="margin-top: 60px; padding: 30px; background: #f0f3ff; border-radius: 20px; text-align: center;">
+        <h3>Kontak Dukungan</h3>
+        <p>Email: <a href="mailto:support.servislog@gmail.com" style="color: var(--primary); font-weight: 700; text-decoration: none;">support.servislog@gmail.com</a></p>
+    </div>
 </main>
 
 <footer>
-    <p>&copy; 2026 ServisLog+ | Keamanan Anda adalah Prioritas Kami</p>
+    <p>&copy; 2026 ServisLog+ | Profesional & Terpercaya</p>
 </footer>
 
 </body>

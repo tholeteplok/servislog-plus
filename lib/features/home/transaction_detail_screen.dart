@@ -1,16 +1,17 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_icons.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/widgets/standard_dialog.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/transaction_providers.dart';
 import '../../core/providers/pengaturan_provider.dart';
 import '../../core/widgets/critical_action_guard.dart';
+import '../../core/widgets/atelier_header.dart';
 import '../../core/services/session_manager.dart';
 import '../../domain/entities/transaction.dart' as entity;
 
@@ -22,91 +23,62 @@ class TransactionDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
-    final dateFormat = DateFormat('EEEE, dd MMMM yyyy - HH:mm', 'id_ID');
+    final dateFormat = DateFormat(AppStrings.date.fullDateTime, AppStrings.date.localeID);
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
           // ── Gold Standard Header Section ──
-          SliverToBoxAdapter(
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
-              decoration: BoxDecoration(
-                gradient: AppColors.headerGradient(context),
-                borderRadius: const BorderRadius.vertical(
-                  bottom: Radius.circular(24),
+          SliverAtelierHeaderSub(
+            title: transaction.trxNumber,
+            subtitle: dateFormat.format(transaction.createdAt),
+            actions: [
+              Center(
+                child: Container(
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  child: Text(
+                    transaction.status.toUpperCase() == 'PAID'
+                        ? AppStrings.transaction.statusPaid
+                        : transaction.status.toUpperCase() == 'UNPAID'
+                            ? AppStrings.transaction.statusUnpaid
+                            : transaction.status.toUpperCase(),
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 2,
+                    ),
+                  ),
                 ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        IconButton(
-                          onPressed: () => Navigator.pop(context),
-                          icon: const Icon(
-                            LucideIcons.chevronLeft,
-                            color: Colors.white,
-                          ),
-                          style: IconButton.styleFrom(
-                            backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          ),
-                        ),
-                        CriticalActionGuard(
-                          actionType: CriticalActionType.deleteTransaction,
-                          onVerified: () => _confirmDelete(context, ref),
-                          child: IconButton(
-                            onPressed: null, // Guard will handle the tap
-                            icon: const Icon(
-                              SolarIconsOutline.trashBinTrash,
-                              color: Colors.white,
-                            ),
-                            style: IconButton.styleFrom(
-                              backgroundColor: Colors.white.withValues(alpha: 0.1),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      transaction.trxNumber,
-                      style: GoogleFonts.plusJakartaSans(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -1,
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 6,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withValues(alpha: 0.15),
-                        borderRadius: BorderRadius.circular(20),
-                      ),
-                      child: Text(
-                        transaction.status.toUpperCase() == 'PAID'
-                            ? 'LUNAS'
-                            : transaction.status.toUpperCase() == 'UNPAID'
-                                ? 'BELUM LUNAS'
-                                : transaction.status.toUpperCase(),
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontSize: 10,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 2,
-                        ),
-                      ),
-                    ),
-                  ],
+              CriticalActionGuard(
+                actionType: CriticalActionType.deleteTransaction,
+                onVerified: () => _confirmDelete(context, ref),
+                child: IconButton(
+                  onPressed: null, // Guard will handle the tap
+                  icon: const Icon(
+                    SolarIconsOutline.trashBinTrash,
+                    color: Colors.white,
+                  ),
+                  tooltip: AppStrings.transaction.deleteTrxTooltip,
+                  style: const ButtonStyle(
+                    minimumSize: WidgetStatePropertyAll(Size(48, 48)),
+                    // Note: original had custom style, using standard IconButton.styleFrom for cleaner migration if needed, 
+                    // but keeping logic consistent with existing guard pattern.
+                  ),
                 ),
-            ),
+              ),
+              const SizedBox(width: 8),
+            ],
           ),
 
           // ── Details Section ──
@@ -118,16 +90,16 @@ class TransactionDetailScreen extends ConsumerWidget {
                 _buildReminderBanner(context, ref),
                 _buildInfoSection(
                   context,
-                  title: 'DETAIL PELANGGAN',
+                  title: AppStrings.transaction.sectionCustomerDetail,
                   children: [
                     _DetailRow(
                       icon: SolarIconsOutline.user,
-                      label: 'Nama Pelanggan',
+                      label: AppStrings.transaction.customerName,
                       value: transaction.customerName,
                     ),
                     _DetailRow(
                       icon: SolarIconsOutline.phone,
-                      label: 'Nomor Telepon',
+                      label: AppStrings.transaction.phoneNumber,
                       value: transaction.customerPhone,
                     ),
                   ],
@@ -135,16 +107,16 @@ class TransactionDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _buildInfoSection(
                   context,
-                  title: 'DETAIL KENDARAAN',
+                  title: AppStrings.transaction.sectionVehicleDetail,
                   children: [
                     _DetailRow(
                       icon: SolarIconsOutline.scooter,
-                      label: 'Model Kendaraan',
+                      label: AppStrings.transaction.vehicleModel,
                       value: transaction.vehicleModel,
                     ),
                     _DetailRow(
                       icon: SolarIconsOutline.plate,
-                      label: 'Nomor Polisi',
+                      label: AppStrings.transaction.plateNumber,
                       value: transaction.vehiclePlate,
                     ),
                   ],
@@ -152,11 +124,11 @@ class TransactionDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _buildInfoSection(
                   context,
-                  title: 'BIAYA & WAKTU',
+                  title: AppStrings.transaction.sectionCostTime,
                   children: [
                     _DetailRow(
                       icon: SolarIconsOutline.wadOfMoney,
-                      label: 'Total Biaya',
+                      label: AppStrings.transaction.totalCost,
                       value:
                           'Rp ${NumberFormat('#,###', 'id_ID').format(transaction.totalAmount)}',
                       valueColor: AppColors.amethyst,
@@ -164,19 +136,19 @@ class TransactionDetailScreen extends ConsumerWidget {
                     ),
                     _DetailRow(
                       icon: SolarIconsOutline.calendar,
-                      label: 'Tanggal Transaksi',
+                      label: AppStrings.transaction.transactionDate,
                       value: dateFormat.format(transaction.createdAt),
                     ),
                     if (transaction.mechanicName != null)
                       _DetailRow(
                         icon: SolarIconsOutline.userHandUp,
-                        label: 'Teknisi',
+                        label: AppStrings.transaction.labelTechnician,
                         value: transaction.mechanicName!,
                       ),
                     if (transaction.paymentMethod != null)
                       _DetailRow(
                         icon: SolarIconsOutline.cardTransfer,
-                        label: 'Metode Pembayaran',
+                        label: AppStrings.transaction.paymentMethod,
                         value: transaction.paymentMethod!,
                       ),
                   ],
@@ -186,18 +158,18 @@ class TransactionDetailScreen extends ConsumerWidget {
                     transaction.mechanicNotes != null) ...[
                   _buildInfoSection(
                     context,
-                    title: 'CATATAN SERVIS',
+                    title: AppStrings.transaction.sectionServiceNotes,
                     children: [
                       if (transaction.complaint != null)
                         _DetailRow(
                           icon: SolarIconsOutline.notes,
-                          label: 'Keluhan Pelanggan',
+                          label: AppStrings.transaction.complaint,
                           value: transaction.complaint!,
                         ),
                       if (transaction.mechanicNotes != null)
                         _DetailRow(
                           icon: SolarIconsOutline.pen,
-                          label: 'Catatan Teknisi',
+                          label: AppStrings.transaction.techNotesTitle,
                           value: transaction.mechanicNotes!,
                         ),
                     ],
@@ -208,22 +180,20 @@ class TransactionDetailScreen extends ConsumerWidget {
                     transaction.recommendationKm != null) ...[
                   _buildInfoSection(
                     context,
-                    title: 'REKOMENDASI KEMBALI',
+                    title: AppStrings.transaction.sectionReturnRecommendation,
                     children: [
                       if (transaction.recommendationTimeMonth != null)
                         _DetailRow(
                           icon: SolarIconsOutline.calendar,
-                          label: 'Berdasarkan Waktu',
-                          value:
-                              'Kembali dalam ${transaction.recommendationTimeMonth} Bulan',
+                          label: AppStrings.transaction.byTime,
+                          value: AppStrings.transaction.returnMonthsValue(transaction.recommendationTimeMonth!),
                           valueColor: AppColors.amethyst,
                         ),
                       if (transaction.recommendationKm != null)
                         _DetailRow(
                           icon: SolarIconsOutline.map,
-                          label: 'Berdasarkan Jarak',
-                          value:
-                              'Kembali pada ${NumberFormat('#,###', 'id_ID').format(transaction.recommendationKm)} Km',
+                          label: AppStrings.transaction.byDistance,
+                          value: AppStrings.transaction.returnDistanceValue(NumberFormat('#,###', 'id_ID').format(transaction.recommendationKm)),
                           valueColor: AppColors.amethyst,
                         ),
                     ],
@@ -233,9 +203,9 @@ class TransactionDetailScreen extends ConsumerWidget {
                 const SizedBox(height: 12),
                 _buildInfoSection(
                   context,
-                  title: 'ITEM SERVIS & SPAREPART',
+                  title: AppStrings.transaction.sectionServiceItems,
                   children: transaction.items.isEmpty
-                      ? [const Text('Tidak ada item tercatat')]
+                      ? [Text(AppStrings.transaction.noItemsRecorded)]
                       : transaction.items
                             .map(
                               (item) => Column(
@@ -270,7 +240,7 @@ class TransactionDetailScreen extends ConsumerWidget {
                       Padding(
                         padding: const EdgeInsets.only(left: 4, bottom: 12),
                         child: Text(
-                          'FOTO BUKTI / KENDARAAN',
+                          AppStrings.transaction.sectionPhotos,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -316,11 +286,11 @@ class TransactionDetailScreen extends ConsumerWidget {
 
     final Color color = isOverdue ? Colors.red : Colors.orange;
     final String text = isOverdue
-        ? '⚠️ MASA SERVIS BERIKUTNYA SUDAH TERLEWAT'
-        : '🔔 SUDAH MASUK WAKTU SERVIS BERKALA';
+        ? AppStrings.transaction.overdueBanner
+        : AppStrings.transaction.dueSoonBanner;
     final nextDate = transaction.nextServiceDate;
     final dateStr = nextDate != null
-        ? DateFormat('dd MMM yyyy').format(nextDate)
+        ? DateFormat(AppStrings.date.displayDate).format(nextDate)
         : '-';
 
     return Container(
@@ -356,7 +326,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Estimasi servis berikutnya seharusnya pada $dateStr. Segera lakukan follow-up pelanggan.',
+            AppStrings.transaction.followUpMessage(dateStr),
             style: GoogleFonts.plusJakartaSans(
               fontSize: 11,
               color: color.withValues(alpha: 0.8),
@@ -420,10 +390,9 @@ class TransactionDetailScreen extends ConsumerWidget {
             size: 36,
           ),
         ),
-        title: 'Hapus Transaksi?',
-        message:
-            'Yakin ingin menghapus transaksi ini? Tindakan ini tidak bisa dibatalkan.',
-        primaryActionLabel: 'Hapus',
+        title: AppStrings.transaction.deleteTrxTitle,
+        message: AppStrings.transaction.deleteTrxDesc,
+        primaryActionLabel: AppStrings.common.delete,
         primaryActionColor: Colors.red,
         onPrimaryAction: () {
           ref.read(transactionListProvider.notifier).deleteTransaction(
@@ -433,7 +402,7 @@ class TransactionDetailScreen extends ConsumerWidget {
           Navigator.pop(context); // Close dialog
           Navigator.pop(context); // Close detail screen
         },
-        secondaryActionLabel: 'Batal',
+        secondaryActionLabel: AppStrings.common.cancel,
       ),
     );
   }

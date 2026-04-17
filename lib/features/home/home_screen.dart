@@ -13,6 +13,7 @@ import '../../core/providers/transaction_providers.dart';
 import '../../core/providers/master_providers.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/widgets/atelier_list_card.dart';
 import '../../core/providers/home_provider.dart';
 import '../../domain/entities/transaction.dart';
@@ -36,6 +37,7 @@ import '../../core/widgets/sync_status_indicator.dart';
 import '../../core/services/session_manager.dart';
 import '../../core/widgets/atelier_skeleton.dart';
 import '../../core/widgets/atelier_header.dart';
+import '../main/responsive_layout_builder.dart';
 
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -86,9 +88,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     messenger.clearSnackBars();
     messenger.showSnackBar(
       SnackBar(
-        content: Text('Transaksi ${trx.trxNumber} dihapus'),
+        content: Text(AppStrings.transaction.deleteConfirmation(trx.trxNumber)),
         action: SnackBarAction(
-          label: 'BATAL',
+          label: AppStrings.common.cancel.toUpperCase(),
           onPressed: () {
             ref.read(paginatedTransactionListProvider.notifier).undoDelete();
           },
@@ -198,11 +200,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
         slivers: [
           SliverAtelierHeader(
             title: settings.workshopName,
-            subtitle: DateFormat('EEEE, d MMMM yyyy', 'id_ID')
+            subtitle: DateFormat('EEEE, d MMMM yyyy', AppStrings.date.localeID)
                 .format(DateTime.now()),
             showBackButton: false,
             searchController: _searchController,
-            searchHint: 'Cari transaksi hari ini...',
+            searchHint: AppStrings.home.searchHint,
             onSearchChanged: (val) {
               ref.read(homeSearchQueryProvider.notifier).update(val);
             },
@@ -227,13 +229,12 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: const Text('QRIS Belum Diatur'),
-                          content: const Text(
-                              'Fitur QRIS aktif tetapi gambar belum diunggah. Atur sekarang?'),
+                          title: Text(AppStrings.home.qrisNotSet),
+                          content: Text(AppStrings.home.qrisNotSetDesc),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx),
-                              child: const Text('Batal'),
+                              child: Text(AppStrings.common.cancel),
                             ),
                             TextButton(
                               onPressed: () {
@@ -254,11 +255,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   },
                   icon: const Icon(SolarIconsOutline.qrCode,
                       color: Colors.white, size: 20),
-                  style: IconButton.styleFrom(
-                    backgroundColor: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.05),
-                  ),
+                   style: IconButton.styleFrom(
+                     backgroundColor: isDark
+                         ? Colors.white.withValues(alpha: 0.1)
+                         : Colors.black.withValues(alpha: 0.05),
+                     minimumSize: const Size(48, 48),
+                     tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                   ),
                 ),
               ],
               const SizedBox(width: 8),
@@ -269,7 +272,9 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                 ),
                 icon: const Icon(SolarIconsOutline.settings,
                     color: Colors.white, size: 20),
+                tooltip: AppStrings.home.settings,
                 style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
                   backgroundColor: isDark
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.05),
@@ -299,11 +304,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             child: _BentoCard(
-                              title: 'PENDAPATAN HARI INI',
+                              title: AppStrings.home.todayRevenue,
                               value: _formatCurrencyShort(
                                 stats.todayPendapatan.toDouble(),
                               ),
-                              subValue: 'Total Pendapatan',
+                              subValue: AppStrings.home.totalRevenueLabel,
                               icon: SolarIconsBold.wadOfMoney,
                               color: theme.colorScheme.primary,
                             ),
@@ -320,11 +325,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             child: _BentoCard(
-                              title: 'REMINDER',
+                              title: AppStrings.home.reminder,
                               value: ref
                                   .watch(reminderCountProvider)
                                   .toString(),
-                              subValue: 'Mendatang',
+                              subValue: AppStrings.home.upcoming,
                               icon: SolarIconsBold.bell,
                               color: Colors.orange,
                             ),
@@ -337,10 +342,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       children: [
                         Expanded(
                           child: _BentoCard(
-                            title: 'PENGUNJUNG',
+                            title: AppStrings.home.visitors,
                             value: stats.todayVisitorCount.toString(),
                             subValue:
-                                '${stats.todayActiveCount} Diproses',
+                                '${stats.todayActiveCount} ${AppStrings.home.processed}',
                             icon: SolarIconsBold.usersGroupTwoRounded,
                             color: Colors.blue,
                           ),
@@ -362,10 +367,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               // 3. Switch global tab to index 2 (Katalog)
                               ref
                                   .read(navigationProvider.notifier)
-                                  .setIndex(2);
+                                  .setIndex(1);
                             },
                             child: _BentoCard(
-                              title: 'INVENTARIS',
+                              title: AppStrings.home.inventory,
                               icon: (stats.lowStockCount +
                                           stats.emptyStockCount >
                                       0)
@@ -395,16 +400,16 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                           ),
                                           const SizedBox(width: 8),
                                         ],
-                                        if (stats.emptyStockCount > 0)
+                                        if (stats.emptyStockCount > 0) ...[
                                           Text(
                                             stats.emptyStockCount.toString(),
-                                            style:
-                                                GoogleFonts.manrope(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.red.shade700,
-                                                ),
+                                            style: GoogleFonts.manrope(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.w800,
+                                              color: Colors.red.shade700,
+                                            ),
                                           ),
+                                        ],
                                       ],
                                     )
                                   : Row(
@@ -416,7 +421,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         ),
                                         const SizedBox(width: 4),
                                         Text(
-                                          'Aman',
+                                          AppStrings.home.inventorySafe,
                                           style: GoogleFonts.manrope(
                                             fontSize: 18,
                                             fontWeight: FontWeight.w800,
@@ -425,7 +430,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                                         ),
                                       ],
                                     ),
-                              subValue: 'Status Inventaris',
+                              subValue: AppStrings.home.inventoryStatus,
                             ),
                           ),
                         ),
@@ -440,11 +445,10 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
           // ── SEARCH RESULTS OR NORMAL VIEW ──
           if (isSearching) ...[
             if (hasAnyResults) ...[
-              // RESULTS SECTIONS
               _buildSearchSection(
                 context,
                 ref,
-                'PELANGGAN & PLAT',
+                AppStrings.home.sectionCustomerPlate,
                 [...filteredPelanggan, ...filteredVehicles],
                 (item) {
                   if (item is Pelanggan) {
@@ -456,23 +460,23 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   return const SizedBox();
                 },
                 onViewAll: () =>
-                    ref.read(navigationProvider.notifier).setIndex(1),
+                    ref.read(navigationProvider.notifier).setIndex(2),
               ),
               _buildSearchSection(
                 context,
                 ref,
-                'INVENTARIS',
+                AppStrings.home.sectionInventory,
                 filteredStok,
                 (item) => _buildStokResult(context, ref, item as Stok),
                 onViewAll: () {
                   ref.read(stokListProvider.notifier).search(searchQueryText);
-                  ref.read(navigationProvider.notifier).setIndex(2);
+                  ref.read(navigationProvider.notifier).setIndex(1);
                 },
               ),
               _buildSearchSection(
                 context,
                 ref,
-                'RIWAYAT TRANSAKSI',
+                AppStrings.home.sectionHistory,
                 filteredHistory,
                 (item) => _buildTransactionResult(context, item as Transaction),
                 onViewAll: () =>
@@ -492,7 +496,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        'Tidak ada hasil untuk "$searchQueryText"',
+                        '${AppStrings.home.noSearchResults} "$searchQueryText"',
                         style: GoogleFonts.plusJakartaSans(
                           color: theme.colorScheme.outline,
                         ),
@@ -510,7 +514,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      "Aktivitas Hari Ini",
+                      AppStrings.home.todayActivities,
                       style: GoogleFonts.manrope(
                         fontSize: 22,
                         fontWeight: FontWeight.w800,
@@ -521,7 +525,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                       onPressed: () =>
                           ref.read(navigationProvider.notifier).setIndex(3),
                       child: Text(
-                        'Lihat Semua',
+                        AppStrings.home.seeAll,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w600,
                           color: theme.colorScheme.primary,
@@ -559,7 +563,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                               const SizedBox(height: 16),
                               Text(
-                                'Belum ada pengunjung hari ini.',
+                                AppStrings.home.noVisitorsToday,
                                 style: GoogleFonts.plusJakartaSans(
                                   color: theme.colorScheme.outline,
                                 ),
@@ -620,7 +624,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Target Bulanan',
+                              AppStrings.home.monthlyTarget,
                               style: GoogleFonts.manrope(
                                 fontSize: 22,
                                 fontWeight: FontWeight.w800,
@@ -628,7 +632,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               ),
                             ),
                             Text(
-                              '${(stats.monthlyPendapatan / (settings.monthlyTarget > 0 ? settings.monthlyTarget : 1) * 100).ceil().clamp(0, 100)}% progress',
+                              '${(stats.monthlyPendapatan / (settings.monthlyTarget > 0 ? settings.monthlyTarget : 1) * 100).ceil().clamp(0, 100)}% ${AppStrings.home.progress}',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 color: Colors.white.withValues(alpha: 0.7),
@@ -638,7 +642,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                               Padding(
                                 padding: const EdgeInsets.only(top: 4),
                                 child: Text(
-                                  'Sisa target: ${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(settings.monthlyTarget - stats.monthlyPendapatan)}',
+                                  '${AppStrings.home.remainingTarget}${NumberFormat.currency(locale: 'id', symbol: 'Rp', decimalDigits: 0).format(settings.monthlyTarget - stats.monthlyPendapatan)}',
                                   style: GoogleFonts.inter(
                                     fontSize: 10,
                                     color: Colors.white.withValues(alpha: 0.5),
@@ -659,7 +663,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                             size: 32,
                           ),
                           Text(
-                            'Kinerja Baik!',
+                            AppStrings.home.performanceGood,
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               color: Colors.white.withValues(alpha: 0.4),
@@ -679,11 +683,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
 
   String _formatCurrencyShort(double amount) {
     if (amount >= 1000000) {
-      return 'Rp${(amount / 1000000).toStringAsFixed(1)}jt';
+      return '${AppStrings.common.currencySymbol}${(amount / 1000000).toStringAsFixed(1)}${AppStrings.common.million}';
     } else if (amount >= 1000) {
-      return 'Rp${(amount / 1000).toInt()}rb';
+      return '${AppStrings.common.currencySymbol}${(amount / 1000).toInt()}${AppStrings.common.thousand}';
     }
-    return 'Rp${amount.toInt()}';
+    return '${AppStrings.common.currencySymbol}${amount.toInt()}';
   }
 
   // ── SEARCH RESULT BUILDERS ──
@@ -722,7 +726,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                     visualDensity: VisualDensity.compact,
                   ),
                   child: Text(
-                    'Lihat Semua',
+                    AppStrings.home.seeAll,
                     style: GoogleFonts.inter(
                       fontSize: 11,
                       fontWeight: FontWeight.w600,
@@ -752,13 +756,13 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       subtitle: p.telepon,
       icon: SolarIconsOutline.user,
       color: Colors.blue,
-      badge: 'Pelanggan', // UX-05
+      badge: AppStrings.home.badgeCustomer, // UX-05
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => PelangganDetailScreen(pelanggan: p),
-          ),
+        AdaptiveNavigator.push(
+          context: context,
+          ref: ref,
+          detailContent: PelangganDetailScreen(pelanggan: p),
+          routeBuilder: () => PelangganDetailScreen(pelanggan: p),
         );
       },
     );
@@ -770,15 +774,15 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       subtitle: v.model,
       icon: AppIcons.motorcycle,
       color: AppColors.amethyst,
-      badge: 'Kendaraan', // UX-05
+      badge: AppStrings.home.badgeVehicle, // UX-05
       onTap: () {
         final owner = v.owner.target;
         if (owner != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PelangganDetailScreen(pelanggan: owner),
-            ),
+          AdaptiveNavigator.push(
+            context: context,
+            ref: ref,
+            detailContent: PelangganDetailScreen(pelanggan: owner),
+            routeBuilder: () => PelangganDetailScreen(pelanggan: owner),
           );
         }
       },
@@ -808,11 +812,11 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       icon: SolarIconsOutline.billList,
       color: Colors.green,
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransactionDetailScreen(transaction: t),
-          ),
+        AdaptiveNavigator.push(
+          context: context,
+          ref: ref,
+          detailContent: TransactionDetailScreen(transaction: t),
+          routeBuilder: () => TransactionDetailScreen(transaction: t),
         );
       },
     );
@@ -958,7 +962,7 @@ class _BentoCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Container(
+     return Container(
       height: 90,
       decoration: BoxDecoration(
         color: isDark
@@ -967,17 +971,30 @@ class _BentoCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(24),
         border: border ?? Border.all(
           color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : theme.colorScheme.outline.withValues(alpha: 0.1),
-          width: 1.5,
+              ? Colors.white.withValues(alpha: 0.08)
+              : theme.colorScheme.outline.withValues(alpha: 0.12),
+          width: 1.2,
         ),
         boxShadow: isDark
-            ? []
+            ? [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 12,
+                  offset: const Offset(0, 4),
+                  spreadRadius: -3,
+                ),
+              ]
             : [
                 BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 20,
-                  offset: const Offset(0, 10),
+                  color: Colors.black.withValues(alpha: 0.04),
+                  blurRadius: 24,
+                  offset: const Offset(0, 8),
+                  spreadRadius: -2,
+                ),
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
                 ),
               ],
       ),
@@ -1059,6 +1076,8 @@ class _ActivityCard extends ConsumerStatefulWidget {
 }
 
 class _ActivityCardState extends ConsumerState<_ActivityCard> {
+  int _swipeDeleteCount = 0;
+  Timer? _resetSwipeTimer;
   Timer? _timer;
 
   @override
@@ -1085,6 +1104,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
   @override
   void dispose() {
     _timer?.cancel();
+    _resetSwipeTimer?.cancel();
     super.dispose();
   }
 
@@ -1096,193 +1116,177 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
     return '${diff.inMinutes}m';
   }
 
-  void _showStatusPicker(BuildContext context, Transaction trx) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        final theme = Theme.of(context);
-        return Container(
-          decoration: BoxDecoration(
-            color: theme.colorScheme.surface,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 12),
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: Colors.grey[300],
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: Text(
-                'UPDATE STATUS',
-                style: GoogleFonts.manrope(
-                  fontSize: 18,
-                  fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.primary,
-                ),
-              ),
-            ),
-            _buildStatusTile(
-              context,
-              trx,
-              ServiceStatus.antri,
-              'Akan Dikerjakan (Antri)',
-              SolarIconsOutline.clockCircle,
-              Colors.blue,
-            ),
-            _buildStatusTile(
-              context,
-              trx,
-              ServiceStatus.dikerjakan,
-              'Sedang Dikerjakan',
-              SolarIconsOutline.pills,
-              AppColors.amethyst,
-            ),
-            _buildStatusTile(
-              context,
-              trx,
-              ServiceStatus.selesai,
-              'Sudah Selesai (Ready)',
-              SolarIconsOutline.checkCircle,
-              Colors.orange,
-            ),
-            _buildStatusTile(
-              context,
-              trx,
-              ServiceStatus.lunas,
-              'Lunas & Ambil (Selesai)',
-              SolarIconsOutline.wadOfMoney,
-              Colors.green,
-            ),
-            const Divider(),
-            ListTile(
-              leading: const Icon(
-                SolarIconsOutline.trashBinMinimalistic,
-                color: Colors.red,
-              ),
-              title: Text(
-                'Hapus Transaksi',
-                style: GoogleFonts.inter(
-                  color: Colors.red,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              onTap: () {
-                Navigator.pop(context);
-                widget.onDelete?.call();
-              },
-            ),
-            const SizedBox(height: 32),
-          ],
-        ),
-      );
-    },
-  );
-}
-
-  Widget _buildStatusTile(
-    BuildContext context,
-    Transaction trx,
-    ServiceStatus status,
-    String label,
-    IconData icon,
-    Color color,
-  ) {
-    final isSelected = trx.serviceStatus == status;
-    return ListTile(
-      leading: Icon(icon, color: isSelected ? color : Colors.grey),
-      title: Text(
-        label,
-        style: GoogleFonts.inter(
-          fontWeight: isSelected ? FontWeight.w800 : FontWeight.normal,
-          color: isSelected ? color : null,
-        ),
-      ),
-      trailing: isSelected
-          ? Icon(SolarIconsBold.checkCircle, color: color)
-          : null,
-      onTap: () async {
-        Navigator.pop(context);
-        if (status == ServiceStatus.lunas) {
-          showDialog(
-            context: context,
-            barrierDismissible: false,
-            builder: (context) => TheCeremonyDialog(transaction: trx),
-          );
-        } else {
-          final messenger = ScaffoldMessenger.of(context);
-          await ref
-              .read(transactionListProvider.notifier)
-              .updateTransactionStatus(trx, status);
-          ref.invalidate(statsProvider);
-          if (mounted) {
-            messenger.showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Status diperbarui ke ${status.name.toUpperCase()}',
-                ),
-                backgroundColor: color,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
-          }
-        }
-      },
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final trx = widget.trx;
 
-    // Status color & Label
-    Color statusColor;
-    String statusLabel;
+    // Status color, Label & Icon
+    Color statusColor = Colors.grey;
+    String statusLabel = 'ST';
+    IconData statusIcon = SolarIconsOutline.infoCircle;
+    ServiceStatus? nextStatus;
+
     switch (trx.serviceStatus) {
-      case ServiceStatus.dikerjakan:
-        statusColor = AppColors.amethyst;
-        statusLabel = 'DI SERVIS';
-        break;
       case ServiceStatus.antri:
         statusColor = Colors.blue;
-        statusLabel = 'ANTRI';
+        statusLabel = AppStrings.transaction.statusAntriCaps;
+        statusIcon = SolarIconsOutline.hourglass;
+        nextStatus = ServiceStatus.dikerjakan;
+        break;
+      case ServiceStatus.dikerjakan:
+        statusColor = AppColors.amethyst;
+        statusLabel = AppStrings.transaction.statusServisCaps;
+        statusIcon = SolarIconsOutline.settings;
+        nextStatus = ServiceStatus.selesai;
         break;
       case ServiceStatus.selesai:
         statusColor = Colors.orange;
-        statusLabel = 'SELESAI';
+        statusLabel = AppStrings.transaction.statusSelesaiCaps;
+        statusIcon = SolarIconsOutline.checkCircle;
+        nextStatus = ServiceStatus.lunas;
         break;
       case ServiceStatus.lunas:
         statusColor = Colors.green;
-        statusLabel = 'LUNAS';
+        statusLabel = AppStrings.transaction.statusLunasCaps;
+        statusIcon = SolarIconsBold.checkCircle;
+        nextStatus = null; // No more forward progression
         break;
     }
+
+    final Color nextStatusColor = nextStatus == ServiceStatus.dikerjakan 
+        ? Colors.blue 
+        : nextStatus == ServiceStatus.selesai 
+            ? AppColors.amethyst 
+            : Colors.green;
+
+    final String nextStatusLabel = nextStatus == ServiceStatus.dikerjakan 
+        ? AppStrings.transaction.actionProses 
+        : nextStatus == ServiceStatus.selesai 
+            ? AppStrings.transaction.actionSelesaikan 
+            : AppStrings.transaction.actionLunas;
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: Dismissible(
-        key: Key('activity_${trx.uuid}'),
-        direction: DismissDirection.endToStart,
+        key: Key('activity_${trx.uuid}_$_swipeDeleteCount'), // Replay key to force snapback if needed
+        direction: trx.serviceStatus == ServiceStatus.antri 
+            ? DismissDirection.horizontal 
+            : DismissDirection.startToEnd,
+        confirmDismiss: (direction) async {
+          if (direction == DismissDirection.startToEnd) {
+            // PROGRESSION (Swipe Right)
+            if (nextStatus != null) {
+              if (nextStatus == ServiceStatus.lunas) {
+                HapticFeedback.mediumImpact();
+                showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  builder: (context) => TheCeremonyDialog(transaction: trx),
+                ).then((_) {
+                   ref.invalidate(statsProvider);
+                });
+              } else {
+                HapticFeedback.mediumImpact();
+                await ref
+                    .read(transactionListProvider.notifier)
+                    .updateTransactionStatus(trx, nextStatus);
+                ref.invalidate(statsProvider);
+              }
+            }
+            return false; // Never dismiss via progression
+          } else {
+            // DELETE (Swipe Left)
+            if (trx.serviceStatus == ServiceStatus.antri) {
+              if (_swipeDeleteCount == 0) {
+                HapticFeedback.lightImpact();
+                setState(() {
+                  _swipeDeleteCount = 1;
+                });
+                // Reset after 3 seconds if not confirmed
+                _resetSwipeTimer?.cancel();
+                _resetSwipeTimer = Timer(const Duration(seconds: 3), () {
+                  if (mounted) setState(() => _swipeDeleteCount = 0);
+                });
+                
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(AppStrings.transaction.swipeToDeleteHint),
+                    behavior: SnackBarBehavior.floating,
+                    duration: const Duration(seconds: 2),
+                  ),
+                );
+                return false;
+              } else {
+                HapticFeedback.heavyImpact();
+                return true; // Confirm delete
+              }
+            }
+            return false;
+          }
+        },
         background: Container(
-          alignment: Alignment.centerRight,
-          padding: const EdgeInsets.only(right: 24),
+          alignment: Alignment.centerLeft,
+          padding: const EdgeInsets.only(left: 24),
           decoration: BoxDecoration(
-            color: Colors.red.withValues(alpha: 0.1),
+            color: nextStatusColor.withValues(alpha: 0.15),
             borderRadius: BorderRadius.circular(20),
           ),
-          child: const Icon(
-            SolarIconsOutline.trashBinMinimalistic,
-            color: Colors.red,
+          child: Row(
+            children: [
+              Icon(
+                nextStatus == ServiceStatus.lunas 
+                    ? SolarIconsOutline.checkCircle 
+                    : SolarIconsOutline.doubleAltArrowRight,
+                color: nextStatusColor,
+              ),
+              const SizedBox(width: 12),
+              Text(
+                nextStatusLabel,
+                style: GoogleFonts.manrope(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 12,
+                  color: nextStatusColor,
+                ),
+              ),
+            ],
           ),
         ),
+        secondaryBackground: trx.serviceStatus == ServiceStatus.antri 
+          ? Container(
+              alignment: Alignment.centerRight,
+              padding: const EdgeInsets.only(right: 24),
+              decoration: BoxDecoration(
+                color: _swipeDeleteCount == 0 
+                    ? Colors.red.withValues(alpha: 0.1) 
+                    : Colors.red,
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.end,
+                children: [
+                  Text(
+                    _swipeDeleteCount == 0 
+                        ? AppStrings.transaction.deleteCaps 
+                        : AppStrings.transaction.confirmDelete,
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 12,
+                      color: _swipeDeleteCount == 0 ? Colors.red : Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Icon(
+                    _swipeDeleteCount == 0 
+                        ? SolarIconsOutline.trashBinMinimalistic 
+                        : SolarIconsBold.trashBinTrash,
+                    color: _swipeDeleteCount == 0 ? Colors.red : Colors.white,
+                  ),
+                ],
+              ),
+            )
+          : null,
         onDismissed: (_) => widget.onDelete?.call(),
         child: AtelierListGroup(
           children: [
@@ -1368,13 +1372,20 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                   color: statusColor.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Text(
-                  statusLabel,
-                  style: GoogleFonts.manrope(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w800,
-                    color: statusColor,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(statusIcon, size: 12, color: statusColor),
+                    const SizedBox(width: 4),
+                    Text(
+                      statusLabel,
+                      style: GoogleFonts.manrope(
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        color: statusColor,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               onTap: () {
@@ -1391,10 +1402,6 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                   _showTechNoteSheet(context, trx);
                 }
               },
-              onLongPress: () {
-                HapticFeedback.heavyImpact();
-                _showStatusPicker(context, trx);
-              },
             ),
           ],
         ),
@@ -1405,7 +1412,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
   void _showTechNoteSheet(BuildContext context, Transaction trx) {
     // Memberikan nilai default jika kosong sesuai permintaan user
     final noteController = TextEditingController(
-      text: trx.mechanicNotes ?? "Servis selesai.",
+      text: trx.mechanicNotes ?? AppStrings.transaction.defaultServiceNote,
     );
     final kmController = TextEditingController(
       text: trx.recommendationKm?.toString() ?? '1000',
@@ -1445,7 +1452,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
               ),
               const SizedBox(height: 24),
               Text(
-                'Catatan Teknisi',
+                AppStrings.transaction.techNotesTitle,
                 style: GoogleFonts.manrope(
                   fontSize: 20,
                   fontWeight: FontWeight.w800,
@@ -1453,7 +1460,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
               ),
               const SizedBox(height: 4),
               Text(
-                'Tambahkan detail teknis & rekomendasi servis.',
+                AppStrings.transaction.techNotesSubtitle,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.grey,
@@ -1465,8 +1472,8 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                 controller: noteController,
                 maxLines: 3,
                 decoration: InputDecoration(
-                  labelText: 'Kondisi & Tindakan',
-                  hintText: 'Contoh: Kampas rem tipis, sudah diganti...',
+                  labelText: AppStrings.transaction.techNotesLabel,
+                  hintText: AppStrings.transaction.techNotesHint,
                   prefixIcon: const Icon(SolarIconsOutline.pen),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
@@ -1476,7 +1483,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
               const SizedBox(height: 20),
 
               Text(
-                'Rekomendasi Servis Kembali',
+                AppStrings.transaction.returnRecommendation,
                 style: GoogleFonts.inter(
                   fontSize: 14,
                   fontWeight: FontWeight.bold,
@@ -1490,7 +1497,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                       controller: kmController,
                       keyboardType: TextInputType.number,
                       decoration: InputDecoration(
-                        labelText: 'Kilometer (+KM)',
+                        labelText: AppStrings.transaction.odometerLabel,
                         hintText: '2000',
                         prefixIcon: const Icon(SolarIconsOutline.ruler),
                         border: OutlineInputBorder(
@@ -1504,7 +1511,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                     child: DropdownButtonFormField<int>(
                       initialValue: selectedTime,
                       decoration: InputDecoration(
-                        labelText: 'Waktu (+Bulan)',
+                        labelText: AppStrings.transaction.timeLabel,
                         prefixIcon: const Icon(SolarIconsOutline.calendar),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(16),
@@ -1514,7 +1521,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                           .map(
                             (m) => DropdownMenuItem(
                               value: m,
-                              child: Text('$m Bulan'),
+                              child: Text('$m ${AppStrings.transaction.month}'),
                             ),
                           )
                           .toList(),
@@ -1536,16 +1543,16 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                         trx.recommendationKm = int.tryParse(kmController.text);
                         trx.recommendationTimeMonth = selectedTime;
 
-                        await ref
+                        ref
                             .read(transactionListProvider.notifier)
                             .updateTransaction(trx);
 
                         if (context.mounted) {
                           Navigator.pop(context);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(
+                            SnackBar(
                               content: Text(
-                                'Catatan teknisi berhasil disimpan',
+                                AppStrings.transaction.techNotesSuccess,
                               ),
                               behavior: SnackBarBehavior.floating,
                             ),
@@ -1562,7 +1569,7 @@ class _ActivityCardState extends ConsumerState<_ActivityCard> {
                 child: isSaving
                     ? const CircularProgressIndicator(color: Colors.white)
                     : Text(
-                        'Simpan',
+                        AppStrings.common.save,
                         style: GoogleFonts.inter(
                           fontWeight: FontWeight.w800,
                         ),
@@ -1585,64 +1592,58 @@ class _InlineZoneBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final levelAsync = ref.watch(accessLevelProvider);
+    final level = ref.watch(accessLevelProvider);
 
-    return levelAsync.when(
-      data: (level) {
-        if (level == AccessLevel.full) return const SizedBox.shrink();
+    if (level == AccessLevel.full) return const SizedBox.shrink();
 
-        final (color, icon, label) = switch (level) {
-          AccessLevel.readOnly => (
-              Colors.amber,
-              Icons.visibility_outlined,
-              'Baca Saja',
-            ),
-          AccessLevel.readOnlyFinancial => (
-              Colors.orange,
-              Icons.warning_amber_rounded,
-              'Akses Terbatas',
-            ),
-          AccessLevel.blocked => (
-              Colors.redAccent,
-              Icons.lock_clock_outlined,
-              'Sesi Habis',
-            ),
-          _ => (Colors.green, Icons.check_circle_outline, ''),
-        };
+    final (color, icon, label) = switch (level) {
+      AccessLevel.readOnly => (
+          Colors.amber,
+          Icons.visibility_outlined,
+          AppStrings.access.readOnlyLabel,
+        ),
+      AccessLevel.readOnlyFinancial => (
+          Colors.orange,
+          Icons.warning_amber_rounded,
+          AppStrings.access.restrictedLabel,
+        ),
+      AccessLevel.blocked => (
+          Colors.redAccent,
+          Icons.lock_clock_outlined,
+          AppStrings.access.sessionExpiredLabel,
+        ),
+      _ => (Colors.green, Icons.check_circle_outline, ''),
+    };
 
-        if (label.isEmpty) return const SizedBox.shrink();
+    if (label.isEmpty) return const SizedBox.shrink();
 
-        return GestureDetector(
-          onTap: () => _showDetail(context, level),
-          child: AnimatedContainer(
-            duration: const Duration(milliseconds: 300),
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.15),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+    return GestureDetector(
+      onTap: () => _showDetail(context, level),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.15),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: color.withValues(alpha: 0.4), width: 1),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(icon, color: color, size: 13),
+            const SizedBox(width: 5),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 11,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.2,
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 13),
-                const SizedBox(width: 5),
-                Text(
-                  label,
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w700,
-                    letterSpacing: 0.2,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, st) => const SizedBox.shrink(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -1650,18 +1651,18 @@ class _InlineZoneBadge extends ConsumerWidget {
     final (color, title, body) = switch (level) {
       AccessLevel.readOnly => (
           Colors.amber,
-          'Mode Baca Saja',
-          'Perangkat offline > 8 jam.\nAnda masih bisa melihat data, tapi tidak bisa mengedit sampai sesi diperbarui.',
+          AppStrings.access.readOnlyMode,
+          AppStrings.access.readOnlyDesc,
         ),
       AccessLevel.readOnlyFinancial => (
           Colors.orange,
-          'Akses Terbatas',
-          'Perangkat offline > 12 jam.\nFitur laporan keuangan dan edit biaya dibatasi sementara.',
+          AppStrings.access.restrictedAccess,
+          AppStrings.access.restrictedDesc,
         ),
       AccessLevel.blocked => (
           Colors.redAccent,
-          'Sesi Kedaluwarsa',
-          'Sesi keamanan telah berakhir (offline > 24 jam).\nHubungkan internet untuk verifikasi ulang.',
+          AppStrings.access.sessionExpired,
+          AppStrings.access.sessionExpiredDesc,
         ),
       _ => (Colors.green, '', ''),
     };
@@ -1724,7 +1725,7 @@ class _InlineZoneBadge extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                child: const Text('Mengerti'),
+                child: Text(AppStrings.access.understand),
               ),
             ),
             const SizedBox(height: 8),

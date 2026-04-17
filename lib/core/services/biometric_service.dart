@@ -30,6 +30,9 @@ class BiometricService {
     iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
   );
   static const _pinKey = 'biometric_pin';
+  static const _failureCountKey = 'biometric_fail_count';
+  static const _lockoutKey = 'biometric_lockout_until';
+  static const _disabledKey = 'biometric_temp_disabled';
   
   // ─────────────────────────────────────────────────────────────
   // AVAILABILITY CHECK
@@ -103,13 +106,40 @@ class BiometricService {
   }
   
   /// Verify with retry (for emergency mode) — 3x retry
+  /// ✅ ENHANCED: Integrated with Anti-Brute Force Policy
   Future<BiometricResult> verifyWithRetry({
     required String reason,
     int maxRetry = 3,
   }) async {
+    // 1. Check Global Lockout
+    final lockoutStr = await _secureStorage.read(key: _lockoutKey);
+    if (lockoutStr != null) {
+      final until = DateTime.fromMillisecondsSinceEpoch(int.parse(lockoutStr));
+      if (DateTime.now().isBefore(until)) {
+        final diff = until.difference(DateTime.now()).inMinutes + 1;
+        return BiometricResult(
+          success: false,
+          retryCount: 0,
+          error: 'Terlalu banyak percobaan. Sila tunggu $diff menit lagi.',
+        );
+      } else {
+        await _secureStorage.delete(key: _lockoutKey);
+      }
+    }
+
+    // 2. Check if disabled (5th failure)
+    final isDisabled = await _secureStorage.read(key: _disabledKey) == 'true';
+    if (isDisabled) {
+      return BiometricResult(
+        success: false,
+        retryCount: 0,
+        error: 'Biometrik dinonaktifkan sementara. Gunakan PIN Master.',
+      );
+    }
+
     int retry = 0;
     String? lastError;
-    
+
     while (retry < maxRetry) {
       try {
         final canCheck = await canCheckBiometrics();
@@ -117,10 +147,10 @@ class BiometricService {
           return BiometricResult(
             success: false,
             retryCount: retry,
-            error: 'Biometric not available',
+            error: 'Biometric tidak tersedia',
           );
         }
-        
+
         final verified = await _localAuth.authenticate(
           localizedReason: reason,
           options: const AuthenticationOptions(
@@ -129,35 +159,81 @@ class BiometricService {
             useErrorDialogs: true,
           ),
         );
-        
+
         if (verified) {
           debugPrint('✅ Biometric verified (retry: $retry)');
+          await resetFailures(); // Success resets all counters
           return BiometricResult(
             success: true,
             retryCount: retry,
           );
         }
-        
-        lastError = 'Verification failed';
+
+        lastError = 'Verifikasi gagal';
       } catch (e) {
         lastError = e.toString();
         debugPrint('⚠️ Biometric attempt ${retry + 1} failed: $e');
       }
-      
+
+      // ─────────────────────────────────────────────────────────────
+      // ANTI-BRUTE FORCE LOGIC (Triggered on any failure)
+      // ─────────────────────────────────────────────────────────────
       retry++;
-      
+      final currentTotalFails = await _incrementFailure();
+
+      if (currentTotalFails >= 5) {
+        await _secureStorage.write(key: _disabledKey, value: 'true');
+        return BiometricResult(
+          success: false,
+          retryCount: retry,
+          error: 'Biometrik dinonaktifkan (5x gagal). Sila gunakan PIN.',
+        );
+      }
+
+      if (currentTotalFails >= 3) {
+        final until = DateTime.now().add(const Duration(minutes: 5));
+        await _secureStorage.write(
+          key: _lockoutKey,
+          value: until.millisecondsSinceEpoch.toString(),
+        );
+        return BiometricResult(
+          success: false,
+          retryCount: retry,
+          error: '3x Gagal. Akses terkunci selama 5 menit.',
+        );
+      }
+
       // Delay between retries
       if (retry < maxRetry) {
         await Future.delayed(const Duration(seconds: 1));
       }
     }
-    
+
     debugPrint('❌ Biometric max retry reached ($maxRetry)');
     return BiometricResult(
       success: false,
       retryCount: retry,
       error: lastError,
     );
+  }
+
+  // ─────────────────────────────────────────────────────────────
+  // FAILURE TRACKING
+  // ─────────────────────────────────────────────────────────────
+
+  Future<int> _incrementFailure() async {
+    final countStr = await _secureStorage.read(key: _failureCountKey) ?? '0';
+    final count = int.parse(countStr) + 1;
+    await _secureStorage.write(key: _failureCountKey, value: count.toString());
+    debugPrint('🛑 Biometric failure count incremented: $count');
+    return count;
+  }
+
+  Future<void> resetFailures() async {
+    await _secureStorage.delete(key: _failureCountKey);
+    await _secureStorage.delete(key: _lockoutKey);
+    await _secureStorage.delete(key: _disabledKey);
+    debugPrint('🧹 Biometric failure counters reset');
   }
   
   // ─────────────────────────────────────────────────────────────

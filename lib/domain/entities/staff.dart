@@ -1,6 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:uuid/uuid.dart';
 
+
 @Entity()
 class Staff {
   @Id()

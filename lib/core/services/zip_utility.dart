@@ -3,9 +3,22 @@ import 'dart:io';
 import 'package:archive/archive_io.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
+import 'package:flutter/foundation.dart';
 import 'settings_backup_service.dart';
 
 class ZipUtility {
+  static const int maxBackupSizeBytes = 100 * 1024 * 1024; // 100MB
+
+  /// Required files that must exist in a valid backup
+  static const Set<String> _requiredFiles = {
+    'settings.json',
+  };
+
+  /// Required directories that must exist in a valid backup
+  static const Set<String> _requiredDirectories = {
+    'objectbox',
+  };
+
   /// Creates a ZIP archive containing settings, media, and database.
   static Future<File> createBackupZip(String settingsJson) async {
     final archive = Archive();
@@ -39,6 +52,14 @@ class ZipUtility {
     final zipData = zipEncoder.encode(archive);
     if (zipData == null) throw Exception('Gagal membuat arsip ZIP');
 
+    // Size limit check to prevent OOM
+    if (zipData.length > maxBackupSizeBytes) {
+      throw Exception(
+        'Ukuran backup terlalu besar (${(zipData.length / 1024 / 1024).toStringAsFixed(1)}MB). '
+        'Maksimal yang diizinkan adalah ${maxBackupSizeBytes ~/ 1024 ~/ 1024}MB.',
+      );
+    }
+
     final tempDir = await getTemporaryDirectory();
     final timestamp = DateTime.now().millisecondsSinceEpoch;
     final zipFile = File(
@@ -47,11 +68,56 @@ class ZipUtility {
     return await zipFile.writeAsBytes(zipData);
   }
 
+  /// Validates ZIP archive structure before extraction
+  /// Throws exception if archive is invalid or corrupted
+  static Future<void> _validateArchive(Archive archive) async {
+    // Check for required files
+    final fileNames = archive.files.map((f) => f.name).toSet();
+
+    for (final requiredFile in _requiredFiles) {
+      if (!fileNames.contains(requiredFile)) {
+        throw Exception('Backup corrupt: Missing required file "$requiredFile"');
+      }
+    }
+
+    // Check for at least one required directory
+    bool hasRequiredDir = false;
+    for (final requiredDir in _requiredDirectories) {
+      if (fileNames.any((name) => name.startsWith('$requiredDir/'))) {
+        hasRequiredDir = true;
+        break;
+      }
+    }
+
+    if (!hasRequiredDir) {
+      throw Exception('Backup corrupt: Missing required directories (objectbox/)');
+    }
+
+    // Check for file corruption (try to read settings.json)
+    try {
+      final settingsFile = archive.files.firstWhere(
+        (f) => f.name == 'settings.json',
+        orElse: () => throw Exception('settings.json not found'),
+      );
+      final content = utf8.decode(settingsFile.content as List<int>);
+      jsonDecode(content); // Will throw if invalid JSON
+    } catch (e) {
+      throw Exception('Backup corrupt: settings.json is invalid - $e');
+    }
+
+    debugPrint('✅ ZIP archive validation passed');
+  }
+
   /// Extracts a ZIP archive and overwrites local data.
+  /// Validates archive structure before extraction.
   static Future<void> extractRestoreZip(File zipFile) async {
     final bytes = await zipFile.readAsBytes();
     final zipDecoder = ZipDecoder();
     final archive = zipDecoder.decodeBytes(bytes);
+
+    // ✅ VALIDATION: Check archive structure before extraction
+    await _validateArchive(archive);
+
     final appDocDir = await getApplicationDocumentsDirectory();
 
     for (final file in archive) {
@@ -71,5 +137,7 @@ class ZipUtility {
         }
       }
     }
+    debugPrint('✅ Backup restore completed successfully');
   }
 }
+

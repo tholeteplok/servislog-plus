@@ -1,5 +1,6 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:uuid/uuid.dart';
+import '../../core/constants/logic_constants.dart';
 
 @Entity()
 class Stok {
@@ -50,7 +51,7 @@ class Stok {
     this.hargaJual = 0,
     this.jumlah = 0,
     this.minStok = 5,
-    this.kategori = 'Sparepart',
+    this.kategori = LogicConstants.catSparepart,
     this.photoLocalPath,
     String? uuid,
   }) : uuid = uuid ?? const Uuid().v4(),

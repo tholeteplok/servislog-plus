@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/providers/pelanggan_provider.dart';
 import '../../core/widgets/atelier_list_card.dart';
 import '../../core/widgets/standard_dialog.dart';
@@ -11,6 +12,9 @@ import '../../domain/entities/pelanggan.dart';
 import 'pelanggan_detail_screen.dart';
 import '../../core/providers/navigation_provider.dart';
 import '../../core/widgets/atelier_header.dart';
+import '../main/responsive_layout_builder.dart';
+import '../../core/widgets/critical_action_guard.dart';
+import '../../core/services/session_manager.dart';
 
 class PelangganScreen extends ConsumerStatefulWidget {
   const PelangganScreen({super.key});
@@ -47,11 +51,11 @@ class _PelangganScreenState extends ConsumerState<PelangganScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAtelierHeader(
-            title: 'Data Pelanggan',
-            subtitle: 'Simpan dan kelola data pelanggan workshop Anda.',
+            title: AppStrings.customer.title,
+            subtitle: AppStrings.customer.subtitle,
             showBackButton: false,
             searchController: _searchController,
-            searchHint: 'Cari nama atau nomor telepon...',
+            searchHint: AppStrings.customer.searchHint,
             onSearchChanged: (val) =>
                 ref.read(pelangganListProvider.notifier).updateSearch(val),
             actions: [
@@ -59,7 +63,9 @@ class _PelangganScreenState extends ConsumerState<PelangganScreen> {
                 onPressed: () => ref.invalidate(pelangganListProvider),
                 icon: const Icon(SolarIconsOutline.refresh,
                     color: Colors.white, size: 20),
+                tooltip: AppStrings.common.refresh,
                 style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
                   backgroundColor: isDark
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.05),
@@ -83,7 +89,7 @@ class _PelangganScreenState extends ConsumerState<PelangganScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Belum ada data pelanggan.',
+                          AppStrings.customer.emptyMessage,
                           style: theme.textTheme.bodyLarge?.copyWith(
                             color: theme.colorScheme.outline,
                           ),
@@ -151,13 +157,23 @@ class _PelangganCard extends ConsumerWidget {
           ),
           title: pelanggan.nama,
           subtitle: pelanggan.telepon,
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => PelangganDetailScreen(pelanggan: pelanggan),
-            ),
+          onTap: () => AdaptiveNavigator.push(
+            context: context,
+            ref: ref,
+            detailContent: PelangganDetailScreen(pelanggan: pelanggan),
+            routeBuilder: () => PelangganDetailScreen(pelanggan: pelanggan),
           ),
-          onLongPress: () => _confirmDelete(context, ref),
+          onLongPress: () {
+            CriticalActionGuard.check(
+              ref,
+              context,
+              CriticalActionType.deleteCustomer,
+            ).then((verified) {
+              if (verified && context.mounted) {
+                _confirmDelete(context, ref);
+              }
+            });
+          },
         ),
       ],
     );
@@ -180,15 +196,15 @@ class _PelangganCard extends ConsumerWidget {
             size: 36,
           ),
         ),
-        title: 'Hapus Pelanggan?',
-        message: 'Yakin ingin menghapus data ${pelanggan.nama}? Tindakan ini tidak bisa dibatalkan.',
-        primaryActionLabel: 'Hapus',
+        title: AppStrings.customer.confirmDeleteTitle,
+        message: AppStrings.customer.deleteConfirmation(pelanggan.nama),
+        primaryActionLabel: AppStrings.common.delete,
         primaryActionColor: Colors.red,
         onPrimaryAction: () {
           ref.read(pelangganListProvider.notifier).remove(pelanggan.id);
           Navigator.pop(context);
         },
-        secondaryActionLabel: 'Batal',
+        secondaryActionLabel: AppStrings.common.cancel,
       ),
     );
   }

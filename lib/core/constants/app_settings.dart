@@ -15,7 +15,9 @@ class AppSettings {
   static const String lastBackupAt = 'last_backup_at';
   static const String workshopId = 'workshop_id';
   static const String isBiometricEnabled = 'is_biometric_enabled';
-  static const String autoLock30m = 'auto_lock_30m';
+  static const String autoLockDuration = 'auto_lock_duration'; // int: 0, 1, 5, 10, 30, 60
+  static const String requireBiometricSensitive = 'require_biometric_sensitive';
+  static const String autoLock30m = 'auto_lock_30m'; // Deprecated in favor of autoLockDuration
   static const String syncWifiOnly = 'sync_wifi_only';
   static const String syncCompressionMax = 'sync_compression_max';
   static const String reminderThresholdDays = 'reminder_threshold_days';

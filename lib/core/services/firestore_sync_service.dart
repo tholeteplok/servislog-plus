@@ -1,3 +1,39 @@
+/// 📚 Firestore Index Documentation
+///
+/// Required composite indexes for this service:
+///
+/// 1. transactions collection:
+///    - Collection: bengkel/{bengkelId}/transactions
+///    - Fields: isDeleted (ASCENDING), createdAt (DESCENDING)
+///    - Query: where('isDeleted', isEqualTo: false).orderBy('createdAt', descending: true)
+///
+/// 2. sync_queue (if using Firestore for queue):
+///    - Collection: bengkel/{bengkelId}/sync_queue
+///    - Fields: status (ASCENDING), priority (ASCENDING), createdAt (ASCENDING)
+///    - Query: where('status', isEqualTo: 'pending').orderBy('priority').orderBy('createdAt')
+///
+/// To deploy indexes:
+/// 1. Run `firebase init firestore` to generate firestore.indexes.json
+/// 2. Or manually create in Firebase Console:
+///    - Go to Firestore → Indexes → Composite
+///    - Add the above combinations
+///
+/// Example firestore.indexes.json:
+/// ```json
+/// {
+///   "indexes": [
+///     {
+///       "collectionGroup": "transactions",
+///       "queryScope": "COLLECTION",
+///       "fields": [
+///         { "fieldPath": "isDeleted", "order": "ASCENDING" },
+///         { "fieldPath": "createdAt", "order": "DESCENDING" }
+///       ]
+///     }
+///   ]
+/// }
+library;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import '../../domain/entities/staff.dart';
@@ -14,11 +50,51 @@ class FirestoreSyncService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final EncryptionService _encryption = EncryptionService();
 
+  // ===== IDEMPOTENCY HELPERS =====
+
+  /// Generate a unique key for the entity version.
+  String _getIdempotencyKey(dynamic entity) {
+    // some entities might not have updatedAt yet or it's null
+    final ts = entity.updatedAt?.millisecondsSinceEpoch ?? 0;
+    return "${entity.uuid}_$ts";
+  }
+
+  /// Check if an operation is already completed in Firestore.
+  Future<bool> _isAlreadyCompleted(String bengkelId, String key) async {
+    try {
+      final doc = await _firestore
+          .collection('bengkel')
+          .doc(bengkelId)
+          .collection('_operations')
+          .doc(key)
+          .get();
+      return doc.exists && doc.data()?['status'] == 'completed';
+    } catch (e) {
+      return false;
+    }
+  }
+
+  /// Mark the operation as completed in the given batch.
+  void _markCompleted(WriteBatch batch, String bengkelId, String key) {
+    final ref = _firestore
+        .collection('bengkel')
+        .doc(bengkelId)
+        .collection('_operations')
+        .doc(key);
+    batch.set(ref, {
+      'status': 'completed',
+      'updatedAt': FieldValue.serverTimestamp(),
+    });
+  }
+
   // ===== TRANSACTIONS =====
 
   /// Push a Transaction to Firestore under /bengkel/{id}/transactions/{uuid}.
   /// Also pushes all TransactionItems as a sub-collection for full recovery.
   Future<void> pushTransaction(String bengkelId, entity.Transaction tx) async {
+    final key = _getIdempotencyKey(tx);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
     final batch = _firestore.batch();
     
     final txRef = _firestore
@@ -68,6 +144,9 @@ class FirestoreSyncService {
       'lastReminderSentAt': tx.lastReminderSentAt != null
           ? Timestamp.fromDate(tx.lastReminderSentAt!)
           : null,
+      'customerUuid': tx.pelanggan.target?.uuid,
+      'vehicleUuid': tx.vehicle.target?.uuid,
+      'mechanicUuid': tx.mechanic.target?.uuid,
       'syncStatus': 2, // synced
     }, SetOptions(merge: true));
 
@@ -90,6 +169,7 @@ class FirestoreSyncService {
       }, SetOptions(merge: true));
     }
 
+    _markCompleted(batch, bengkelId, key);
     await batch.commit();
   }
 
@@ -124,13 +204,17 @@ class FirestoreSyncService {
 
   /// Push a Pelanggan to Firestore.
   Future<void> pushPelanggan(String bengkelId, Pelanggan p) async {
+    final key = _getIdempotencyKey(p);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
+    final batch = _firestore.batch();
     final ref = _firestore
         .collection('bengkel')
         .doc(bengkelId)
         .collection('customers')
         .doc(p.uuid);
 
-    await ref.set({
+    batch.set(ref, {
       'uuid': p.uuid,
       'name': _encryption.encryptText(p.nama),
       'phone': _encryption.encryptText(p.telepon),
@@ -138,43 +222,57 @@ class FirestoreSyncService {
       'createdAt': Timestamp.fromDate(p.createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _markCompleted(batch, bengkelId, key);
+    await batch.commit();
   }
 
   // ===== INVENTORY =====
 
   /// Push a Stok item to Firestore.
   Future<void> pushStok(String bengkelId, Stok s) async {
+    final key = _getIdempotencyKey(s);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
+    final batch = _firestore.batch();
     final ref = _firestore
         .collection('bengkel')
         .doc(bengkelId)
         .collection('inventory')
         .doc(s.uuid);
 
-    await ref.set({
+    batch.set(ref, {
       'uuid': s.uuid,
-      'name': s.nama,
-      'category': s.kategori,
-      'buyPrice': s.hargaBeli,
-      'sellPrice': s.hargaJual,
-      'stock': s.jumlah,
-      'minStock': s.minStok,
-      'unit': 'Unit', // Default since not in entity yet
+      'nama': s.nama,
+      'kategori': s.kategori,
+      'hargaBeli': s.hargaBeli,
+      'hargaJual': s.hargaJual,
+      'jumlah': s.jumlah,
+      'minStok': s.minStok,
+      'unit': 'Unit',
       'createdAt': Timestamp.fromDate(s.createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _markCompleted(batch, bengkelId, key);
+    await batch.commit();
   }
 
   // ===== STAFF =====
 
   /// Push a Staff record to Firestore.
   Future<void> pushStaff(String bengkelId, Staff s) async {
+    final key = _getIdempotencyKey(s);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
+    final batch = _firestore.batch();
     final ref = _firestore
         .collection('bengkel')
         .doc(bengkelId)
         .collection('staff')
         .doc(s.uuid);
 
-    await ref.set({
+    batch.set(ref, {
       'uuid': s.uuid,
       'name': _encryption.encryptText(s.name),
       'phone': _encryption.encryptText(s.phoneNumber ?? ''),
@@ -182,19 +280,26 @@ class FirestoreSyncService {
       'createdAt': Timestamp.fromDate(s.createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _markCompleted(batch, bengkelId, key);
+    await batch.commit();
   }
 
   // ===== VEHICLES =====
 
   /// Push a Vehicle record to Firestore.
   Future<void> pushVehicle(String bengkelId, Vehicle v) async {
+    final key = _getIdempotencyKey(v);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
+    final batch = _firestore.batch();
     final ref = _firestore
         .collection('bengkel')
         .doc(bengkelId)
         .collection('vehicles')
         .doc(v.uuid);
 
-    await ref.set({
+    batch.set(ref, {
       'uuid': v.uuid,
       'model': v.model,
       'type': v.type,
@@ -207,19 +312,26 @@ class FirestoreSyncService {
       'createdAt': Timestamp.fromDate(v.createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _markCompleted(batch, bengkelId, key);
+    await batch.commit();
   }
 
   // ===== STOCK HISTORY =====
 
   /// Push a StokHistory record to Firestore.
   Future<void> pushStokHistory(String bengkelId, StokHistory sh) async {
+    final key = _getIdempotencyKey(sh);
+    if (await _isAlreadyCompleted(bengkelId, key)) return;
+
+    final batch = _firestore.batch();
     final ref = _firestore
         .collection('bengkel')
         .doc(bengkelId)
         .collection('inventory_history')
         .doc(sh.uuid);
 
-    await ref.set({
+    batch.set(ref, {
       'uuid': sh.uuid,
       'stokUuid': sh.stokUuid,
       'type': sh.type,
@@ -230,6 +342,9 @@ class FirestoreSyncService {
       'createdAt': Timestamp.fromDate(sh.createdAt),
       'updatedAt': FieldValue.serverTimestamp(),
     }, SetOptions(merge: true));
+
+    _markCompleted(batch, bengkelId, key);
+    await batch.commit();
   }
 
   // ===== COLLISION RESOLUTION =====
@@ -253,67 +368,126 @@ class FirestoreSyncService {
     return local;
   }
 
+  static const int _batchSize = 200;
+
+  Future<List<Map<String, dynamic>>> _pullCollectionWithPagination(
+    String bengkelId,
+    String collectionName,
+    Map<String, dynamic> Function(Map<String, dynamic>) mapper, {
+    int limit = _batchSize,
+    bool decryptItems = false,
+  }) async {
+    final List<Map<String, dynamic>> allData = [];
+    Query query = _firestore
+        .collection('bengkel')
+        .doc(bengkelId)
+        .collection(collectionName);
+
+    if (collectionName == 'transactions') {
+      query = query.where('isDeleted', isEqualTo: false);
+    }
+
+    query = query.limit(limit);
+    DocumentSnapshot? lastDocument;
+    bool hasMore = true;
+
+    while (hasMore) {
+      Query currentQuery = query;
+      if (lastDocument != null) {
+        currentQuery = currentQuery.startAfterDocument(lastDocument);
+      }
+
+      final snapshot = await currentQuery.get();
+      if (snapshot.docs.isEmpty) {
+        hasMore = false;
+        break;
+      }
+
+      lastDocument = snapshot.docs.last;
+
+      if (decryptItems && collectionName == 'transactions') {
+        final List<Future<void>> itemFetchers = [];
+        final failedItems = <String, dynamic>{};
+        final List<Map<String, dynamic>> currentBatch = [];
+
+        for (var doc in snapshot.docs) {
+          final data = doc.data() as Map<String, dynamic>;
+          final mappedData = mapper(data);
+          final List<Map<String, dynamic>> items = [];
+          mappedData['items'] = items;
+          currentBatch.add(mappedData);
+
+          itemFetchers.add(
+            doc.reference.collection('items').get().then((itemSnap) {
+              for (var itemDoc in itemSnap.docs) {
+                try {
+                  final itemData = itemDoc.data();
+                  items.add(decryptTransactionItem(itemData));
+                } catch (e) {
+                  failedItems[doc.id] = e;
+                  debugPrint('Failed to decrypt item for ${doc.id}: $e');
+                }
+              }
+            }).catchError((e) {
+              failedItems[doc.id] = e;
+              debugPrint('Failed to fetch items for ${doc.id}: $e');
+            })
+          );
+        }
+        
+        if (itemFetchers.isNotEmpty) {
+          await Future.wait(itemFetchers, eagerError: false);
+        }
+        
+        if (failedItems.isNotEmpty) {
+          SyncTelemetry().log(SyncEvent(
+            type: 'partial_sync_failure',
+            metadata: {'failedCount': failedItems.length},
+            level: TelemetryLevel.warning,
+            timestamp: DateTime.now(),
+          ));
+        }
+        allData.addAll(currentBatch);
+      } else {
+        allData.addAll(snapshot.docs.map((doc) => mapper(doc.data() as Map<String, dynamic>)));
+      }
+
+      if (snapshot.docs.length < limit) {
+        hasMore = false;
+      }
+    }
+
+    return allData;
+  }
+
   // ===== BULK OPERATIONS =====
 
-  /// Initial sync — pull all data for a bengkel (used after first login).
+  /// Initial sync — pull all data for a bengkel with pagination and chunking (used after first login).
   Future<Map<String, List<Map<String, dynamic>>>> pullAllData(
       String bengkelId) async {
     try {
-      final bengkelRef = _firestore.collection('bengkel').doc(bengkelId);
+      final results = <String, List<Map<String, dynamic>>>{};
 
-      // 1. Fetch main collections
+      // 1. Process each collection sequentially or concurrently
       final futures = [
-        bengkelRef.collection('transactions').where('isDeleted', isEqualTo: false).get(),
-        bengkelRef.collection('customers').get(),
-        bengkelRef.collection('inventory').get(), // Maps to 'Stok'
-        bengkelRef.collection('staff').get(),
-        bengkelRef.collection('vehicles').get(),
-        bengkelRef.collection('inventory_history').get(), // Maps to 'StokHistory'
+        _pullCollectionWithPagination(bengkelId, 'transactions', decryptTransaction, decryptItems: true),
+        _pullCollectionWithPagination(bengkelId, 'customers', decryptCustomer),
+        _pullCollectionWithPagination(bengkelId, 'inventory', (d) => d), // Maps to 'Stok'
+        _pullCollectionWithPagination(bengkelId, 'staff', decryptStaff),
+        _pullCollectionWithPagination(bengkelId, 'vehicles', decryptVehicle),
+        _pullCollectionWithPagination(bengkelId, 'inventory_history', (d) => d), // Maps to 'StokHistory'
       ];
 
-      final results = await Future.wait(futures);
-      
-      final txDocs = results[0] as QuerySnapshot;
-      final customerDocs = results[1] as QuerySnapshot;
-      final inventoryDocs = results[2] as QuerySnapshot;
-      final staffDocs = results[3] as QuerySnapshot;
-      final vehicleDocs = results[4] as QuerySnapshot;
-      final historyDocs = results[5] as QuerySnapshot;
+      final fetchedResults = await Future.wait(futures);
 
-      // 2. Fetch ITEMS for every transaction (parallelized)
-      final List<Map<String, dynamic>> decryptedTransactions = [];
-      final List<Future<void>> itemFetchers = [];
+      results['transactions'] = fetchedResults[0];
+      results['customers'] = fetchedResults[1];
+      results['inventory'] = fetchedResults[2];
+      results['staff'] = fetchedResults[3];
+      results['vehicles'] = fetchedResults[4];
+      results['stok_history'] = fetchedResults[5];
 
-      for (var doc in txDocs.docs) {
-        final data = doc.data() as Map<String, dynamic>;
-        final txData = decryptTransaction(data);
-        final List<Map<String, dynamic>> items = [];
-        txData['items'] = items; // Placeholder
-        decryptedTransactions.add(txData);
-
-        itemFetchers.add(
-          doc.reference.collection('items').get().then((itemSnap) {
-            for (var itemDoc in itemSnap.docs) {
-              final itemData = itemDoc.data();
-              items.add(decryptTransactionItem(itemData));
-            }
-          })
-        );
-      }
-
-      // Wait for all items to be fetched
-      if (itemFetchers.isNotEmpty) {
-        await Future.wait(itemFetchers);
-      }
-
-      return {
-        'transactions': decryptedTransactions,
-        'customers': customerDocs.docs.map((d) => decryptCustomer(d.data() as Map<String, dynamic>)).toList(),
-        'inventory': inventoryDocs.docs.map((d) => d.data() as Map<String, dynamic>).toList(),
-        'staff': staffDocs.docs.map((d) => d.data() as Map<String, dynamic>).toList(),
-        'vehicles': vehicleDocs.docs.map((d) => d.data() as Map<String, dynamic>).toList(),
-        'stok_history': historyDocs.docs.map((d) => d.data() as Map<String, dynamic>).toList(),
-      };
+      return results;
     } catch (e) {
       debugPrint('Pull All Data Error: $e');
       rethrow;
@@ -404,6 +578,23 @@ class FirestoreSyncService {
       'name': _encryption.decryptText(data['name'] ?? '').displayValue,
       'phone': _encryption.decryptText(data['phone'] ?? '').displayValue,
       'address': _encryption.decryptText(data['address'] ?? '').displayValue,
+    };
+  }
+
+  /// Decrypt a staff map from Firestore.
+  Map<String, dynamic> decryptStaff(Map<String, dynamic> data) {
+    return {
+      ...data,
+      'name': _encryption.decryptText(data['name'] ?? '').displayValue,
+      'phone': _encryption.decryptText(data['phone'] ?? '').displayValue,
+    };
+  }
+
+  /// Decrypt a vehicle map from Firestore.
+  Map<String, dynamic> decryptVehicle(Map<String, dynamic> data) {
+    return {
+      ...data,
+      'vin': _encryption.decryptText(data['vin'] ?? '').displayValue,
     };
   }
 }

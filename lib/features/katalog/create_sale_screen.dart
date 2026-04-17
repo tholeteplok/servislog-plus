@@ -372,6 +372,10 @@ class _CreateSaleScreenState extends ConsumerState<CreateSaleScreen> {
               suffixIcon: _selectedPelanggan != null
                   ? IconButton(
                       icon: const Icon(Icons.clear, size: 18),
+                      tooltip: 'Hapus',
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(48, 48),
+                      ),
                       onPressed: () {
                         setState(() {
                           _selectedPelanggan = null;
@@ -383,6 +387,10 @@ class _CreateSaleScreenState extends ConsumerState<CreateSaleScreen> {
                       icon: const Icon(
                         SolarIconsOutline.altArrowRight,
                         size: 18,
+                      ),
+                      tooltip: 'Pilih Pelanggan',
+                      style: IconButton.styleFrom(
+                        minimumSize: const Size(48, 48),
                       ),
                       onPressed: () => _showPelangganPicker(context, list),
                     ),

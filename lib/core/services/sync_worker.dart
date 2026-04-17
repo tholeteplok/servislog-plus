@@ -18,6 +18,9 @@ import '../sync/circuit_breaker.dart';
 import '../sync/sync_telemetry.dart';
 import '../sync/concurrency_pool.dart';
 import 'device_session_service.dart';
+import '../constants/app_strings.dart';
+import '../constants/logic_constants.dart';
+import 'session_manager.dart';
 
 /// 🏎️ SyncWorker — Optimized background worker with Concurrency Pool(2).
 /// Implements the ServisLog+ Sync Framework v1.4 for production reliability.
@@ -25,6 +28,7 @@ class SyncWorker {
   final ObjectBoxProvider _db;
   final FirestoreSyncService _syncService;
   final DeviceSessionService? _deviceService;
+  final SessionManager? _sessionManager;
   final String bengkelId;
   final String? userId;
 
@@ -34,6 +38,7 @@ class SyncWorker {
 
   Timer? _timer;
   bool _isRunning = false;
+  bool _isDisposed = false;
   StreamSubscription? _connectivitySubscription;
 
   // Framework Components
@@ -50,15 +55,17 @@ class SyncWorker {
     required this.bengkelId,
     this.userId,
     DeviceSessionService? deviceService,
+    SessionManager? sessionManager,
     this.onStateChanged,
     this.syncWifiOnly = false, // default: sync di semua koneksi
   })  : _db = db,
         _syncService = syncService,
-        _deviceService = deviceService;
+        _deviceService = deviceService,
+        _sessionManager = sessionManager;
 
   /// Start background sync — checks every 30 seconds + on network change.
   void start() {
-    if (_isRunning) return;
+    if (_isRunning || _isDisposed) return;
     _isRunning = true;
 
     // Process immediately
@@ -66,13 +73,15 @@ class SyncWorker {
 
     // Check every 30 seconds
     _timer = Timer.periodic(const Duration(seconds: 30), (_) {
-      _processQueue();
+      if (!_isDisposed && _isRunning) {
+        _processQueue();
+      }
     });
 
     // Also process on network change
     _connectivitySubscription =
         Connectivity().onConnectivityChanged.listen((result) {
-      if (result != ConnectivityResult.none) {
+      if (result != ConnectivityResult.none && !_isDisposed && _isRunning) {
         _processQueue();
       }
     });
@@ -87,15 +96,21 @@ class SyncWorker {
 
   /// Stop background sync.
   void stop() {
-    _timer?.cancel();
-    _connectivitySubscription?.cancel();
     _isRunning = false;
+    _timer?.cancel();
+    _timer = null;
     _lockManager.stopAutoHeartbeat();
     SyncTelemetry().log(SyncEvent(
       type: 'worker_stopped',
       level: TelemetryLevel.info,
       timestamp: DateTime.now(),
     ));
+  }
+
+  void dispose() {
+    stop();
+    _isDisposed = true;
+    _connectivitySubscription?.cancel();
   }
 
   /// Enqueue an entity for sync.
@@ -132,17 +147,17 @@ class SyncWorker {
 
     // 1. Acquire lock with heartbeat
     if (!await _lockManager.acquire()) {
-      debugPrint('SyncWorker: Another sync process is active, skipping');
+      debugPrint('SyncWorker: ${AppStrings.sync.anotherActive}'); // Localized log
       return;
     }
 
-    // 1b. Device Heartbeat Sync
-    final currentUserId = userId;
-    if (_deviceService != null && currentUserId != null) {
-      unawaited(_deviceService.heartbeatSync(currentUserId));
-    }
-
     try {
+      // 1b. Device Heartbeat Sync
+      final currentUserId = userId;
+      if (_deviceService != null && currentUserId != null) {
+        unawaited(_deviceService.heartbeatSync(currentUserId));
+      }
+
       _lockManager.startAutoHeartbeat();
       SyncTelemetry().lockAcquired();
 
@@ -157,7 +172,7 @@ class SyncWorker {
 
       if (syncWifiOnly && connectivity != ConnectivityResult.wifi) {
         // User memilih "Sync hanya via WiFi" tapi sedang pakai data seluler
-        debugPrint('SyncWorker: Skipping sync — not on WiFi (syncWifiOnly=true)');
+        debugPrint('SyncWorker: ${AppStrings.sync.wifiOnlyNotice}'); // Localized log
         SyncTelemetry().log(SyncEvent(
           type: 'sync_skipped_wifi_only',
           metadata: {'connectivity': connectivity.toString()},
@@ -165,6 +180,16 @@ class SyncWorker {
           timestamp: DateTime.now(),
         ));
         return;
+      }
+
+      // 1. Session & Connectivity Protection
+      if (_sessionManager != null) {
+        final sessionStatus = await _sessionManager.validateSession();
+        if (sessionStatus == SessionStatus.blocked || 
+            sessionStatus == SessionStatus.invalid) {
+          debugPrint('SyncWorker: Sync paused (Session Blocked/Invalid)');
+          return;
+        }
       }
 
       onStateChanged?.call(SyncWorkerState.syncing);
@@ -207,18 +232,32 @@ class SyncWorker {
       onStateChanged?.call(SyncWorkerState.error);
     } finally {
       await _lockManager.release();
+      _lockManager.stopAutoHeartbeat(); // SEC-FIX: Stop heartbeat on release
       SyncTelemetry().lockReleased();
     }
   }
 
   /// Protects single item sync with CircuitBreaker and Telemetry.
   Future<void> _syncWithProtection(SyncQueueItem item) async {
+    // 1. Exponential Backoff Check
+    if (item.retryCount > 0 && item.lastRetryAt != null) {
+      // Delay = 2^(retryCount-1) minutes. Clamp to max 4 minutes.
+      final delayMins = (1 << (item.retryCount - 1)).clamp(1, 4);
+      final nextAllowed = item.lastRetryAt!.add(Duration(minutes: delayMins));
+      
+      if (DateTime.now().isBefore(nextAllowed)) {
+        // debugPrint('SyncWorker: Skipping ${item.entityUuid} (Backoff: next move in $delayMinsm)');
+        return;
+      }
+    }
+
     final decision =
         _circuitBreaker.shouldProceed(item.entityUuid, DriveErrorType.unknown);
     if (decision == SyncDecision.block) return;
 
     try {
       item.status = 'syncing';
+      item.lastRetryAt = DateTime.now(); // Record start of attempt
       _db.syncQueueBox.put(item);
 
       SyncTelemetry().syncStart(item.entityUuid, item.entityType);
@@ -331,111 +370,240 @@ class SyncWorker {
     }
   }
 
+  static bool _isLocalNewer(dynamic existing, dynamic cloudUpdatedAtStr) {
+    if (existing == null || cloudUpdatedAtStr == null) return false;
+    try {
+      final existingUpdatedAt = (existing as dynamic).updatedAt as DateTime?;
+      if (existingUpdatedAt == null) return false;
+      final cloudUpdatedAt = _toDateTime(cloudUpdatedAtStr);
+      return existingUpdatedAt.isAfter(cloudUpdatedAt);
+    } catch (_) {
+      return false;
+    }
+  }
+
   /// Rebuild local database from Firestore data (Restore process).
+  /// ADR-012: Implements Upsert logic to prevent Unique Constraint violations.
   Future<void> syncDownAll(Map<String, List<Map<String, dynamic>>> data) async {
     if (_db.store.isClosed()) return;
 
+    // Sanitize data to remove non-sendable types (like Timestamp)
+    final sanitizedData = _sanitizeForIsolate(data);
+
     await _db.store.runInTransactionAsync(TxMode.write, (store, dataMap) {
-      // 1. Staff
+      // 1. Staff (with Upsert)
       final staffBox = store.box<Staff>();
-      final staffList = (dataMap['staff'] as List).map((m) {
-        return Staff(
-          name: m['name'] ?? '',
-          role: m['role'] ?? 'mekanik',
-          phoneNumber: m['phone'],
-          uuid: m['uuid'],
-        )
-          ..bengkelId = m['bengkelId'] ?? ''
-          ..isActive = m['isActive'] ?? true;
-      }).toList();
+      final List<Staff> rawStaffList = [];
+      for (var m in (dataMap['staff'] as List)) {
+        final uuid = m['uuid'] as String;
+        final existing = staffBox.query(Staff_.uuid.equals(uuid)).build().findFirst();
+
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          existing.name = m['name'] ?? '';
+          existing.role = m['role'] ?? LogicConstants.roleMekanik;
+          existing.phoneNumber = m['phone'];
+          existing.bengkelId = m['bengkelId'] ?? '';
+          existing.isActive = m['isActive'] ?? true;
+          rawStaffList.add(existing);
+        } else {
+          rawStaffList.add(Staff(
+            name: m['name'] ?? '',
+            role: m['role'] ?? LogicConstants.roleMekanik,
+            phoneNumber: m['phone'],
+            uuid: uuid,
+          )
+            ..bengkelId = m['bengkelId'] ?? ''
+            ..isActive = m['isActive'] ?? true);
+        }
+      }
+
+      final staffList = _deduplicateByUuid<Staff>(rawStaffList, (s) => s.uuid);
       staffBox.putMany(staffList);
 
-      // 2. Customers
+      // 2. Customers (with Upsert)
       final customerBox = store.box<Pelanggan>();
-      final customerList = (dataMap['customers'] as List).map((m) {
-        return Pelanggan(
-          nama: m['name'] ?? '',
-          telepon: m['phone'] ?? '',
-          alamat: m['address'] ?? '',
-          uuid: m['uuid'],
-        )..bengkelId = m['bengkelId'] ?? '';
-      }).toList();
+      final List<Pelanggan> rawCustomerList = [];
+      for (var m in (dataMap['customers'] as List)) {
+        final uuid = m['uuid'] as String;
+        final existing = customerBox.query(Pelanggan_.uuid.equals(uuid)).build().findFirst();
+
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          existing.nama = m['name'] ?? '';
+          existing.telepon = m['phone'] ?? '';
+          existing.alamat = m['address'] ?? '';
+          existing.bengkelId = m['bengkelId'] ?? '';
+          rawCustomerList.add(existing);
+        } else {
+          rawCustomerList.add(Pelanggan(
+            nama: m['name'] ?? '',
+            telepon: m['phone'] ?? '',
+            alamat: m['address'] ?? '',
+            uuid: uuid,
+          )..bengkelId = m['bengkelId'] ?? '');
+        }
+      }
+
+      final customerList =
+          _deduplicateByUuid<Pelanggan>(rawCustomerList, (p) => p.uuid);
       customerBox.putMany(customerList);
 
-      // 3. Vehicles
+      // 3. Vehicles (with Upsert)
       final vehicleBox = store.box<Vehicle>();
-      final vehicleList = (dataMap['vehicles'] as List).map((m) {
-        final v = Vehicle(
-          model: m['model'] ?? '',
-          plate: m['plate'] ?? '',
-          year: m['year'],
-          color: m['color'],
-          uuid: m['uuid'],
-        );
+      final List<Vehicle> rawVehicleList = [];
+      for (var m in (dataMap['vehicles'] as List)) {
+        final uuid = m['uuid'] as String;
+        final existing = vehicleBox.query(Vehicle_.uuid.equals(uuid)).build().findFirst();
+
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          existing.model = m['model'] ?? '';
+          existing.plate = m['plate'] ?? '';
+          existing.type = m['type'] ?? LogicConstants.vehicleMotor;
+          existing.vin = m['vin'] ?? '';
+          existing.year = m['year'];
+          existing.color = m['color'];
+          rawVehicleList.add(existing);
+        } else {
+          rawVehicleList.add(Vehicle(
+            model: m['model'] ?? '',
+            plate: m['plate'] ?? '',
+            type: m['type'] ?? LogicConstants.vehicleMotor,
+            vin: m['vin'] ?? '',
+            year: m['year'],
+            color: m['color'],
+            uuid: uuid,
+          ));
+        }
+      }
+
+      final vehicleList =
+          _deduplicateByUuid<Vehicle>(rawVehicleList, (v) => v.uuid);
+      vehicleBox.putMany(vehicleList);
+
+      // Set owner reference for vehicles
+      for (var m in (dataMap['vehicles'] as List)) {
         final ownerUuid = m['ownerUuid'] as String?;
         if (ownerUuid != null) {
+          final v = vehicleBox
+              .query(Vehicle_.uuid.equals(m['uuid']))
+              .build()
+              .findFirst();
           final owner = customerBox
               .query(Pelanggan_.uuid.equals(ownerUuid))
               .build()
               .findFirst();
-          if (owner != null) v.owner.target = owner;
+          if (v != null && owner != null) {
+            v.owner.target = owner;
+            vehicleBox.put(v);
+          }
         }
-        return v;
-      }).toList();
-      vehicleBox.putMany(vehicleList);
+      }
 
-      // 4. Inventory (Stok)
+      // 4. Inventory (Stok) with Upsert
       final stokBox = store.box<Stok>();
-      final stokList = (dataMap['inventory'] as List).map((m) {
-        return Stok(
-          nama: m['nama'] ?? '',
-          sku: m['sku'],
-          hargaBeli: m['hargaBeli'] ?? 0,
-          hargaJual: m['hargaJual'] ?? 0,
-          jumlah: m['jumlah'] ?? 0,
-          minStok: m['minStok'] ?? 5,
-          kategori: m['kategori'] ?? 'Sparepart',
-          uuid: m['uuid'],
-        )
-          ..bengkelId = m['bengkelId'] ?? ''
-          ..createdAt = _toDateTime(m['createdAt'])
-          ..updatedAt = _toDateTime(m['updatedAt']);
-      }).toList();
+      final List<Stok> rawStokList = [];
+      for (var m in (dataMap['inventory'] as List)) {
+        final uuid = m['uuid'] as String;
+        final existing = stokBox.query(Stok_.uuid.equals(uuid)).build().findFirst();
+
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          existing.nama = m['nama'] ?? m['name'] ?? '';
+          existing.sku = m['sku'];
+          existing.hargaBeli = (m['hargaBeli'] ?? m['buyPrice'] ?? 0).toInt();
+          existing.hargaJual = (m['hargaJual'] ?? m['sellPrice'] ?? 0).toInt();
+          existing.jumlah = (m['jumlah'] ?? m['stock'] ?? 0).toInt();
+          existing.minStok = (m['minStok'] ?? m['minStock'] ?? 5).toInt();
+          existing.kategori =
+              m['kategori'] ?? m['category'] ?? LogicConstants.catSparepart;
+          existing.bengkelId = m['bengkelId'] ?? '';
+          existing.updatedAt = SyncWorker._toDateTime(m['updatedAt']);
+          rawStokList.add(existing);
+        } else {
+          rawStokList.add(Stok(
+            nama: m['nama'] ?? m['name'] ?? '',
+            sku: m['sku'],
+            hargaBeli: (m['hargaBeli'] ?? m['buyPrice'] ?? 0).toInt(),
+            hargaJual: (m['hargaJual'] ?? m['sellPrice'] ?? 0).toInt(),
+            jumlah: (m['jumlah'] ?? m['stock'] ?? 0).toInt(),
+            minStok: (m['minStok'] ?? m['minStock'] ?? 5).toInt(),
+            kategori:
+                m['kategori'] ?? m['category'] ?? LogicConstants.catSparepart,
+            uuid: uuid,
+          )
+            ..bengkelId = m['bengkelId'] ?? ''
+            ..createdAt = SyncWorker._toDateTime(m['createdAt'])
+            ..updatedAt = SyncWorker._toDateTime(m['updatedAt']));
+        }
+      }
+
+      final stokList = _deduplicateByUuid<Stok>(rawStokList, (s) => s.uuid);
       stokBox.putMany(stokList);
 
-      // 5. Transactions & Items
+      // 5. Transactions & Items (with Upsert)
       final transactionBox = store.box<Transaction>();
       final transactionItemBox = store.box<TransactionItem>();
 
       for (var m in (dataMap['transactions'] as List)) {
-        final tx = Transaction(
-          customerName: m['customerName'] ?? '',
-          customerPhone: m['customerPhone'] ?? '',
-          vehicleModel: m['vehicleModel'] ?? '',
-          vehiclePlate: m['vehiclePlate'] ?? '',
-          uuid: m['uuid'],
-          trxNumber: m['trxNumber'],
-          complaint: m['complaint'],
-          mechanicNotes: m['mechanicNotes'],
-          recommendationTimeMonth: m['recommendationTimeMonth'],
-          recommendationKm: m['recommendationKm'],
-          odometer: m['odometer'],
-        )
-          ..bengkelId = m['bengkelId'] ?? ''
-          ..status = m['status'] ?? 'pending'
-          ..statusValue = m['statusValue'] ?? 0
-          ..paymentMethod = m['paymentMethod']
-          ..totalAmount = m['totalAmount'] ?? 0
-          ..partsCost = m['partsCost'] ?? 0
-          ..laborCost = m['laborCost'] ?? 0
-          ..totalRevenue = m['totalRevenue'] ?? 0
-          ..totalHpp = m['totalHpp'] ?? 0
-          ..totalMechanicBonus = m['totalMechanicBonus'] ?? 0
-          ..totalProfit = m['totalProfit'] ?? 0
-          ..createdAt = _toDateTime(m['createdAt'])
-          ..updatedAt = _toDateTime(m['updatedAt'])
-          ..syncStatus = 2;
+        final uuid = m['uuid'] as String;
+        Transaction tx;
+        final existing = transactionBox
+            .query(Transaction_.uuid.equals(uuid))
+            .build()
+            .findFirst();
 
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          tx = existing;
+          tx.customerName = m['customerName'] ?? '';
+          tx.customerPhone = m['customerPhone'] ?? '';
+          tx.vehicleModel = m['vehicleModel'] ?? '';
+          tx.vehiclePlate = m['vehiclePlate'] ?? '';
+          tx.trxNumber = m['trxNumber'] ?? '';
+          tx.complaint = m['complaint'];
+          tx.mechanicNotes = m['mechanicNotes'];
+          tx.recommendationTimeMonth = m['recommendationTimeMonth'];
+          tx.recommendationKm = m['recommendationKm'];
+          tx.odometer = m['odometer'];
+        } else {
+          tx = Transaction(
+            customerName: m['customerName'] ?? '',
+            customerPhone: m['customerPhone'] ?? '',
+            vehicleModel: m['vehicleModel'] ?? '',
+            vehiclePlate: m['vehiclePlate'] ?? '',
+            uuid: uuid,
+            trxNumber: m['trxNumber'],
+            complaint: m['complaint'],
+            mechanicNotes: m['mechanicNotes'],
+            recommendationTimeMonth: m['recommendationTimeMonth'],
+            recommendationKm: m['recommendationKm'],
+            odometer: m['odometer'],
+          );
+        }
+
+        tx.bengkelId = m['bengkelId'] ?? '';
+        tx.status = m['status'] ?? LogicConstants.trxPending;
+        tx.statusValue = m['statusValue'] ?? 0;
+        tx.paymentMethod = m['paymentMethod'];
+        tx.totalAmount = (m['totalAmount'] ?? 0).toInt();
+        tx.partsCost = (m['partsCost'] ?? 0).toInt();
+        tx.laborCost = (m['laborCost'] ?? 0).toInt();
+        tx.totalRevenue = (m['totalRevenue'] ?? 0).toInt();
+        tx.totalHpp = (m['totalHpp'] ?? 0).toInt();
+        tx.totalMechanicBonus = (m['totalMechanicBonus'] ?? 0).toInt();
+        tx.totalProfit = (m['totalProfit'] ?? 0).toInt();
+        tx.createdAt = SyncWorker._toDateTime(m['createdAt']);
+        tx.updatedAt = SyncWorker._toDateTime(m['updatedAt']);
+        tx.syncStatus = 2; // Marked as synced
+
+        // Set relations
         final custUuid = m['customerUuid'] as String?;
         if (custUuid != null) {
           tx.pelanggan.target = customerBox
@@ -460,44 +628,81 @@ class SyncWorker {
 
         transactionBox.put(tx);
 
-        final List<Map<String, dynamic>> itemsList = m['items'] ?? [];
+        // Process items: Clear old and insert fresh for reliability
+        final existingItems = tx.items.toList();
+        for (var item in existingItems) {
+          transactionItemBox.remove(item.id);
+        }
+
+        final itemsList = m['items'] as List? ?? [];
         for (var im in itemsList) {
           final item = TransactionItem(
             name: im['name'] ?? '',
-            price: im['price'] ?? 0,
-            costPrice: im['costPrice'] ?? 0,
-            quantity: im['quantity'] ?? 1,
+            price: (im['price'] ?? 0).toInt(),
+            costPrice: (im['costPrice'] ?? 0).toInt(),
+            quantity: (im['quantity'] ?? 1).toInt(),
             isService: im['isService'] ?? false,
             notes: im['notes'],
-            mechanicBonus: im['mechanicBonus'] ?? 0,
+            mechanicBonus: (im['mechanicBonus'] ?? 0).toInt(),
             uuid: im['uuid'],
-            createdAt: _toDateTime(im['createdAt']),
-            updatedAt: _toDateTime(im['updatedAt']),
+            createdAt: SyncWorker._toDateTime(im['createdAt']),
+            updatedAt: SyncWorker._toDateTime(im['updatedAt']),
           );
           item.transaction.target = tx;
           transactionItemBox.put(item);
         }
       }
 
-      // 6. Inventory History
+      // 6. Inventory History with Upsert
       final historyBox = store.box<StokHistory>();
-      final historyList = (dataMap['stok_history'] as List).map((m) {
-        return StokHistory(
-          stokUuid: m['stokUuid'] ?? '',
-          quantityChange: m['changeAmount'] ?? 0,
-          previousQuantity: m['previousAmount'] ?? 0,
-          newQuantity: m['newAmount'] ?? 0,
-          type: m['type'] ?? 'adjustment',
-          note: m['notes'],
-          uuid: m['uuid'],
-          createdAt: _toDateTime(m['createdAt']),
-        );
-      }).toList();
+      final List<StokHistory> rawHistoryList = [];
+      for (var m in (dataMap['stok_history'] as List)) {
+        final uuid = m['uuid'] as String;
+        final existing = historyBox.query(StokHistory_.uuid.equals(uuid)).build().findFirst();
+
+        if (_isLocalNewer(existing, m['updatedAt'])) continue;
+
+        if (existing != null) {
+          existing.stokUuid = m['stokUuid'] ?? '';
+          existing.quantityChange = (m['quantityChange'] ?? 0).toInt();
+          existing.previousQuantity = (m['previousQuantity'] ?? 0).toInt();
+          existing.newQuantity = (m['newQuantity'] ?? 0).toInt();
+          existing.type = m['type'] ?? LogicConstants.catAdjustment;
+          existing.note = m['note'];
+          rawHistoryList.add(existing);
+        } else {
+          rawHistoryList.add(StokHistory(
+            stokUuid: m['stokUuid'] ?? '',
+            quantityChange: (m['quantityChange'] ?? 0).toInt(),
+            previousQuantity: (m['previousQuantity'] ?? 0).toInt(),
+            newQuantity: (m['newQuantity'] ?? 0).toInt(),
+            type: m['type'] ?? LogicConstants.catAdjustment,
+            note: m['note'],
+            uuid: uuid,
+            createdAt: SyncWorker._toDateTime(m['createdAt']),
+          ));
+        }
+      }
+
+      final historyList =
+          _deduplicateByUuid<StokHistory>(rawHistoryList, (h) => h.uuid);
       historyBox.putMany(historyList);
-    }, data);
+    }, sanitizedData);
   }
 
-  DateTime _toDateTime(dynamic val) {
+  /// Recursively convert non-sendable types (like Timestamp) to sendable ones (like int).
+  static dynamic _sanitizeForIsolate(dynamic data) {
+    if (data is Timestamp) return data.millisecondsSinceEpoch;
+    if (data is Map) {
+      return data.map((key, value) => MapEntry(key, _sanitizeForIsolate(value)));
+    }
+    if (data is List) {
+      return data.map((item) => _sanitizeForIsolate(item)).toList();
+    }
+    return data;
+  }
+
+  static DateTime _toDateTime(dynamic val) {
     if (val is Timestamp) return val.toDate();
     if (val is int) return DateTime.fromMillisecondsSinceEpoch(val);
     return DateTime.now();
@@ -514,6 +719,19 @@ class SyncWorker {
     for (final item in oldItems) {
       _db.syncQueueBox.remove(item.id);
     }
+  }
+
+  /// Helper method for de-duplicating a list based on UUID.
+  /// ADR-012: Ensures only the latest entry per UUID is processed during recovery.
+  static List<T> _deduplicateByUuid<T>(
+      List<T> list, String Function(T) getUuid) {
+    final seen = <String, T>{};
+    for (final item in list) {
+      final uuid = getUuid(item);
+      // Latest entry wins
+      seen[uuid] = item;
+    }
+    return seen.values.toList();
   }
 }
 

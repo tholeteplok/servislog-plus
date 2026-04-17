@@ -246,7 +246,7 @@ class _TheCeremonyDialogState extends ConsumerState<TheCeremonyDialog> {
           color: Colors.green,
           onTap: () {
             final phone = widget.transaction?.customerPhone ?? '';
-            DocumentService.shareWhatsApp(
+            ref.read(documentServiceProvider).shareWhatsApp(
               phone: phone,
               transaction: widget.transaction,
               sales: widget.sales,
@@ -258,7 +258,7 @@ class _TheCeremonyDialogState extends ConsumerState<TheCeremonyDialog> {
           icon: SolarIconsOutline.printer,
           label: 'Cetak Struk (Thermal)',
           color: Colors.orange,
-          onTap: () => DocumentService.generateAndPrint(
+          onTap: () => ref.read(documentServiceProvider).generateAndPrint(
             transaction: widget.transaction,
             sales: widget.sales,
             bengkelName: 'ServisLog+',
@@ -269,7 +269,7 @@ class _TheCeremonyDialogState extends ConsumerState<TheCeremonyDialog> {
           icon: SolarIconsOutline.fileLeft,
           label: 'Simpan / Bagikan PDF',
           color: Colors.red,
-          onTap: () => DocumentService.generateAndPrint(
+          onTap: () => ref.read(documentServiceProvider).generateAndPrint(
             transaction: widget.transaction,
             sales: widget.sales,
             bengkelName: 'ServisLog+',

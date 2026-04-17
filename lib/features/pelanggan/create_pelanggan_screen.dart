@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/providers/pelanggan_provider.dart';
 import '../../core/widgets/atelier_header.dart';
 import '../../domain/entities/pelanggan.dart';
@@ -76,10 +77,10 @@ class _CreatePelangganScreenState extends ConsumerState<CreatePelangganScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAtelierHeaderSub(
-            title: isEdit ? 'UBAH DATA' : 'PELANGGAN BARU',
+            title: isEdit ? AppStrings.customer.editData.toUpperCase() : AppStrings.customer.newCustomer.toUpperCase(),
             subtitle: isEdit
-                ? 'Perbarui informasi mitra bisnismu.'
-                : 'Tambahkan mitra setia bisnismu di sini.',
+                ? AppStrings.customer.editSubtitle
+                : AppStrings.customer.newSubtitle,
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -99,32 +100,32 @@ class _CreatePelangganScreenState extends ConsumerState<CreatePelangganScreen> {
                             fontWeight: FontWeight.w700,
                           ),
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Nama Lengkap',
-                            prefixIcon: Icon(SolarIconsOutline.user),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.customer.fullName,
+                            prefixIcon: const Icon(SolarIconsOutline.user),
                           ),
                           validator: (v) =>
-                              v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                              v?.isEmpty ?? true ? AppStrings.common.requiredField : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _teleponController,
                           style: GoogleFonts.plusJakartaSans(),
-                          decoration: const InputDecoration(
-                            labelText: 'Nomor Telepon/WA',
-                            prefixIcon: Icon(SolarIconsOutline.phone),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.customer.phoneLabel,
+                            prefixIcon: const Icon(SolarIconsOutline.phone),
                           ),
                           keyboardType: TextInputType.phone,
                           validator: (v) =>
-                              v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                              v?.isEmpty ?? true ? AppStrings.common.requiredField : null,
                         ),
                         const SizedBox(height: 16),
                         TextFormField(
                           controller: _alamatController,
                           style: GoogleFonts.plusJakartaSans(),
-                          decoration: const InputDecoration(
-                            labelText: 'Alamat (Opsional)',
-                            prefixIcon: Icon(SolarIconsOutline.mapPoint),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.customer.addressOptional,
+                            prefixIcon: const Icon(SolarIconsOutline.mapPoint),
                           ),
                           maxLines: 2,
                         ),
@@ -141,7 +142,7 @@ class _CreatePelangganScreenState extends ConsumerState<CreatePelangganScreen> {
                         ),
                       ),
                       child: Text(
-                        isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN PELANGGAN',
+                        isEdit ? AppStrings.common.saveChanges.toUpperCase() : AppStrings.customer.saveCustomer.toUpperCase(),
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,

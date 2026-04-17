@@ -43,6 +43,7 @@ class SyncQueueItem {
   int priority; // 0: critical, 1: normal, 2: background
   DateTime createdAt;
   DateTime? syncedAt;
+  DateTime? lastRetryAt;
   int retryCount;
   String status; // pending, syncing, synced, failed
 
@@ -52,6 +53,7 @@ class SyncQueueItem {
     required this.entityUuid,
     required this.priority,
     DateTime? createdAt,
+    this.lastRetryAt,
     this.retryCount = 0,
     this.status = 'pending',
   }) : uuid = uuid ?? const Uuid().v4(),

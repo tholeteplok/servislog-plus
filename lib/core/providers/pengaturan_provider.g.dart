@@ -6,7 +6,7 @@ part of 'pengaturan_provider.dart';
 // RiverpodGenerator
 // **************************************************************************
 
-String _$settingsHash() => r'd0e737ce2c66a2697127fc62b9f9bee5ccac2b0a';
+String _$settingsHash() => r'630c249e5e7d52893ce9220e5a4ee246ecee8460';
 
 /// See also [Settings].
 @ProviderFor(Settings)

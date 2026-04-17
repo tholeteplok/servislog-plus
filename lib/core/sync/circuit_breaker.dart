@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'sync_telemetry.dart';
 
 /// 🛡️ HierarchicalCircuitBreaker — Global + per-item error isolation.
 /// Prevents repetitive failures from overloading the system or causing lag.
@@ -133,8 +134,19 @@ class _CircuitBreaker {
   }
 
   void reset() {
+    final wasOpen = isOpen;
     _failureCount = 0;
     _lastFailureTime = null;
+    
+    if (wasOpen) {
+      SyncTelemetry().log(SyncEvent(
+        type: 'circuit_breaker_reset',
+        metadata: {'name': name},
+        level: TelemetryLevel.info,
+        timestamp: DateTime.now(),
+      ));
+    }
+    
     debugPrint('🔄 Circuit breaker $name reset');
   }
 }

@@ -12,7 +12,7 @@ import 'core/providers/auth_provider.dart';
 import 'core/providers/inactivity_monitor_provider.dart';
 import 'core/constants/app_theme.dart';
 import 'core/models/user_profile.dart';
-import 'features/main/main_screen.dart';
+import 'features/main/adaptive_layout.dart';
 import 'features/auth/screens/login_screen.dart';
 import 'features/auth/screens/onboarding_intro_screen.dart';
 import 'features/auth/screens/onboarding_screen.dart';
@@ -31,8 +31,11 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
+      statusBarColor: Colors.transparent,
       systemNavigationBarColor: Colors.transparent,
       systemNavigationBarDividerColor: Colors.transparent,
+      systemNavigationBarContrastEnforced: false,
+      systemStatusBarContrastEnforced: false,
     ),
   );
 
@@ -155,6 +158,18 @@ class _MainAppState extends ConsumerState<MainApp> {
       darkTheme: AppTheme.modernMalam(),
       themeMode: mode,
       home: const AuthGate(),
+      // Text scale factor clamping for accessibility (WCAG compliant)
+      builder: (context, child) {
+        return MediaQuery(
+          data: MediaQuery.of(context).copyWith(
+            textScaler: MediaQuery.textScalerOf(context).clamp(
+              minScaleFactor: 0.8,
+              maxScaleFactor: 1.3,
+            ),
+          ),
+          child: child!,
+        );
+      },
     );
   }
 }

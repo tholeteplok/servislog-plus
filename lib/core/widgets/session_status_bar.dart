@@ -27,42 +27,36 @@ class SessionStatusBar extends ConsumerWidget {
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accessLevelAsync = ref.watch(accessLevelProvider);
+    final accessLevel = ref.watch(accessLevelProvider);
     
-    return accessLevelAsync.when(
-      data: (accessLevel) {
-        if (accessLevel == AccessLevel.full) return const SizedBox.shrink();
-        
-        final config = _getStatusConfig(accessLevel);
-        
-        return GestureDetector(
-          onTap: () => _showStatusDetails(context, config, accessLevel),
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: config.color.withValues(alpha: 0.1),
-            child: Row(
-              children: [
-                Icon(config.icon, color: config.color, size: 20),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    config.description,
-                    style: TextStyle(
-                      color: config.color,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+    if (accessLevel == AccessLevel.full) return const SizedBox.shrink();
+    
+    final config = _getStatusConfig(accessLevel);
+    
+    return GestureDetector(
+      onTap: () => _showStatusDetails(context, config, accessLevel),
+      child: Container(
+        width: double.infinity,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: config.color.withValues(alpha: 0.1),
+        child: Row(
+          children: [
+            Icon(config.icon, color: config.color, size: 20),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                config.description,
+                style: TextStyle(
+                  color: config.color,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
                 ),
-                Icon(Icons.chevron_right, color: config.color, size: 20),
-              ],
+              ),
             ),
-          ),
-        );
-      },
-      loading: () => const SizedBox.shrink(),
-      error: (e, st) => const SizedBox.shrink(),
+            Icon(Icons.chevron_right, color: config.color, size: 20),
+          ],
+        ),
+      ),
     );
   }
   

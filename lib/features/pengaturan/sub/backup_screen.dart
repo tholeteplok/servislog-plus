@@ -9,8 +9,10 @@ import '../../../core/providers/system_providers.dart';
 import '../../../core/services/auth_service.dart';
 import '../../../core/services/drive_backup_service.dart';
 import '../../../core/widgets/standard_dialog.dart';
-import './restore_screen.dart';
+import 'restore_screen.dart';
 import '../../../core/widgets/atelier_header.dart';
+import '../../../core/widgets/critical_action_guard.dart';
+import '../../../core/services/session_manager.dart';
 
 class BackupScreen extends ConsumerStatefulWidget {
   const BackupScreen({super.key});
@@ -71,35 +73,43 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     if (_authService.currentUser == null) {
       await _handleGoogleLogin();
     }
+    if (!mounted) return;
     if (_authService.currentUser == null) return;
+
+    final verified = await CriticalActionGuard.check(
+      ref,
+      context,
+      CriticalActionType.manageBackup,
+    );
+    if (!mounted) return;
+    if (!verified) return;
 
     try {
       final backup = await _driveService.downloadLatestBackup();
-      if (mounted) {
-        if (backup != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => RestoreScreen(backupFile: backup),
-            ),
-          );
-        } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Tidak ada cadangan ditemukan di Google Drive.'),
-            ),
-          );
-        }
-      }
-    } catch (e) {
-      if (mounted) {
+      if (!mounted) return;
+
+      if (backup != null) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => RestoreScreen(backupFile: backup),
+          ),
+        );
+      } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Gagal mengecek cadangan: $e'),
-            backgroundColor: Colors.red,
+          const SnackBar(
+            content: Text('Tidak ada cadangan ditemukan di Google Drive.'),
           ),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Gagal mengecek cadangan: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -131,7 +141,16 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
     if (_authService.currentUser == null) {
       await _handleGoogleLogin();
     }
+    if (!mounted) return;
     if (_authService.currentUser == null) return;
+
+    final verified = await CriticalActionGuard.check(
+      ref,
+      context,
+      CriticalActionType.manageBackup,
+    );
+    if (!mounted) return;
+    if (!verified) return;
 
     if (!mounted) return;
     showDialog(
@@ -342,9 +361,17 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     label: 'Ekspor Stok (CSV)',
                     subtitle: 'Buka daftar stok di Excel',
                     isLoading: false,
-                    onTap: () => ref
-                        .read(localBackupServiceProvider)
-                        .exportToCsv('STOK'),
+                    onTap: () async {
+                      if (!mounted) return;
+                      final verified = await CriticalActionGuard.check(
+                        ref,
+                        context,
+                        CriticalActionType.manageBackup,
+                      );
+                      if (verified && mounted) {
+                        ref.read(localBackupServiceProvider).exportToCsv('STOK');
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   _buildActionButton(
@@ -352,9 +379,19 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     label: 'Ekspor Transaksi (CSV)',
                     subtitle: 'Laporan keuangan untuk Excel',
                     isLoading: false,
-                    onTap: () => ref
-                        .read(localBackupServiceProvider)
-                        .exportToCsv('TRANS'),
+                    onTap: () async {
+                      if (!mounted) return;
+                      final verified = await CriticalActionGuard.check(
+                        ref,
+                        context,
+                        CriticalActionType.manageBackup,
+                      );
+                      if (verified && mounted) {
+                        ref
+                            .read(localBackupServiceProvider)
+                            .exportToCsv('TRANS');
+                      }
+                    },
                   ),
                   const SizedBox(height: 12),
                   _buildActionButton(
@@ -364,9 +401,20 @@ class _BackupScreenState extends ConsumerState<BackupScreen> {
                     isLoading: false,
                     // SEC-05 FIX: Konfirmasi sebelum export data PII tanpa enkripsi
                     onTap: () async {
-                      final ok = await _confirmPiiExport(exportType: 'Daftar Pelanggan.csv');
+                      final verified = await CriticalActionGuard.check(
+                        ref,
+                        context,
+                        CriticalActionType.manageBackup,
+                      );
+                      if (!mounted) return;
+                      if (!verified) return;
+
+                      final ok = await _confirmPiiExport(
+                          exportType: 'Daftar Pelanggan.csv');
                       if (ok && mounted) {
-                        ref.read(localBackupServiceProvider).exportToCsv('PELANGGAN');
+                        ref
+                            .read(localBackupServiceProvider)
+                            .exportToCsv('PELANGGAN');
                       }
                     },
                   ),

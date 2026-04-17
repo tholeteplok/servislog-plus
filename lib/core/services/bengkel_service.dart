@@ -2,12 +2,14 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
 import 'encryption_service.dart';
 import '../sync/sync_telemetry.dart';
+import 'device_session_service.dart';
 
 /// Service untuk mengelola Bengkel: generate ID, claim, join, dan lookup.
 class BengkelService {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
-  // LGK-06: Public getter agar migration callback di unlock_screen bisa push ke Firestore
-  FirebaseFirestore get firestore => _firestore;
+  // Private instance protected within the service
+  // LGK-06: Encapsulated - use instance methods instead of direct Firestore access
+  
   final EncryptionService _encryption = EncryptionService();
 
   /// Generate unique BengkelID dengan prefix dari nama bengkel.
@@ -71,10 +73,12 @@ class BengkelService {
       });
 
       // 3. Record security audit event (Audit K-3)
+      // Get device ID asynchronously
+      final deviceId = await _getDeviceId();
       SyncTelemetry().securityEvent(
         'bengkel_claimed',
         userId: ownerUid,
-        extra: {'bengkelId': bengkelId},
+        extra: {'bengkelId': bengkelId, 'deviceId': deviceId},
       );
     });
   }
@@ -100,6 +104,25 @@ class BengkelService {
     return await _firestore.collection('bengkel').doc(bengkelId).get();
   }
 
+  /// Recover the Master Key (Check new sub-collection first, then fallback to root)
+  Future<String?> getWrappedMasterKey(String bengkelId) async {
+    final bengkelRef = _firestore.collection('bengkel').doc(bengkelId);
+    
+    // 1. Check new sub-collection (protected)
+    final secretDoc = await bengkelRef.collection('secrets').doc('masterKey').get();
+    if (secretDoc.exists) {
+      return secretDoc.data()?['value'] as String?;
+    }
+
+    // 2. Fallback to legacy root storage
+    final bengkelDoc = await bengkelRef.get();
+    if (bengkelDoc.exists) {
+      return bengkelDoc.data()?['masterKey'] as String?;
+    }
+
+    return null;
+  }
+
   /// Join existing bengkel (untuk staff).
   Future<void> joinBengkel({
     required String bengkelId,
@@ -116,16 +139,8 @@ class BengkelService {
       throw Exception('Bengkel tidak ditemukan');
     }
 
-    // 1. Recover the Master Key (Check new sub-collection first, then fallback to root)
-    String? wrappedKey;
-    final secretDoc = await bengkelRef.collection('secrets').doc('masterKey').get();
-    
-    if (secretDoc.exists) {
-      wrappedKey = secretDoc.data()?['value'] as String?;
-    } else {
-      // Fallback to legacy root storage
-      wrappedKey = bengkelDoc.data()?['masterKey'] as String?;
-    }
+    // 1. Recover the Master Key using centralized helper
+    final wrappedKey = await getWrappedMasterKey(bengkelId);
 
     if (wrappedKey == null) {
       throw Exception('Bengkel tidak memiliki Master Key yang valid');
@@ -185,5 +200,46 @@ class BengkelService {
       default:
         return [];
     }
+  }
+
+  Future<String> _getDeviceId() async {
+    try {
+      final deviceService = DeviceSessionService();
+      return await deviceService.getOrCreateDeviceId();
+    } catch (e) {
+      return 'unknown';
+    }
+  }
+
+  /// Update Master Key and migrate to sub-collection.
+  /// This encapsulates the rotation logic and prevents direct Firestore manipulation.
+  Future<void> updateMasterKey({
+    required String bengkelId,
+    required String wrappedKey,
+    required String userId,
+  }) async {
+    final bengkelRef = _firestore.collection('bengkel').doc(bengkelId);
+    final secretRef = bengkelRef.collection('secrets').doc('masterKey');
+
+    await _firestore.runTransaction((transaction) async {
+      // 1. Delete legacy key from root if it exists
+      transaction.update(bengkelRef, {
+        'masterKey': FieldValue.delete(),
+      });
+
+      // 2. Write new key to sub-collection
+      transaction.set(secretRef, {
+        'value': wrappedKey,
+        'updatedAt': FieldValue.serverTimestamp(),
+        'version': 'v1',
+      }, SetOptions(merge: true));
+    });
+
+    // 🛡️ Log migration event
+    SyncTelemetry().securityEvent(
+      'master_key_migrated',
+      userId: userId,
+      extra: {'bengkelId': bengkelId},
+    );
   }
 }

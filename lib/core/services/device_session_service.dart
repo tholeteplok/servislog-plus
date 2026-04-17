@@ -8,9 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'package:path_provider/path_provider.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../providers/objectbox_provider.dart';
 import '../providers/sync_provider.dart';
+import 'encryption_service.dart';
 
 // ──────────────────────────────────────────────────────────────
 // DATA MODEL
@@ -264,7 +264,10 @@ class DeviceSessionService {
   Future<void> executeNuclearSequence(WidgetRef ref) async {
     // 1. Set global state & Stop workers
     ref.read(isWipingProvider.notifier).state = true;
-    ref.invalidate(syncWorkerProvider); // Explicitly stop the worker
+    final syncWorkerProviderRef = ref.read(syncWorkerProvider);
+    if (syncWorkerProviderRef != null) {
+      ref.invalidate(syncWorkerProvider);
+    }
     debugPrint('☢️ NUCLEAR SEQUENCE INITIATED');
 
     // 2. Buffer & Final Check (Optional logic here)
@@ -282,8 +285,8 @@ class DeviceSessionService {
       debugPrint('☢️ Step 4 & 5: Local data wiped');
 
       // 5. Clear Secure Storage (Additional wipe)
-      const secureStorage = FlutterSecureStorage();
-      await secureStorage.deleteAll();
+      // SEC-01 FIX: Gunakan centralized clearSecureStorage dari EncryptionService.
+      await EncryptionService().clearSecureStorage();
       debugPrint('☢️ Step 6: Secure storage cleared');
 
       // 6. Clear Auth Session in Firestore (Explicitly reset active state)

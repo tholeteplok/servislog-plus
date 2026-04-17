@@ -6,6 +6,7 @@ import 'objectbox_provider.dart';
 import 'auth_provider.dart';
 import 'pengaturan_provider.dart'; // FIX: import settings untuk syncWifiOnly
 import '../services/device_session_service.dart';
+import '../services/session_manager.dart';
 
 part 'sync_provider.g.dart';
 
@@ -54,6 +55,7 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
   final db = ref.watch(dbProvider);
   final syncService = ref.watch(firestoreSyncServiceProvider);
   final deviceService = ref.watch(deviceSessionServiceProvider);
+  final sessionManager = ref.watch(sessionManagerProvider);
 
   // FIX [PERINGATAN]: Baca setting syncWifiOnly dan teruskan ke SyncWorker.
   // Jika user mengubah setting ini, provider akan rebuild dan worker baru
@@ -67,6 +69,7 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
     db: db,
     syncService: syncService,
     deviceService: deviceService,
+    sessionManager: sessionManager,
     bengkelId: profile.bengkelId,
     userId: FirebaseAuth.instance.currentUser?.uid,
     syncWifiOnly: settings.syncWifiOnly, // ← setting kini diteruskan
@@ -78,7 +81,7 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
   worker.start();
 
   ref.onDispose(() {
-    worker.stop();
+    worker.dispose();
   });
 
   return worker;

@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart' as p;
 import 'package:flutter_image_compress/flutter_image_compress.dart';
@@ -17,7 +18,31 @@ class MediaService {
     if (pickedFile == null) return null;
 
     // Further compression using specialized library
-    return await _compressImage(pickedFile);
+    final compressedFile = await _compressImage(pickedFile);
+
+    // Clean up original if it's a temp file and compression was successful
+    if (compressedFile != null && compressedFile.path != pickedFile.path) {
+      if (pickedFile.path.contains('/temp_') ||
+          pickedFile.path.contains('cache') ||
+          pickedFile.path.contains('tmp')) {
+        await _cleanupTempFile(pickedFile.path);
+      }
+    }
+
+    return compressedFile;
+  }
+
+  Future<void> _cleanupTempFile(String? path) async {
+    if (path == null) return;
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        await file.delete();
+        debugPrint('🧹 Cleaned up temp file: $path');
+      }
+    } catch (e) {
+      debugPrint('Failed to cleanup temp file: $e');
+    }
   }
 
   Future<XFile?> _compressImage(XFile file) async {

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:lucide_icons/lucide_icons.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/utils/app_haptic.dart';
+import '../../core/widgets/atelier_header.dart';
+import '../../core/widgets/app_empty_state.dart';
 import '../../core/providers/reminder_provider.dart';
 import '../../core/providers/pengaturan_provider.dart';
 import '../../core/providers/transaction_providers.dart';
@@ -24,50 +27,28 @@ class ReminderScreen extends ConsumerWidget {
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          _buildHeader(context, theme),
+          SliverAtelierHeaderSub(
+            title: AppStrings.reminder.title,
+            subtitle: AppStrings.reminder.subtitle,
+          ),
           SliverPadding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 0, vertical: 8),
             sliver: reminders.isEmpty
-                ? SliverFillRemaining(
+              ? SliverFillRemaining(
                     hasScrollBody: false,
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            SolarIconsOutline.bellOff,
-                            size: 80,
-                            color: theme.colorScheme.outline.withValues(
-                              alpha: 0.2,
-                            ),
-                          ),
-                          const SizedBox(height: 24),
-                          Text(
-                            'Belum ada pengingat.',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                              color: theme.colorScheme.outline,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Pelanggan yang masuk masa servis akan muncul di sini.',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 14,
-                              color: theme.colorScheme.outline.withValues(
-                                alpha: 0.6,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+                    child: AppEmptyState(
+                      title: AppStrings.reminder.emptyTitle,
+                      message: AppStrings.reminder.emptyMessage,
+                      iconData: SolarIconsOutline.bellOff,
                     ),
                   )
                 : SliverList(
                     delegate: SliverChildBuilderDelegate((context, index) {
                       final trx = reminders[index];
-                      return _ReminderCard(trx: trx, settings: settings);
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        child: _ReminderCard(trx: trx, settings: settings),
+                      );
                     }, childCount: reminders.length),
                   ),
           ),
@@ -77,60 +58,6 @@ class ReminderScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildHeader(BuildContext context, ThemeData theme) {
-    final statusBarHeight = MediaQuery.of(context).padding.top;
-    final isDark = theme.brightness == Brightness.dark;
-
-    return SliverToBoxAdapter(
-      child: Container(
-        padding: EdgeInsets.fromLTRB(20, statusBarHeight + 12, 20, 24),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [AppColors.amethyst, const Color(0x009C27B0)],
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            IconButton(
-              onPressed: () => Navigator.pop(context),
-              icon: Icon(
-                LucideIcons.chevronLeft,
-                color: isDark ? Colors.white : Colors.black87,
-              ),
-              style: IconButton.styleFrom(
-                backgroundColor: isDark
-                    ? Colors.white.withValues(alpha: 0.15)
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'PENGINGAT SERVIS',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 28,
-                fontWeight: FontWeight.w900,
-                color: isDark ? Colors.white : Colors.black87,
-                letterSpacing: -1,
-              ),
-            ),
-            Text(
-              'Daftar pelanggan yang perlu segera dihubungi.',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 14,
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.7)
-                    : Colors.black54,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
 }
 
 class _ReminderCard extends ConsumerWidget {
@@ -146,28 +73,28 @@ class _ReminderCard extends ConsumerWidget {
     final statusColor = isOverdue ? Colors.red : Colors.orange;
     final nextDate = trx.nextServiceDate;
     final dateStr = nextDate != null
-        ? DateFormat('dd MMM yyyy').format(nextDate)
+        ? DateFormat(AppStrings.date.displayDate).format(nextDate)
         : '-';
 
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         border: Border.all(
-          color: statusColor.withValues(alpha: 0.2),
+          color: statusColor.withValues(alpha: 0.1),
           width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: statusColor.withValues(alpha: 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: statusColor.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(32),
         child: Column(
           children: [
             // Header Status
@@ -186,12 +113,11 @@ class _ReminderCard extends ConsumerWidget {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    isOverdue ? 'TERLAMBAT SERVIS' : 'SUDAH WAKTUNYA SERVIS',
+                    isOverdue ? AppStrings.reminder.overdue : AppStrings.reminder.upcoming,
                     style: GoogleFonts.plusJakartaSans(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
                       color: statusColor,
-                      letterSpacing: 0.5,
                     ),
                   ),
                 ],
@@ -257,7 +183,7 @@ class _ReminderCard extends ConsumerWidget {
                             ),
                             const SizedBox(width: 6),
                             Text(
-                              'Estimasi:',
+                              AppStrings.reminder.estimateLabel,
                               style: GoogleFonts.plusJakartaSans(
                                 fontSize: 12,
                                 color: Colors.grey,
@@ -285,7 +211,7 @@ class _ReminderCard extends ConsumerWidget {
                               ),
                               const SizedBox(width: 6),
                               Text(
-                                'KM Target:',
+                                AppStrings.reminder.kmTargetLabel,
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 12,
                                   color: Colors.grey,
@@ -293,7 +219,7 @@ class _ReminderCard extends ConsumerWidget {
                               ),
                               const SizedBox(width: 4),
                               Text(
-                                '${trx.targetServiceKm} KM',
+                                '${trx.targetServiceKm}${AppStrings.reminder.kmSuffix}',
                                 style: GoogleFonts.plusJakartaSans(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w800,
@@ -313,7 +239,8 @@ class _ReminderCard extends ConsumerWidget {
                     borderRadius: BorderRadius.circular(16),
                     child: InkWell(
                       onTap: () async {
-                        await DocumentService.sendReminderWhatsApp(
+                        AppHaptic.light();
+                        await ref.read(documentServiceProvider).sendReminderWhatsApp(
                           phone: trx.customerPhone,
                           transaction: trx,
                           bengkelName: settings.workshopName,
@@ -345,3 +272,4 @@ class _ReminderCard extends ConsumerWidget {
     );
   }
 }
+

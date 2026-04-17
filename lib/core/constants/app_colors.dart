@@ -20,7 +20,7 @@ class AppColors {
   static const Color lightSurfaceLow = Color(0xFFE6F6FF); // Alice Blue
   static const Color lightSurfaceHigh = Color(0xFFFFFFFF);
   static const Color lightSurfaceHighest = Color(0xFFCFE6F2);
-  static const Color lightFontAccent = Color(0xFF67587B); 
+  static const Color lightFontAccent = Color(0xFF4A3F58); 
 
   // ── Status Colors (Semantic) ──
   static const Color success = Color(0xFF00C853);
@@ -67,7 +67,7 @@ class AppColors {
         radius: 1.5,
         colors: [
           precisionViolet,
-          obsidianBase.withValues(alpha: 0.1),
+          obsidianBase.withValues(alpha: 0.5),
         ],
       );
     }
@@ -76,7 +76,7 @@ class AppColors {
       radius: 2,
       colors: [
         precisionViolet, 
-        mintMajesty.withValues(alpha: 0.1),
+        mintMajesty.withValues(alpha: 0.5),
       ],
       stops: [0.6, 1.0],
     );

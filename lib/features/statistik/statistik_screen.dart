@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../core/constants/app_colors.dart';
-import '../../core/providers/pengaturan_provider.dart';
-import '../../core/widgets/security_dialogs.dart';
 import '../../core/widgets/atelier_skeleton.dart';
+import '../../core/widgets/critical_action_guard.dart';
+import '../../core/services/session_manager.dart';
 
 // Tabs
 import 'tabs/pendapatan_tab.dart';
@@ -34,21 +34,16 @@ class _StatistikScreenState extends ConsumerState<StatistikScreen>
   }
 
   Future<void> _checkSecurity() async {
-    final settings = ref.read(settingsProvider);
-    if (settings.isBiometricEnabled) {
-      final authenticated = await SecurityDialogs.verify(
-        context,
-        reason: 'Verifikasi untuk melihat laporan keuangan',
-      );
-      if (authenticated) {
-        if (mounted) setState(() => _isLoading = false);
-      } else {
-        if (mounted) Navigator.pop(context);
-      }
+    final verified = await CriticalActionGuard.check(
+      ref,
+      context,
+      CriticalActionType.viewFinancials,
+    );
+    
+    if (verified) {
+      if (mounted) setState(() => _isLoading = false);
     } else {
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) Navigator.pop(context);
     }
   }
 
@@ -149,7 +144,9 @@ class _StatistikScreenState extends ConsumerState<StatistikScreen>
                   LucideIcons.chevronLeft,
                   color: Colors.white,
                 ),
+                tooltip: 'Kembali',
                 style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
                   backgroundColor: Colors.white.withValues(alpha: 0.1),
                 ),
               ),
@@ -161,7 +158,9 @@ class _StatistikScreenState extends ConsumerState<StatistikScreen>
                       _isPrivate ? LucideIcons.eyeOff : LucideIcons.eye,
                       color: Colors.white,
                     ),
+                    tooltip: 'Visibilitas',
                     style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),
@@ -174,7 +173,9 @@ class _StatistikScreenState extends ConsumerState<StatistikScreen>
                       LucideIcons.refreshCw,
                       color: Colors.white,
                     ),
+                    tooltip: 'Segarkan',
                     style: IconButton.styleFrom(
+                      minimumSize: const Size(48, 48),
                       backgroundColor: Colors.white.withValues(alpha: 0.1),
                     ),
                   ),

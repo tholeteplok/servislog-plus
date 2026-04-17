@@ -17,9 +17,10 @@ SharedPreferences sharedPreferences(SharedPreferencesRef ref) {
 
 @riverpod
 TrxNumberService trxNumberService(TrxNumberServiceRef ref) {
-  final prefs = ref.watch(sharedPreferencesProvider);
-  return TrxNumberService(prefs);
+  final db = ref.watch(dbProvider);
+  return TrxNumberService(db);
 }
+
 
 @Riverpod(keepAlive: true)
 EncryptionService encryptionService(EncryptionServiceRef ref) {

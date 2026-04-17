@@ -1,13 +1,12 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/providers/transaction_providers.dart';
 import '../../core/providers/master_providers.dart';
 import '../../core/providers/stok_provider.dart';
@@ -66,10 +65,10 @@ class _CreateTransactionScreenState
   final PageController _pageController = PageController();
   int _currentStep = 0;
   final List<String> _stepLabels = [
-    'Unit',
-    'Diagnosa',
-    'Pekerjaan',
-    'Ringkasan',
+    AppStrings.transaction.stepUnit,
+    AppStrings.transaction.stepDiagnosa,
+    AppStrings.transaction.stepPekerjaan,
+    AppStrings.transaction.stepRingkasan,
   ];
 
 
@@ -173,16 +172,16 @@ class _CreateTransactionScreenState
         if (_vehiclePlateController.text.isEmpty ||
             _customerNameController.text.isEmpty) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Mohon lengkapi info Unit & Pelanggan')),
+            SnackBar(content: Text(AppStrings.error.itemEmpty)),
           );
           return;
         }
-
+ 
         // UX-01 FIX: Validasi nomor HP minimal 8 digit
         final phone = _customerPhoneController.text.trim();
         if (phone.isNotEmpty && phone.replaceAll(RegExp(r'\D'), '').length < 8) {
           ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Nomor HP tidak valid (minimal 8 digit)')),
+            SnackBar(content: Text(AppStrings.error.phoneInvalid)),
           );
           return;
         }
@@ -265,10 +264,11 @@ class _CreateTransactionScreenState
   }
 
   Widget _buildHeader() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.only(
         top: MediaQuery.of(context).padding.top + 10,
-        bottom: 20,
+        bottom: 24,
         left: 20,
         right: 20,
       ),
@@ -277,7 +277,7 @@ class _CreateTransactionScreenState
         borderRadius: const BorderRadius.vertical(bottom: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 20,
             offset: const Offset(0, 10),
           ),
@@ -291,7 +291,9 @@ class _CreateTransactionScreenState
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(SolarIconsOutline.altArrowLeft),
                 style: IconButton.styleFrom(
-                  backgroundColor: AppColors.amethyst.withValues(alpha: 0.05),
+                  backgroundColor: AppColors.amethyst.withValues(alpha: 0.08),
+                  foregroundColor: AppColors.amethyst,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -300,11 +302,12 @@ class _CreateTransactionScreenState
                 children: [
                   Text(
                     widget.initialTransaction == null
-                        ? 'Transaksi Baru'
-                        : 'Edit Transaksi',
+                        ? AppStrings.transaction.newTransaction
+                        : AppStrings.transaction.editTransaction,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 20,
                       fontWeight: FontWeight.w900,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   Text(
@@ -312,14 +315,14 @@ class _CreateTransactionScreenState
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 13,
                       color: AppColors.amethyst,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ],
               ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 24),
           StepIndicator(
             currentStep: _currentStep,
             totalSteps: _stepLabels.length,
@@ -331,23 +334,30 @@ class _CreateTransactionScreenState
   }
 
   Widget _buildBottomNav() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: EdgeInsets.fromLTRB(
+        24,
         20,
-        16,
-        20,
-        MediaQuery.of(context).padding.bottom + 16,
+        24,
+        MediaQuery.of(context).padding.bottom + 20,
       ),
       decoration: BoxDecoration(
         color: Theme.of(context).cardTheme.color,
         borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
             blurRadius: 20,
-            offset: const Offset(0, -5),
+            offset: const Offset(0, -8),
           ),
         ],
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.amethyst.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
       ),
       child: Row(
         children: [
@@ -357,11 +367,14 @@ class _CreateTransactionScreenState
                 onPressed: _prevStep,
                 style: OutlinedButton.styleFrom(
                   minimumSize: const Size(0, 60),
+                  side: BorderSide(
+                    color: isDark ? Colors.white12 : AppColors.amethyst.withValues(alpha: 0.2),
+                  ),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                child: const Text('Kembali'),
+                child: Text(AppStrings.common.back),
               ),
             ),
             const SizedBox(width: 12),
@@ -376,6 +389,7 @@ class _CreateTransactionScreenState
                 minimumSize: const Size(0, 60),
                 backgroundColor: AppColors.amethyst,
                 foregroundColor: Colors.white,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -391,8 +405,8 @@ class _CreateTransactionScreenState
                     )
                   : Text(
                       _currentStep == _stepLabels.length - 1
-                          ? 'Simpan Transaksi'
-                          : 'Selanjutnya',
+                          ? AppStrings.transaction.saveTransaction
+                          : AppStrings.transaction.next,
                       style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
             ),
@@ -409,13 +423,13 @@ class _CreateTransactionScreenState
     final customers = ref.watch(pelangganListProvider);
 
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildStepHeader(
-            'Informasi Unit',
-            'Pilih jenis kendaraan dan masukkan nomor plat.',
+            AppStrings.transaction.unitInfo,
+            AppStrings.transaction.unitInfoDesc,
           ),
           _buildFieldCard(
             child: Column(
@@ -459,7 +473,7 @@ class _CreateTransactionScreenState
                           letterSpacing: 2,
                         ),
                         decoration: InputDecoration(
-                          labelText: 'Nomor Plat',
+                          labelText: AppStrings.transaction.plateNumber,
                           prefixIcon: const Icon(SolarIconsOutline.mapArrowSquare),
                           suffixIcon: Row(
                             mainAxisSize: MainAxisSize.min,
@@ -470,12 +484,12 @@ class _CreateTransactionScreenState
                                   _showVehiclePicker(context, vehicles);
                                 },
                                 icon: const Icon(SolarIconsOutline.magnifier),
-                                tooltip: 'Database Kendaraan',
+                                tooltip: AppStrings.transaction.tooltipVehicleDb,
                               ),
                               IconButton(
                                 onPressed: _openPlateScanner,
                                 icon: const Icon(SolarIconsOutline.scanner),
-                                tooltip: 'Scan Plat',
+                                tooltip: AppStrings.transaction.tooltipScanPlate,
                               ),
                             ],
                           ),
@@ -489,7 +503,7 @@ class _CreateTransactionScreenState
                       options: options,
                       constraints: constraints,
                       titleBuilder: (v) => v.plate,
-                      subtitleBuilder: (v) => '${v.model} - ${v.owner.target?.nama ?? "Tanpa Owner"}',
+                      subtitleBuilder: (v) => '${v.model} - ${v.owner.target?.nama ?? AppStrings.transaction.noOwner}',
                       typedValue: _vehiclePlateController.text,
                     ),
                   ),
@@ -525,8 +539,8 @@ class _CreateTransactionScreenState
                         enabled: !isHeaderInfoLocked,
                         style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
                         decoration: InputDecoration(
-                          labelText: 'Model Kendaraan',
-                          hintText: 'Misal: Honda Vario 125',
+                          labelText: AppStrings.transaction.vehicleModel,
+                          hintText: AppStrings.transaction.vehicleModelHint,
                           prefixIcon: Icon(
                             _selectedVehicleCategory == VehicleCategory.mobil ? AppIcons.car : AppIcons.motorcycle,
                           ),
@@ -567,7 +581,7 @@ class _CreateTransactionScreenState
                         enabled: !isHeaderInfoLocked,
                         textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(
-                          labelText: 'Warna',
+                          labelText: AppStrings.transaction.color,
                           prefixIcon: Icon(LucideIcons.palette),
                         ),
                       ),
@@ -579,8 +593,8 @@ class _CreateTransactionScreenState
           ),
           const SizedBox(height: 32),
           _buildStepHeader(
-            'Informasi Pelanggan',
-            'Cari pelanggan lama atau ketik untuk pelanggan baru.',
+            AppStrings.transaction.customerInfo,
+            AppStrings.transaction.customerInfoDesc,
           ),
           const SizedBox(height: 16),
           _buildFieldCard(
@@ -610,13 +624,17 @@ class _CreateTransactionScreenState
                       focusNode: focus,
                       enabled: !isHeaderInfoLocked,
                       onChanged: (v) => _customerNameController.text = v,
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
                       decoration: InputDecoration(
-                        labelText: 'Nama Pelanggan',
+                        labelText: AppStrings.transaction.customerName,
                         prefixIcon: const Icon(SolarIconsOutline.user),
                         suffixIcon: IconButton(
+                          onPressed: () {
+                             final list = ref.read(pelangganListProvider);
+                             _showPelangganPicker(list);
+                          },
                           icon: const Icon(SolarIconsOutline.magnifier),
-                          onPressed: () => _showPelangganPicker(customers),
-                          tooltip: 'Cari Database',
+                          tooltip: AppStrings.transaction.tooltipSearchDb,
                         ),
                       ),
                     );
@@ -637,9 +655,9 @@ class _CreateTransactionScreenState
                   controller: _customerPhoneController,
                   enabled: !isHeaderInfoLocked,
                   keyboardType: TextInputType.phone,
-                  decoration: const InputDecoration(
-                    labelText: 'Nomor Telepon',
-                    prefixIcon: Icon(SolarIconsOutline.phone),
+                  decoration: InputDecoration(
+                    labelText: AppStrings.transaction.phoneNumber,
+                    prefixIcon: const Icon(SolarIconsOutline.phoneCalling),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -647,10 +665,10 @@ class _CreateTransactionScreenState
                   controller: _customerAddressController,
                   enabled: !isHeaderInfoLocked,
                   maxLines: 2,
-                  decoration: const InputDecoration(
-                    labelText: 'Alamat Pelanggan',
-                    prefixIcon: Icon(SolarIconsOutline.mapPoint),
-                    hintText: 'Jl. Contoh No. 123...',
+                  decoration: InputDecoration(
+                    labelText: AppStrings.transaction.address,
+                    hintText: AppStrings.transaction.addressHint,
+                    prefixIcon: const Icon(SolarIconsOutline.mapPoint),
                   ),
                 ),
               ],
@@ -670,34 +688,41 @@ class _CreateTransactionScreenState
       child: Column(
         children: [
           _buildStepHeader(
-            'Diagnosa & Keluhan',
-            'Sampaikan keluhan pelanggan dan dokumentasikan unit.',
+            AppStrings.transaction.complaint,
+            '',
           ),
           const SizedBox(height: 24),
           _buildFieldCard(
-            child: Column(
+            child: TextFormField(
+              controller: _complaintController,
+              maxLines: 3,
+              style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+              decoration: InputDecoration(
+                labelText: AppStrings.transaction.complaint,
+                hintText: 'Misal: Ganti Oli, CVT kasar',
+                alignLabelWithHint: true,
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          _buildFieldCard(
+            child: Row(
               children: [
-                TextFormField(
-                  controller: _complaintController,
-                  maxLines: 4,
-                  decoration: const InputDecoration(
-                    labelText: 'Keluhan Pelanggan',
-                    alignLabelWithHint: true,
-                    prefixIcon: Padding(
-                      padding: EdgeInsets.only(bottom: 60),
-                      child: Icon(SolarIconsOutline.billList),
-                    ),
-                  ),
+                const Icon(SolarIconsOutline.camera, color: AppColors.amethyst),
+                const SizedBox(width: 12),
+                Text(
+                  AppStrings.transaction.addPhoto,
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
                 ),
-                const SizedBox(height: 16),
-                _buildPhotoPicker(),
+                const Spacer(),
+                const Icon(SolarIconsOutline.addCircle, color: AppColors.amethyst),
               ],
             ),
           ),
           const SizedBox(height: 24),
           _buildStepHeader(
-            'Suku Cadang (Opsional)',
-            'Pilih kategori item untuk ditambahkan dengan cepat.',
+            AppStrings.transaction.sparepartOptional,
+            AppStrings.transaction.sparepartDesc,
           ),
           const SizedBox(height: 12),
           SizedBox(
@@ -843,29 +868,113 @@ class _CreateTransactionScreenState
   // --- STEP 3: PEKERJAAN & SPAREPART ---
   Widget _buildStepPekerjaan() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           _buildStepHeader(
-            'Item Servis & Part',
-            'Tambahkan jasa servis dan sparepart yang digunakan.',
+            AppStrings.transaction.serviceAndParts,
+            AppStrings.transaction.serviceAndPartsDesc,
           ),
-          const SizedBox(height: 20),
-          _buildItemSearchBar(),
           const SizedBox(height: 24),
-          _buildItemsList(),
-          const SizedBox(height: 16),
-          ElevatedButton.icon(
+          OutlinedButton(
             onPressed: () => _showCatalogPicker(),
-            icon: const Icon(SolarIconsOutline.addCircle),
-            label: const Text('Tambah Jasa / Part'),
-            style: ElevatedButton.styleFrom(
-              minimumSize: const Size(double.infinity, 56),
-              backgroundColor: AppColors.amethyst.withValues(alpha: 0.1),
-              foregroundColor: AppColors.amethyst,
-              elevation: 0,
+            style: OutlinedButton.styleFrom(
+              padding: const EdgeInsets.all(20),
+              side: BorderSide(color: AppColors.amethyst.withValues(alpha: 0.3)),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(SolarIconsOutline.addCircle),
+                const SizedBox(width: 12),
+                Text(
+                  AppStrings.transaction.addItem,
+                  style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800),
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 24),
+          _buildItemsList(),
+          const SizedBox(height: 32),
+          _buildStepHeader(
+            AppStrings.transaction.recommendation,
+            AppStrings.transaction.recommendationDesc,
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              _buildModernFilterChip(
+                label: AppStrings.transaction.byTime,
+                isSelected: _selectedRecommendationTime != null,
+                onSelected: (v) {
+                  setState(() => _selectedRecommendationTime = v ? 3 : null);
+                },
+              ),
+              const SizedBox(width: 12),
+              _buildModernFilterChip(
+                label: AppStrings.transaction.byDistance,
+                isSelected: _recommendationKmController.text.isNotEmpty,
+                onSelected: (v) {
+                  if (v) {
+                    _recommendationKmController.text = '2000';
+                  } else {
+                    _recommendationKmController.clear();
+                  }
+                  setState(() {});
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_selectedRecommendationTime != null || _recommendationKmController.text.isNotEmpty)
+            _buildFieldCard(
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _currentOdometerController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                       labelText: AppStrings.transaction.currentOdometer,
+                       prefixIcon: const Icon(LucideIcons.gauge),
+                       suffixText: 'Km',
+                    ),
+                  ),
+                  if (_recommendationKmController.text.isNotEmpty) ...[
+                    const Divider(height: 32),
+                    TextFormField(
+                      controller: _recommendationKmController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                         labelText: AppStrings.transaction.targetService,
+                         prefixIcon: const Icon(LucideIcons.flag),
+                         suffixText: 'Km',
+                      ),
+                    ),
+                  ],
+                  if (_selectedRecommendationTime != null) ...[
+                    const Divider(height: 32),
+                    Row(
+                      children: [
+                        const Icon(SolarIconsOutline.calendarMinimalistic, color: AppColors.amethyst),
+                        const SizedBox(width: 12),
+                        Text(
+                          AppStrings.transaction.month,
+                          style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                        ),
+                        const Spacer(),
+                        _buildCounter(
+                          value: _selectedRecommendationTime!,
+                          onChanged: (v) => setState(() => _selectedRecommendationTime = v),
+                        ),
+                      ],
+                    ),
+                  ],
+                ],
+              ),
+            ),
         ],
       ),
     );
@@ -874,126 +983,52 @@ class _CreateTransactionScreenState
   // --- STEP 4: RINGKASAN & ESTIMASI ---
   Widget _buildStepRingkasan() {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Column(
         children: [
           _buildStepHeader(
-            'Ringkasan Transaksi',
-            'Review semua data sebelum disimpan.',
+            AppStrings.transaction.summary,
+            AppStrings.transaction.summaryDesc,
           ),
           const SizedBox(height: 24),
-          _buildRingkasanCard(),
-          const SizedBox(height: 32),
-          _buildStepHeader(
-            'REKOMENDASI KEMBALI (OPSIONAL)',
-            'Estimasi waktu dan jarak servis berikutnya.',
-          ),
-          const SizedBox(height: 16),
           _buildFieldCard(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  'Berdasarkan Waktu',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 12),
                 Row(
-                  children: [1, 2, 3].map((m) {
-                    final isSelected = _selectedRecommendationTime == m;
-                    return Expanded(
-                      child: Padding(
-                        padding: EdgeInsets.only(right: m == 3 ? 0 : 8),
-                        child: OutlinedButton(
-                          onPressed: () => setState(() => _selectedRecommendationTime = m),
-                          style: OutlinedButton.styleFrom(
-                            backgroundColor: isSelected ? AppColors.amethyst : Colors.transparent,
-                            side: BorderSide(
-                              color: isSelected ? AppColors.amethyst : Colors.white12,
-                            ),
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                          ),
-                          child: Text(
-                            '$m Bulan',
-                            style: GoogleFonts.plusJakartaSans(
-                              fontSize: 13,
-                              fontWeight: FontWeight.bold,
-                              color: isSelected ? Colors.white : Colors.white70,
-                            ),
-                          ),
-                        ),
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.amethyst.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
                       ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 24),
-                const Divider(color: Colors.white12),
-                const SizedBox(height: 16),
-                Text(
-                  'Berdasarkan Jarak',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.grey,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextFormField(
-                  controller: _currentOdometerController,
-                  keyboardType: TextInputType.number,
-                  onChanged: (v) => _updateTargetKm(),
-                  decoration: const InputDecoration(
-                    labelText: 'Tulis Jarak (Km) saat ini',
-                    prefixIcon: Icon(SolarIconsOutline.map),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [1000, 2000, 3000, 5000].map((inc) {
-                    return Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 4),
-                        child: TextButton(
-                          onPressed: () {
-                            final current = int.tryParse(_currentOdometerController.text) ?? 0;
-                            _currentOdometerController.text = (current + inc).toString();
-                            _updateTargetKm();
-                          },
-                          style: TextButton.styleFrom(
-                            backgroundColor: AppColors.amethyst.withValues(alpha: 0.1),
-                            padding: const EdgeInsets.symmetric(vertical: 8),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                          ),
-                          child: Text(
-                            '+$inc',
+                      child: const Icon(SolarIconsOutline.walletMoney, color: AppColors.amethyst),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            AppStrings.transaction.totalEstimateValue(_selectedItems.length, AppStrings.transaction.formatCurrency(_totalAmount)),
                             style: GoogleFonts.plusJakartaSans(
+                              color: Colors.grey,
                               fontSize: 12,
-                              fontWeight: FontWeight.bold,
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                          Text(
+                            AppStrings.transaction.formatCurrency(_totalAmount),
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
                               color: AppColors.amethyst,
                             ),
                           ),
-                        ),
+                        ],
                       ),
-                    );
-                  }).toList(),
-                ),
-                const SizedBox(height: 20),
-                TextFormField(
-                  controller: _recommendationKmController,
-                  readOnly: true,
-                  decoration: InputDecoration(
-                    labelText: 'Target Servis (Km)',
-                    prefixIcon: const Icon(SolarIconsOutline.mapArrowSquare, color: AppColors.amethyst),
-                    filled: true,
-                    fillColor: AppColors.amethyst.withValues(alpha: 0.05),
-                    labelStyle: const TextStyle(color: AppColors.amethyst),
-                  ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -1003,35 +1038,33 @@ class _CreateTransactionScreenState
     );
   }
 
-  void _updateTargetKm() {
-    final cur = int.tryParse(_currentOdometerController.text) ?? 0;
-    // Default recommendation: +2000 or keep existing if manually edited (though it's read-only now)
-    _recommendationKmController.text = (cur + 2000).toString();
-  }
-
 
   Widget _buildCategoryItem(String label, IconData icon) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return GestureDetector(
       onTap: () => _showCatalogPicker(initialQuery: label),
       child: Container(
         width: 80,
         margin: const EdgeInsets.only(right: 12),
         decoration: BoxDecoration(
-          color: AppColors.amethyst.withValues(alpha: 0.05),
+          color: isDark ? AppColors.amethyst.withValues(alpha: 0.08) : AppColors.amethyst.withValues(alpha: 0.04),
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.amethyst.withValues(alpha: 0.1)),
+          border: Border.all(
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.amethyst.withValues(alpha: 0.1),
+          ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: AppColors.amethyst),
+            Icon(icon, color: AppColors.amethyst, size: 22),
             const SizedBox(height: 8),
             Text(
               label,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 10,
-                fontWeight: FontWeight.bold,
+                fontWeight: FontWeight.w800,
                 color: AppColors.amethyst,
+                letterSpacing: 0.5,
               ),
             ),
           ],
@@ -1041,6 +1074,7 @@ class _CreateTransactionScreenState
   }
 
   Widget _buildStepHeader(String title, String subtitle) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1056,22 +1090,11 @@ class _CreateTransactionScreenState
           subtitle,
           style: GoogleFonts.plusJakartaSans(
             fontSize: 12,
-            color: Colors.grey,
+            color: isDark ? Colors.white70 : Colors.black54,
+            fontWeight: FontWeight.w500,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildFieldCard({required Widget child}) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardTheme.color,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(color: AppColors.amethyst.withValues(alpha: 0.1)),
-      ),
-      child: child,
     );
   }
 
@@ -1109,7 +1132,7 @@ class _CreateTransactionScreenState
             children: [
               Icon(
                 icon,
-                color: isSelected ? Colors.white : Colors.grey,
+                color: isSelected ? Colors.white : Colors.grey.withValues(alpha: 0.5),
                 size: 16,
               ),
               const SizedBox(width: 8),
@@ -1118,112 +1141,12 @@ class _CreateTransactionScreenState
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 12,
                   fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
-                  color: isSelected ? Colors.white : Colors.grey,
+                  color: isSelected ? Colors.white : Colors.grey.withValues(alpha: 0.5),
                 ),
               ),
             ],
           ),
         ),
-      ),
-    );
-  }
-
-  Widget _buildPhotoPicker() {
-    return GestureDetector(
-      onTap: _pickImage,
-      child: Container(
-        height: 120,
-        decoration: BoxDecoration(
-          color: AppColors.amethyst.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: AppColors.amethyst.withValues(alpha: 0.1)),
-          image: _localPhotoPath != null
-              ? DecorationImage(
-                  image: FileImage(File(_localPhotoPath!)),
-                  fit: BoxFit.cover,
-                )
-              : null,
-        ),
-        child: _localPhotoPath == null
-            ? Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(SolarIconsOutline.camera, color: AppColors.amethyst),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Tambah Foto Unit',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: AppColors.amethyst,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              )
-            : null,
-      ),
-    );
-  }
-
-  Widget _buildItemSearchBar() {
-    final jasaList = ref.watch(serviceMasterListProvider).valueOrNull ?? [];
-    final stokList = ref.watch(stokListProvider);
-
-    return Autocomplete<Object>(
-      optionsBuilder: (TextEditingValue textEditingValue) {
-        if (textEditingValue.text.isEmpty) {
-          return const Iterable<Object>.empty();
-        }
-        final query = textEditingValue.text.toLowerCase();
-        final matches = <Object>[];
-        matches.addAll(jasaList.where((j) => 
-            j.name.toLowerCase().contains(query) || 
-            (j.category?.toLowerCase().contains(query) ?? false)));
-        matches.addAll(stokList.where((s) => 
-            s.nama.toLowerCase().contains(query) || 
-            s.kategori.toLowerCase().contains(query)));
-        return matches;
-      },
-      onSelected: (item) {
-        if (item is ServiceMaster) {
-          _addItemFromMaster(item);
-        } else if (item is Stok) {
-          _addItemFromStok(item);
-        }
-        _quickSearchController.clear();
-      },
-      displayStringForOption: (item) => item is ServiceMaster ? item.name : (item as Stok).nama,
-      fieldViewBuilder: (ctx, ctrl, focus, onFieldSubmitted) {
-        return TextFormField(
-          controller: ctrl,
-          focusNode: focus,
-          decoration: InputDecoration(
-            hintText: 'Cari & tambah item cepat...',
-            prefixIcon: const Icon(SolarIconsOutline.magnifier),
-            filled: true,
-            fillColor: AppColors.amethyst.withValues(alpha: 0.05),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(16),
-              borderSide: BorderSide.none,
-            ),
-          ),
-        );
-      },
-      optionsViewBuilder: (context, onSelected, options) => _buildAutocompleteOptions<Object>(
-        context: context,
-        onSelected: onSelected,
-        options: options,
-        constraints: const BoxConstraints(maxWidth: 300),
-        titleBuilder: (item) => item is ServiceMaster ? item.name : (item as Stok).nama,
-        subtitleBuilder: (item) {
-          if (item is ServiceMaster) {
-            return '${item.category ?? "Jasa"} - ${NumberFormat.currency(locale: "id_ID", symbol: "Rp", decimalDigits: 0).format(item.basePrice)}';
-          } else {
-            final s = item as Stok;
-            return '${s.kategori} - ${NumberFormat.currency(locale: "id_ID", symbol: "Rp", decimalDigits: 0).format(s.hargaJual)}';
-          }
-        },
-        typedValue: '',
       ),
     );
   }
@@ -1469,16 +1392,17 @@ class _CreateTransactionScreenState
 
 
   Widget _buildItemsList() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (_selectedItems.isEmpty) {
       return Container(
         padding: const EdgeInsets.all(40),
         child: Column(
           children: [
-            Icon(SolarIconsOutline.box, size: 48, color: Colors.grey[300]),
+            Icon(SolarIconsOutline.box, size: 48, color: isDark ? Colors.white12 : Colors.grey[300]),
             const SizedBox(height: 16),
             Text(
-              'Belum ada item ditambahkan',
-              style: GoogleFonts.plusJakartaSans(color: Colors.grey),
+              AppStrings.transaction.emptyItems,
+              style: GoogleFonts.plusJakartaSans(color: Colors.grey, fontWeight: FontWeight.w600),
             ),
           ],
         ),
@@ -1495,7 +1419,16 @@ class _CreateTransactionScreenState
           decoration: BoxDecoration(
             color: Theme.of(context).cardTheme.color,
             borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.amethyst.withValues(alpha: 0.05)),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.amethyst.withValues(alpha: 0.1),
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.1 : 0.02),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             children: [
@@ -1518,11 +1451,11 @@ class _CreateTransactionScreenState
                   children: [
                     Text(
                       item.name,
-                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+                      style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w800, fontSize: 14),
                     ),
                     Text(
                       NumberFormat.currency(locale: "id_ID", symbol: "Rp", decimalDigits: 0).format(item.price),
-                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey),
+                      style: GoogleFonts.plusJakartaSans(fontSize: 12, color: Colors.grey, fontWeight: FontWeight.w500),
                     ),
                     if (item.mechanicBonus > 0)
                       GestureDetector(
@@ -1612,77 +1545,6 @@ class _CreateTransactionScreenState
     );
   }
 
-  Widget _buildRingkasanCard() {
-    final currency = NumberFormat.currency(locale: "id_ID", symbol: "Rp", decimalDigits: 0);
-
-    return Container(
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: AppColors.amethyst,
-        borderRadius: BorderRadius.circular(28),
-        boxShadow: [
-          BoxShadow(
-            color: AppColors.amethyst.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                'TOTAL ESTIMASI',
-                style: TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
-                ),
-              ),
-              Text(
-                '${_selectedItems.length} ITEM',
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 8),
-          Text(
-            currency.format(_totalAmount),
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-            ),
-          ),
-          const Divider(color: Colors.white24, height: 32),
-          _buildInfoRow('Plat Nomor', _vehiclePlateController.text),
-          _buildInfoRow('Pelanggan', _customerNameController.text),
-          _buildInfoRow('Teknisi', _selectedMechanic?.name ?? '-'),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 4),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(color: Colors.white70, fontSize: 12)),
-          Text(value, style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
   void _showEditBonusDialog(int index) {
     final item = _selectedItems[index];
     final controller = TextEditingController(text: item.mechanicBonus.toString());
@@ -1690,19 +1552,19 @@ class _CreateTransactionScreenState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Edit Bonus: ${item.name}', style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
+        title: Text(AppStrings.transaction.editBonusTitle(item.name), style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tentukan jumlah bonus teknisi untuk item ini.', style: GoogleFonts.plusJakartaSans(fontSize: 12)),
+            Text(AppStrings.transaction.editBonusDesc, style: GoogleFonts.plusJakartaSans(fontSize: 12)),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Jumlah Bonus (Rp)',
-                prefixIcon: Icon(LucideIcons.medal),
+              decoration: InputDecoration(
+                labelText: AppStrings.transaction.bonusLabel,
+                prefixIcon: const Icon(LucideIcons.medal),
               ),
               autofocus: true,
             ),
@@ -1711,7 +1573,7 @@ class _CreateTransactionScreenState
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Batal'),
+            child: Text(AppStrings.common.cancel),
           ),
           FilledButton(
             onPressed: () {
@@ -1722,7 +1584,7 @@ class _CreateTransactionScreenState
               Navigator.pop(context);
             },
             style: FilledButton.styleFrom(backgroundColor: AppColors.amethyst),
-            child: const Text('Simpan'),
+            child: Text(AppStrings.common.save),
           ),
         ],
       ),
@@ -1730,14 +1592,6 @@ class _CreateTransactionScreenState
   }
 
   // --- ACTIONS ---
-  Future<void> _pickImage() async {
-    final picker = ImagePicker();
-    final img = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
-    if (img != null) {
-      setState(() => _localPhotoPath = img.path);
-    }
-  }
-
   void _onPlateChanged(String plate) {
     if (plate.length < 3) return;
     final vehicles = ref.read(vehicleListProvider).valueOrNull ?? [];
@@ -1806,7 +1660,7 @@ class _CreateTransactionScreenState
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _BasePickerModal(
-        title: 'Pilih Teknisi',
+        title: AppStrings.transaction.selectTechnician,
         items: list.map((s) => _PickerItem(title: s.name, subtitle: s.role, original: s)).toList(),
         onSelected: (item) => setState(() => _selectedMechanic = item.original as Staff),
       ),
@@ -1818,7 +1672,7 @@ class _CreateTransactionScreenState
       context: context,
       backgroundColor: Colors.transparent,
       builder: (context) => _BasePickerModal(
-        title: 'Pilih Kendaraan',
+        title: AppStrings.transaction.selectVehicle,
         items: list.map((v) => _PickerItem(title: v.plate, subtitle: v.model, original: v)).toList(),
         onSelected: (item) {
           final v = item.original as Vehicle;
@@ -1881,7 +1735,7 @@ class _CreateTransactionScreenState
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Pilih Pelanggan',
+                            AppStrings.transaction.selectCustomer,
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 24,
                               fontWeight: FontWeight.w900,
@@ -1893,7 +1747,7 @@ class _CreateTransactionScreenState
                             autofocus: true,
                             onChanged: (_) => setModalState(() {}),
                             decoration: InputDecoration(
-                              hintText: 'Cari nama, telp, atau plat nomor...',
+                              hintText: AppStrings.transaction.customerSearchHint,
                               prefixIcon: const Icon(SolarIconsOutline.magnifier),
                               suffixIcon: _quickSearchController.text.isNotEmpty
                                   ? IconButton(
@@ -1919,7 +1773,7 @@ class _CreateTransactionScreenState
                           final vehicles = ref.read(customerVehiclesProvider(p.id));
                           final plateStr = vehicles.isNotEmpty 
                               ? vehicles.map((v) => v.plate).join(', ')
-                              : 'Tidak ada kendaraan';
+                              : AppStrings.transaction.noVehicle;
 
                           return Card(
                             margin: const EdgeInsets.only(bottom: 12),
@@ -1958,15 +1812,15 @@ class _CreateTransactionScreenState
 
   Future<void> _submit() async {
     if (_selectedItems.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Item servis masih kosong')));
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppStrings.error.itemEmpty)));
       return;
     }
 
     final hasService = _selectedItems.any((item) => item.isService);
     if (!hasService) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Wajib menambahkan minimal 1 layanan (jasa) dari inventaris.'),
+        SnackBar(
+          content: Text(AppStrings.transaction.requiredService),
           backgroundColor: Colors.orange,
         ),
       );
@@ -2032,7 +1886,7 @@ class _CreateTransactionScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Gagal menyimpan: $e')));
+            .showSnackBar(SnackBar(content: Text('${AppStrings.error.saveFailed}: $e'))); // Need saveFailed in error? Yes.
       }
     } finally {
       if (mounted) setState(() => _isProcessing = false);
@@ -2052,31 +1906,152 @@ class _CreateTransactionScreenState
     return Align(
       alignment: Alignment.topLeft,
       child: Material(
-        elevation: 12,
-        borderRadius: BorderRadius.circular(20),
-        color: isDark ? const Color(0xFF1E1E26) : Colors.white,
+        elevation: 20,
+        color: Colors.transparent,
         child: Container(
           width: constraints.maxWidth,
+          margin: const EdgeInsets.only(top: 8),
           constraints: const BoxConstraints(maxHeight: 300),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: AppColors.amethyst.withValues(alpha: 0.1)),
+            color: Theme.of(context).cardTheme.color,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(
+              color: isDark ? Colors.white.withValues(alpha: 0.1) : AppColors.amethyst.withValues(alpha: 0.15),
+              width: 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 12),
+              ),
+            ],
           ),
-          child: ListView.separated(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            shrinkWrap: true,
-            itemCount: options.length,
-            separatorBuilder: (context, index) => Divider(height: 1, color: AppColors.amethyst.withValues(alpha: 0.05)),
-            itemBuilder: (ctx, idx) {
-              final T option = options.elementAt(idx);
-              return ListTile(
-                title: Text(titleBuilder(option), style: const TextStyle(fontWeight: FontWeight.bold)),
-                subtitle: subtitleBuilder != null ? Text(subtitleBuilder(option)) : null,
-                onTap: () => onSelected(option),
-              );
-            },
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: ListView.separated(
+              padding: EdgeInsets.zero,
+              shrinkWrap: true,
+              itemCount: options.length,
+              separatorBuilder: (context, index) => Divider(
+                height: 1, 
+                color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.amethyst.withValues(alpha: 0.05)
+              ),
+              itemBuilder: (ctx, idx) {
+                final T option = options.elementAt(idx);
+                final title = titleBuilder(option);
+                final subtitle = subtitleBuilder?.call(option);
+                
+                return InkWell(
+                  onTap: () => onSelected(option),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          title,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                        ),
+                        if (subtitle != null) ...[
+                          const SizedBox(height: 4),
+                          Text(
+                            subtitle,
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 12,
+                              color: isDark ? Colors.white60 : Colors.black54,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildFieldCard({required Widget child}) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardTheme.color,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : AppColors.amethyst.withValues(alpha: 0.1),
+        ),
+      ),
+      child: child,
+    );
+  }
+
+  Widget _buildModernFilterChip({
+    required String label,
+    required bool isSelected,
+    required Function(bool) onSelected,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return FilterChip(
+      label: Text(
+        label,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+          color: isSelected ? Colors.white : (isDark ? Colors.white70 : Colors.black54),
+        ),
+      ),
+      selected: isSelected,
+      onSelected: onSelected,
+      backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.grey[100],
+      selectedColor: AppColors.amethyst,
+      checkmarkColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      side: BorderSide.none,
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+    );
+  }
+
+  Widget _buildCounter({required int value, required Function(int) onChanged}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: AppColors.amethyst.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          IconButton(
+            icon: const Icon(LucideIcons.minus, size: 14),
+            onPressed: () => onChanged(value > 1 ? value - 1 : value),
+            color: AppColors.amethyst,
+            constraints: const BoxConstraints(),
+            padding: const EdgeInsets.all(8),
+          ),
+          Text(
+            '$value',
+            style: GoogleFonts.plusJakartaSans(
+              fontWeight: FontWeight.w800,
+              color: AppColors.amethyst,
+            ),
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.plus, size: 14),
+            onPressed: () => onChanged(value + 1),
+            color: AppColors.amethyst,
+            constraints: const BoxConstraints(),
+            padding: const EdgeInsets.all(8),
+          ),
+        ],
       ),
     );
   }
@@ -2112,7 +2087,7 @@ class _BasePickerModal extends StatelessWidget {
             child: Text(title, style: GoogleFonts.plusJakartaSans(fontSize: 20, fontWeight: FontWeight.w900)),
           ),
           if (items.isEmpty)
-            const Padding(padding: EdgeInsets.all(40), child: Text('Data masih kosong'))
+            Padding(padding: const EdgeInsets.all(40), child: Text(AppStrings.common.emptyData))
           else
             Flexible(
               child: ListView.builder(
@@ -2179,7 +2154,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
           children: [
             Center(
               child: Text(
-                'Tambah Item',
+                AppStrings.transaction.addItem,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -2191,7 +2166,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
               children: [
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text('JASA')),
+                    label: Center(child: Text(AppStrings.transaction.typeService)),
                     selected: _isService,
                     onSelected: (v) => setState(() {
                       _isService = true;
@@ -2202,7 +2177,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: ChoiceChip(
-                    label: const Center(child: Text('PART')),
+                    label: Center(child: Text(AppStrings.transaction.typePart)),
                     selected: !_isService,
                     onSelected: (v) => setState(() {
                       _isService = false;
@@ -2240,7 +2215,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
                 },
                 icon: Icon(LucideIcons.plusCircle, size: 14),
                 label: Text(
-                  _isService ? 'Tambah Jasa Baru' : 'Tambah Stok Baru',
+                  _isService ? AppStrings.transaction.addNewService : AppStrings.transaction.addNewPart,
                   style: GoogleFonts.plusJakartaSans(
                     fontSize: 12,
                     fontWeight: FontWeight.w800,
@@ -2252,7 +2227,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
             TextField(
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: _isService ? 'Cari jasa servis...' : 'Cari sparepart...',
+                hintText: _isService ? AppStrings.transaction.searchServiceHint : AppStrings.transaction.searchPartHint,
                 prefixIcon: const Icon(SolarIconsOutline.magnifier),
                 filled: true,
                 fillColor: AppColors.amethyst.withValues(alpha: 0.05),
@@ -2276,7 +2251,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Harga Satuan',
+                        AppStrings.transaction.pricePerUnit,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.grey,
@@ -2354,7 +2329,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Sub Total Item',
+                        AppStrings.transaction.subTotalItem,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 12,
                           color: Colors.grey,
@@ -2396,9 +2371,9 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
                         borderRadius: BorderRadius.circular(16),
                       ),
                     ),
-                    child: const Text(
-                      'TAMBAH',
-                      style: TextStyle(fontWeight: FontWeight.w900),
+                    child: Text(
+                      AppStrings.common.add.toUpperCase(),
+                      style: const TextStyle(fontWeight: FontWeight.w900),
                     ),
                   ),
                 ],
@@ -2427,7 +2402,7 @@ class _AddItemModalState extends ConsumerState<_AddItemModal> {
           final item = filtered[index];
           return _buildItemRow(
             title: item.name,
-            subtitle: item.category ?? 'Tanpa Kategori',
+            subtitle: item.category ?? AppStrings.common.noCategory,
             price: item.basePrice,
             onTap: () {
               setState(() {

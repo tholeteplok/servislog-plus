@@ -22,7 +22,7 @@ final firestoreSyncServiceProvider = Provider<FirestoreSyncService>.internal(
 );
 
 typedef FirestoreSyncServiceRef = ProviderRef<FirestoreSyncService>;
-String _$syncWorkerHash() => r'0a3583675eb701d4dc20d631ca401c839a1a2175';
+String _$syncWorkerHash() => r'0fcfbd8a0772fe17d0f24a8b92a5280f39bc9f91';
 
 /// See also [syncWorker].
 @ProviderFor(syncWorker)

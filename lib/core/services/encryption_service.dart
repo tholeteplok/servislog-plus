@@ -5,7 +5,6 @@ import 'package:pointycastle/key_derivators/pbkdf2.dart';
 import 'package:pointycastle/macs/hmac.dart';
 import 'package:encrypt/encrypt.dart' as encrypt;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'package:crypto/crypto.dart';
 import 'dart:convert';
 
 /// Service untuk encrypt/decrypt PII (Personally Identifiable Information)
@@ -17,6 +16,10 @@ class EncryptionService {
 
   final FlutterSecureStorage _storage = const FlutterSecureStorage();
   encrypt.Encrypter? _encrypter;
+
+  /// Kunci master dalam memory (plaintext). Tidak disimpan permanen untuk
+  /// mencegah PIN bypass saat restart app (Session-only).
+  String? _masterKeyBase64;
 
   final String _keyAlias = 'servislog_master_key';
   static const String encryptionPrefix = 'enc:v1:';
@@ -30,25 +33,46 @@ class EncryptionService {
     return await _storage.containsKey(key: _keyAlias);
   }
 
+  /// Inisialisasi encrypter.
+  /// Mendukung migrasi: jika kunci ditemukan di SecureStorage (legacy), 
+  /// pindahkan ke memory dan hapus dari storage.
   Future<void> init() async {
     try {
-      String? keyBase64 = await _storage.read(key: _keyAlias);
+      // 1. Cek memory dulu (prioritas session aktif)
+      String? keyBase64 = _masterKeyBase64;
+
+      // 2. Fallback ke SecureStorage (legacy/migration support)
+      if (keyBase64 == null) {
+        keyBase64 = await _storage.read(key: _keyAlias);
+        
+        if (keyBase64 != null) {
+          debugPrint('🛡️ EncryptionService: Migrating legacy persistent key to memory...');
+          _masterKeyBase64 = keyBase64;
+          // Hapus dari storage agar restart berikutnya WAJIB lewat PIN screen
+          await _storage.delete(key: _keyAlias);
+        }
+      }
 
       if (keyBase64 != null) {
-        final keyBytes = base64Decode(keyBase64);
-        final key = encrypt.Key(keyBytes);
-
-        // Gunakan GCM untuk integritas data
-        _encrypter = encrypt.Encrypter(
-          encrypt.AES(key, mode: encrypt.AESMode.gcm),
-        );
-        debugPrint('🛡️ EncryptionService initialized with existing key');
+        _activateMasterKey(keyBase64);
+        debugPrint('🛡️ EncryptionService initialized (Session-only mode)');
       } else {
-        debugPrint('🛡️ EncryptionService NOT initialized (key missing)');
+        debugPrint('🛡️ EncryptionService NOT initialized (Session key missing)');
       }
     } catch (e) {
       debugPrint('EncryptionService Error: $e');
     }
+  }
+
+  /// Helper untuk mengaktifkan encrypter dari key string
+  void _activateMasterKey(String keyBase64) {
+    _masterKeyBase64 = keyBase64;
+    final keyBytes = base64Decode(keyBase64);
+    final key = encrypt.Key(keyBytes);
+    
+    _encrypter = encrypt.Encrypter(
+      encrypt.AES(key, mode: encrypt.AESMode.gcm),
+    );
   }
 
   /// Generate a brand new master key. 
@@ -56,10 +80,10 @@ class EncryptionService {
   Future<void> generateNewMasterKey() async {
     final key = encrypt.Key.fromSecureRandom(32);
     final keyBase64 = base64Encode(key.bytes);
-    await _storage.write(key: _keyAlias, value: keyBase64);
     
-    // Re-init with the new key
-    await init();
+    // SEC-01 FIX: Simpan di memory saja, JANGAN tulis ke _storage.write
+    _activateMasterKey(keyBase64);
+    debugPrint('🛡️ EncryptionService: New master key generated (Memory-only)');
   }
 
   /// Derive a 256-bit key from a 6-digit PIN using PBKDF2-HMAC-SHA256.
@@ -77,20 +101,9 @@ class EncryptionService {
     return encrypt.Key(keyBytes);
   }
 
-  /// Legacy derivation for migration purposes
-  encrypt.Key _deriveKeyLegacy(String pin, String salt) {
-    final codec = const Utf8Codec();
-    final pinBytes = codec.encode(pin);
-    final saltBytes = codec.encode(salt);
-    var hash = sha256.convert([...pinBytes, ...saltBytes]);
-    for (var i = 0; i < 10000; i++) {
-      hash = sha256.convert(hash.bytes);
-    }
-    return encrypt.Key(Uint8List.fromList(hash.bytes));
-  }
 
   /// Save derived key securely (for Biometric Auto-Unlock)
-  Future<void> saveDerivedKeySecurely(String pin, String bengkelId) async {
+  Future<void> saveDerivedKeyForBiometric(String pin, String bengkelId) async {
     final key = await deriveKey(pin, bengkelId);
     await _storage.write(
       key: 'biometric_derived_key_$bengkelId',
@@ -114,13 +127,30 @@ class EncryptionService {
   /// This forces the app to re-authenticate via AuthGate -> UnlockScreen.
   void lock() {
     _encrypter = null;
+    _masterKeyBase64 = null;
     debugPrint('🛡️ EncryptionService locked');
   }
 
-  /// Clear all secure data (keys, biometrics, PINs) during logout
-  Future<void> clearAllSecureData() async {
+  /// Clear specific session data (biometrics, derived keys) but KEEP Master Key.
+  /// Used for standard logout to allow fast re-unlock (UX-11).
+  Future<void> clearSessionDataOnly() async {
+    final keys = await _storage.readAll();
+    for (final key in keys.keys) {
+      // Hapus data biometrik/session
+      await _storage.delete(key: key);
+    }
+    // Hapus paksa in-memory key
+    _encrypter = null;
+    _masterKeyBase64 = null;
+    debugPrint('🛡️ EncryptionService: Session data cleared & Locked (Memory wiped)');
+  }
+
+  /// Hapus semua key dari secure storage
+  Future<void> clearSecureStorage() async {
     await _storage.deleteAll();
     _encrypter = null;
+    _masterKeyBase64 = null;
+    debugPrint('🔐 EncryptionService: Secure storage cleared');
   }
 
 
@@ -200,7 +230,8 @@ class EncryptionService {
 
   /// Encrypt primary master key with a PIN using PBKDF2 and AES-GCM.
   Future<String?> wrapMasterKey(String pin, String bengkelId) async {
-    final masterKeyBase64 = await _storage.read(key: _keyAlias);
+    // SEC-01: Prioritaskan memory key
+    final masterKeyBase64 = _masterKeyBase64 ?? await _storage.read(key: _keyAlias);
     if (masterKeyBase64 == null) return null;
 
     final secondaryKey = await deriveKey(pin, bengkelId);
@@ -235,28 +266,7 @@ class EncryptionService {
       
       if (success) return true;
 
-      // 2. Fallback to legacy derivation for migration
-      debugPrint('🛡️ PBKDF2 unwrap failed, trying legacy derivation...');
-      final legacyKey = _deriveKeyLegacy(pin, bengkelId);
-      final legacySuccess = await _unwrapWithKey(wrappedKey, legacyKey);
-
-      if (legacySuccess) {
-        debugPrint('🛡️ Legacy derivation successful. Migrating to PBKDF2...');
-        // LGK-06 FIX: Re-wrap dengan PBKDF2 key baru dan push ke Firestore
-        // agar device lain tidak terus menggunakan legacy key.
-        try {
-          final newWrappedKey = await wrapMasterKey(pin, bengkelId);
-          if (newWrappedKey != null && onMigrationComplete != null) {
-            await onMigrationComplete(newWrappedKey);
-            debugPrint('✅ PBKDF2 migration complete — wrapped key baru sudah di-push ke Firestore.');
-          }
-        } catch (migrationError) {
-          // Migrasi gagal tidak boleh menghalangi login — log saja.
-          debugPrint('⚠️ PBKDF2 migration push gagal (akan dicoba lagi saat login berikutnya): $migrationError');
-        }
-        return true;
-      }
-      return legacySuccess;
+      return success;
     } catch (e) {
       debugPrint('UnwrapMasterKey Error: $e');
       return false;
@@ -290,10 +300,9 @@ class EncryptionService {
       );
 
       final masterKeyBase64 = secondaryEncrypter.decrypt64(ciphertext, iv: iv);
-      await _storage.write(key: _keyAlias, value: masterKeyBase64);
-
-      // Re-init with new key
-      await init();
+      
+      // SEC-01 FIX: Tulis ke memori saja, JANGAN tulis ke _storage.write
+      _activateMasterKey(masterKeyBase64);
       return true;
     } catch (e) {
       // Silently fail as this is used in fallback logic

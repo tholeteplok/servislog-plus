@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
@@ -6,16 +8,17 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/entities/sale.dart';
 import 'package:intl/intl.dart';
+import '../constants/app_strings.dart';
 
 class DocumentService {
-  static final NumberFormat _currencyFormat = NumberFormat.currency(
-    locale: 'id_ID',
-    symbol: 'Rp ',
+  final NumberFormat _currencyFormat = NumberFormat.currency(
+    locale: AppStrings.date.localeID,
+    symbol: '${AppStrings.common.currencySymbol} ',
     decimalDigits: 0,
   );
 
   /// Share WhatsApp Receipt (Text based)
-  static Future<void> shareWhatsApp({
+  Future<void> shareWhatsApp({
     required String phone,
     Transaction? transaction,
     List<Sale>? sales,
@@ -27,82 +30,97 @@ class DocumentService {
       bengkelName: bengkelName,
     );
 
-    final String url =
-        "whatsapp://send?phone=$phone&text=${Uri.encodeComponent(message)}";
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      // Fallback for web or if app is not installed
-      final String webUrl =
-          "https://wa.me/$phone?text=${Uri.encodeComponent(message)}";
+    final cleanedPhone = _cleanPhoneNumber(phone);
+
+    if (kIsWeb) {
+      final webUrl = "https://wa.me/$cleanedPhone?text=${Uri.encodeComponent(message)}";
       await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+    } else {
+      final appUrl = "whatsapp://send?phone=$cleanedPhone&text=${Uri.encodeComponent(message)}";
+      if (await canLaunchUrl(Uri.parse(appUrl))) {
+        await launchUrl(Uri.parse(appUrl));
+      } else {
+        final webUrl = "https://wa.me/$cleanedPhone?text=${Uri.encodeComponent(message)}";
+        await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+      }
     }
   }
 
   /// Send WhatsApp Service Reminder
-  static Future<void> sendReminderWhatsApp({
+  Future<void> sendReminderWhatsApp({
     required String phone,
     required Transaction transaction,
     required String bengkelName,
   }) async {
     final nextDate = transaction.nextServiceDate;
     final dateStr = nextDate != null
-        ? DateFormat('dd MMM yyyy').format(nextDate)
+        ? DateFormat(AppStrings.date.displayDate).format(nextDate)
         : '-';
     final targetKm = transaction.targetServiceKm;
-    final kmStr = targetKm != null ? " atau saat KM mencapai $targetKm" : "";
+    final kmStr = targetKm != null ? "${AppStrings.transaction.kmOrReminder}$targetKm" : "";
 
-    final String message =
-        "Halo kak *${transaction.customerName}*, kami dari *$bengkelName*. 🛠️\n\n"
-        "Ingin mengingatkan bahwa kendaraan *${transaction.vehicleModel}* (${transaction.vehiclePlate}) sudah memasuki waktu servis berkala berikutnya (estimasi sekitar tanggal $dateStr$kmStr).\n\n"
-        "Yuk kak, jadwalkan servisnya agar kendaraan tetap prima dan nyaman dikendarai! Kami tunggu kedatangannya ya. 😊";
+    final String message = AppStrings.whatsapp.serviceReminder(
+      customerName: transaction.customerName,
+      vehiclePlate: transaction.vehiclePlate,
+      vehicleModel: transaction.vehicleModel,
+      bengkelName: bengkelName,
+      dateStr: dateStr,
+      kmStr: kmStr,
+    );
 
-    // Basic phone cleaning
-    String cleanedPhone = phone.replaceAll(RegExp(r'\D'), '');
-    if (cleanedPhone.startsWith('0')) {
-      cleanedPhone = '62${cleanedPhone.substring(1)}';
-    }
+    final cleanedPhone = _cleanPhoneNumber(phone);
 
-    final String url =
-        "whatsapp://send?phone=$cleanedPhone&text=${Uri.encodeComponent(message)}";
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
-    } else {
-      final String webUrl =
-          "https://wa.me/$cleanedPhone?text=${Uri.encodeComponent(message)}";
+    if (kIsWeb) {
+      final webUrl = "https://wa.me/$cleanedPhone?text=${Uri.encodeComponent(message)}";
       await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+    } else {
+      final appUrl = "whatsapp://send?phone=$cleanedPhone&text=${Uri.encodeComponent(message)}";
+      if (await canLaunchUrl(Uri.parse(appUrl))) {
+        await launchUrl(Uri.parse(appUrl));
+      } else {
+        final webUrl = "https://wa.me/$cleanedPhone?text=${Uri.encodeComponent(message)}";
+        await launchUrl(Uri.parse(webUrl), mode: LaunchMode.externalApplication);
+      }
     }
   }
 
-  static String _buildWhatsAppMessage({
+  String _cleanPhoneNumber(String phone) {
+    String cleaned = phone.replaceAll(RegExp(r'\D'), '');
+    if (cleaned.startsWith('0')) {
+      cleaned = '62${cleaned.substring(1)}';
+    }
+    return cleaned;
+  }
+
+  String _buildWhatsAppMessage({
     Transaction? transaction,
     List<Sale>? sales,
     required String bengkelName,
   }) {
     final sb = StringBuffer();
-    sb.writeln("*NOTA PEMBAYARAN - $bengkelName*");
+    sb.writeln("*${AppStrings.transaction.whatsappReceiptHeader} - $bengkelName*");
     sb.writeln("-----------------------------------------");
 
     if (transaction != null) {
-      sb.writeln("No. Transaksi: ${transaction.trxNumber}");
+      sb.writeln("${AppStrings.transaction.trxNumberLabel}: ${transaction.trxNumber}");
       sb.writeln(
-        "Kendaraan: ${transaction.vehicleModel} (${transaction.vehiclePlate})",
+        "${AppStrings.transaction.vehicleLabel}: ${transaction.vehicleModel} (${transaction.vehiclePlate})",
       );
-      sb.writeln("Pelanggan: ${transaction.customerName}");
+      sb.writeln("${AppStrings.common.customerNameLabel}: ${transaction.customerName}");
       sb.writeln("");
-      sb.writeln("*Detail:*");
+      sb.writeln("*${AppStrings.transaction.detailLabel}:*");
       for (var item in transaction.items) {
-        sb.writeln(
+          sb.writeln(
           "- ${item.name} x${item.quantity}: ${_currencyFormat.format(item.price * item.quantity)}",
         );
       }
       sb.writeln("-----------------------------------------");
-      sb.writeln("*TOTAL: ${_currencyFormat.format(transaction.totalAmount)}*");
+      sb.writeln("*${AppStrings.transaction.totalLabel}: ${_currencyFormat.format(transaction.totalAmount)}*");
     } else if (sales != null && sales.isNotEmpty) {
-      sb.writeln("Jenis: Penjualan Barang");
-      sb.writeln("Customer: ${sales.first.customerName ?? 'Umum'}");
+      sb.writeln("${AppStrings.common.typeLabel}: ${AppStrings.catalog.salesLabel}");
+      sb.writeln("${AppStrings.transaction.labelCustomer}: ${sales.first.customerName ?? AppStrings.common.noCategory}");
       sb.writeln("");
-      sb.writeln("*Detail:*");
+      sb.writeln("*${AppStrings.transaction.detailLabel}:*");
       for (var s in sales) {
         sb.writeln(
           "- ${s.itemName} x${s.quantity}: ${_currencyFormat.format(s.totalPrice)}",
@@ -110,35 +128,35 @@ class DocumentService {
       }
       sb.writeln("-----------------------------------------");
       final total = sales.fold(0, (sum, item) => sum + item.totalPrice);
-      sb.writeln("*TOTAL: ${_currencyFormat.format(total)}*");
+      sb.writeln("*${AppStrings.transaction.totalLabel}: ${_currencyFormat.format(total)}*");
     }
     if (transaction != null) {
-      final notes = transaction.mechanicNotes ?? "Servis selesai.";
+      final notes = transaction.mechanicNotes ?? AppStrings.transaction.serviceDoneLabel;
       sb.writeln("");
-      sb.writeln("*Catatan Teknisi:*");
+      sb.writeln("*${AppStrings.transaction.techNotesLabelReceipt}:*");
       sb.writeln(notes);
 
       final recKm = transaction.recommendationKm;
       final recTime = transaction.recommendationTimeMonth;
       if (recKm != null || recTime != null) {
         sb.writeln("");
-        sb.writeln("*Rekomendasi Servis Kembali:*");
-        if (recKm != null) sb.writeln("- Setelah +$recKm KM");
-        if (recTime != null) sb.writeln("- Setelah +$recTime Bulan");
+        sb.writeln("*${AppStrings.transaction.recServiceLabel}:*");
+        if (recKm != null) sb.writeln("- ${AppStrings.transaction.recKmLabel}$recKm KM");
+        if (recTime != null) sb.writeln("- ${AppStrings.transaction.recTimeLabel}$recTime ${AppStrings.transaction.month}");
       } else {
         sb.writeln("");
-        sb.writeln("*Rekomendasi Servis Kembali:*");
-        sb.writeln("Cek kembali 1 bulan/1000 KM.");
+        sb.writeln("*${AppStrings.transaction.recServiceLabel}:*");
+        sb.writeln(AppStrings.transaction.recDefaultLabel);
       }
     }
 
     sb.writeln("");
-    sb.writeln("Terima kasih telah mempercayakan kendaraan Anda kepada kami!");
+    sb.writeln(AppStrings.whatsapp.thankYou);
     return sb.toString();
   }
 
   /// Generate and Print/Share PDF Receipt
-  static Future<void> generateAndPrint({
+  Future<void> generateAndPrint({
     Transaction? transaction,
     List<Sale>? sales,
     required String bengkelName,
@@ -147,7 +165,7 @@ class DocumentService {
     bool isShare = false,
   }) async {
     final pdf = pw.Document();
-    final dateStr = DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now());
+    final dateStr = DateFormat(AppStrings.date.dateTimeReceipt).format(DateTime.now());
 
     pdf.addPage(
       pw.Page(
@@ -176,16 +194,16 @@ class DocumentService {
                 ),
               pw.Divider(),
               pw.Text(
-                "Tanggal: $dateStr",
+                "${AppStrings.common.dateLabel}: $dateStr",
                 style: const pw.TextStyle(fontSize: 9),
               ),
               if (transaction != null) ...[
                 pw.Text(
-                  "No: ${transaction.trxNumber}",
+                  "${AppStrings.transaction.trxNumberLabel}: ${transaction.trxNumber}",
                   style: const pw.TextStyle(fontSize: 9),
                 ),
                 pw.Text(
-                  "Unit: ${transaction.vehicleModel} (${transaction.vehiclePlate})",
+                  "${AppStrings.transaction.unitLabel}: ${transaction.vehicleModel} (${transaction.vehiclePlate})",
                   style: const pw.TextStyle(fontSize: 9),
                 ),
                 pw.Divider(),
@@ -209,7 +227,7 @@ class DocumentService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      "TOTAL",
+                      AppStrings.transaction.totalLabel,
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 10,
@@ -226,46 +244,46 @@ class DocumentService {
                 ),
                 pw.SizedBox(height: 10),
                 pw.Text(
-                  "LAPORAN TEKNISI:",
+                  "${AppStrings.transaction.techNotesLabelReceipt.toUpperCase()}:",
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 8,
                   ),
                 ),
                 pw.Text(
-                  transaction.mechanicNotes ?? "Servis selesai.",
+                  transaction.mechanicNotes ?? AppStrings.transaction.serviceDoneLabel,
                   style: const pw.TextStyle(fontSize: 8),
                 ),
 
                 pw.SizedBox(height: 8),
                 pw.Text(
-                  "REKOMENDASI SERVIS:",
+                  "${AppStrings.transaction.recServiceLabel.toUpperCase()}:",
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 8,
-                  ),
+                    ),
                 ),
                 if (transaction.recommendationKm == null &&
                     transaction.recommendationTimeMonth == null)
                   pw.Text(
-                    "Cek kembali 1 bulan/1000 KM.",
+                    AppStrings.transaction.recDefaultLabel,
                     style: const pw.TextStyle(fontSize: 8),
                   )
                 else ...[
                   if (transaction.recommendationKm != null)
                     pw.Text(
-                      "- +${transaction.recommendationKm} KM",
+                      "- ${AppStrings.transaction.recKmLabel}${transaction.recommendationKm} KM",
                       style: const pw.TextStyle(fontSize: 8),
                     ),
                   if (transaction.recommendationTimeMonth != null)
                     pw.Text(
-                      "- +${transaction.recommendationTimeMonth} Bulan",
+                      "- ${AppStrings.transaction.recTimeLabel}${transaction.recommendationTimeMonth} ${AppStrings.transaction.month}",
                       style: const pw.TextStyle(fontSize: 8),
                     ),
                 ],
               ] else if (sales != null && sales.isNotEmpty) ...[
                 pw.Text(
-                  "Penjualan Barang",
+                  AppStrings.catalog.salesLabel,
                   style: const pw.TextStyle(fontSize: 9),
                 ),
                 pw.Divider(),
@@ -289,7 +307,7 @@ class DocumentService {
                   mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
                   children: [
                     pw.Text(
-                      "TOTAL",
+                      AppStrings.transaction.totalLabel,
                       style: pw.TextStyle(
                         fontWeight: pw.FontWeight.bold,
                         fontSize: 10,
@@ -310,7 +328,7 @@ class DocumentService {
               pw.SizedBox(height: 20),
               pw.Center(
                 child: pw.Text(
-                  "TERIMA KASIH",
+                  AppStrings.common.thankYouShort,
                   style: const pw.TextStyle(fontSize: 8),
                 ),
               ),
@@ -336,3 +354,6 @@ class DocumentService {
     }
   }
 }
+
+// 🔄 Riverpod Provider
+final documentServiceProvider = Provider<DocumentService>((ref) => DocumentService());

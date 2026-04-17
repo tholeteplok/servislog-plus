@@ -66,12 +66,33 @@ class AuthService {
     }
   }
 
-  /// Silent sign-in (auto-login on app restart)
+  /// ✅ FIX L-06: Silent sign-in without double prompt
+  /// Returns null silently without showing any UI prompt
+  /// Use [canSignInSilently] to check if silent sign-in is possible
   Future<UserCredential?> signInSilently() async {
+    // 1. If already signed in to Firebase, return immediately
+    if (_auth.currentUser != null) {
+      debugPrint('Silent Sign-In: Already signed in to Firebase');
+      return UserCredentialImpl(
+        user: _auth.currentUser,
+        credential: null,
+      );
+    }
+
+    // 2. Check if Google account is available without prompting
+    final canSilentSignIn = await _canSignInSilentlyInternal();
+    if (!canSilentSignIn) {
+      debugPrint('Silent Sign-In: No Google account available, skipping');
+      return null;
+    }
+
+    // 3. Attempt silent sign-in
     try {
-      final GoogleSignInAccount? googleUser = await _googleSignIn
-          .signInSilently();
-      if (googleUser == null) return null;
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      if (googleUser == null) {
+        debugPrint('Silent Sign-In: Google signInSilently returned null');
+        return null;
+      }
 
       final GoogleSignInAuthentication googleAuth =
           await googleUser.authentication;
@@ -80,10 +101,37 @@ class AuthService {
         idToken: googleAuth.idToken,
       );
 
-      return await _auth.signInWithCredential(credential);
+      final userCredential = await _auth.signInWithCredential(credential);
+      debugPrint('Silent Sign-In: Success for user ${userCredential.user?.uid}');
+      return userCredential;
     } catch (e) {
-      debugPrint('Silent Sign-In Error: $e');
+      // Silent failure - don't show any error dialog
+      debugPrint('Silent Sign-In Error (not shown to user): $e');
       return null;
+    }
+  }
+
+  /// ✅ FIX L-06: Check if silent sign-in is possible without showing UI
+  /// Use this before calling signInSilently to know if it will succeed
+  Future<bool> canSignInSilently() async {
+    // Already signed in to Firebase
+    if (_auth.currentUser != null) return true;
+    
+    return _canSignInSilentlyInternal();
+  }
+
+  /// Internal method to check Google account availability
+  /// Does NOT show any UI prompt
+  Future<bool> _canSignInSilentlyInternal() async {
+    try {
+      // Try to get the current user from Google Sign-In
+      // This will return null if user is not signed in to Google,
+      // but won't show any UI prompt
+      final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
+      return googleUser != null;
+    } catch (e) {
+      debugPrint('canSignInSilently check failed: $e');
+      return false;
     }
   }
 
@@ -94,15 +142,38 @@ class AuthService {
   }
 
   /// Get Authenticated HTTP Client for Google APIs (Drive)
+  /// Throws exception if user is not signed in, instead of auto-prompting.
   Future<http.Client> getAuthenticatedClient() async {
     final GoogleSignInAccount? googleUser = await _googleSignIn.signInSilently();
     if (googleUser == null) {
-      final signinResult = await _googleSignIn.signIn();
-      if (signinResult == null) throw Exception('Google Sign-In failed or cancelled');
+      // ✅ Throw exception instead of auto sign-in
+      throw Exception('User must be signed in to Google first. Please sign in from settings.');
     }
 
     final client = await _googleSignIn.authenticatedClient();
-    if (client == null) throw Exception('Failed to get authenticated client');
+    if (client == null) {
+      throw Exception('Failed to get authenticated client');
+    }
     return client;
   }
+
+  /// Explicit sign-in (triggered by user action)
+  Future<GoogleSignInAccount?> explicitSignIn() async {
+    return await _googleSignIn.signIn();
+  }
 }
+
+/// Helper class to create UserCredential from existing user
+class UserCredentialImpl implements UserCredential {
+  @override
+  final User? user;
+  
+  @override
+  final AuthCredential? credential;
+  
+  @override
+  final AdditionalUserInfo? additionalUserInfo;
+  
+  UserCredentialImpl({this.user, this.credential, this.additionalUserInfo});
+}
+

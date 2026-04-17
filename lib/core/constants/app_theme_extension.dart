@@ -36,7 +36,7 @@ extension AppThemeExtensionX on ThemeData {
   TextStyle get sectionLabelStyle => GoogleFonts.manrope(
     fontSize: 10,
     fontWeight: FontWeight.w800,
-    letterSpacing: 1.2,
+    letterSpacing: 0.8,
     color: colorScheme.primary.withValues(alpha: 0.7),
   );
 

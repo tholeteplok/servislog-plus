@@ -133,7 +133,7 @@ class _TentangScreenState extends State<TentangScreen>
                     icon: SolarIconsOutline.shieldCheck,
                     title: 'Kebijakan Privasi',
                     onTap: () =>
-                        _launchUrl('https://servislog-plus.web.app/'),
+                        _launchUrl('https://servislog-plus.web.app/index.html'),
                   ),
                   _LinkTile(
                     icon: SolarIconsOutline.star,

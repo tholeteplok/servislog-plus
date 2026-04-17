@@ -31,6 +31,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
   late TextEditingController _hargaBeliController;
   late TextEditingController _hargaJualController;
   late TextEditingController _minStokController;
+  bool _isSaving = false;
 
   String? _imagePath;
   late String _selectedKategori;
@@ -110,8 +111,9 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
     });
   }
 
-  void _submit() {
+  void _submit() async {
     if (_formKey.currentState!.validate()) {
+      setState(() => _isSaving = true);
       final inputNama = _namaController.text.trim();
       final inputSku = _skuController.text.trim();
       final currentStokList = ref.read(stokListProvider);
@@ -144,7 +146,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
     }
   }
 
-  void _proceedSave({Stok? existingToRestock, int? restockAmount}) {
+  void _proceedSave({Stok? existingToRestock, int? restockAmount}) async {
     if (existingToRestock != null && restockAmount != null) {
       ref
           .read(stokListProvider.notifier)
@@ -160,7 +162,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
           backgroundColor: AppColors.amethyst,
         ),
       );
-      Navigator.pop(context);
+      if (mounted) Navigator.pop(context);
     } else {
       final stok = Stok(
         nama: _namaController.text.trim(),
@@ -182,7 +184,12 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
       } else {
         ref.read(stokListProvider.notifier).addItem(stok);
       }
-      Navigator.pop(context);
+      
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (mounted) {
+        setState(() => _isSaving = false);
+        Navigator.pop(context);
+      }
     }
   }
 
@@ -496,6 +503,9 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                   ),
                                   onPressed: _autoGenerateSku,
                                   tooltip: 'Auto Generate',
+                                  style: IconButton.styleFrom(
+                                    minimumSize: const Size(48, 48),
+                                  ),
                                 ),
                                 if (barcodeEnabled)
                                   IconButton(
@@ -505,6 +515,9 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                     ),
                                     onPressed: _openScanner,
                                     tooltip: 'Scan Barcode',
+                                    style: IconButton.styleFrom(
+                                      minimumSize: const Size(48, 48),
+                                    ),
                                   ),
                               ],
                             ),
@@ -577,7 +590,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                     const SizedBox(height: 40),
 
                     ElevatedButton(
-                      onPressed: _submit,
+                      onPressed: _isSaving ? null : _submit,
                       style: ElevatedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 68),
                         backgroundColor: AppColors.amethyst,
@@ -587,14 +600,23 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                         elevation: 8,
                         shadowColor: AppColors.amethyst.withValues(alpha: 0.4),
                       ),
-                      child: Text(
-                        isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN INVENTARIS',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: Colors.white,
-                        ),
-                      ),
+                      child: _isSaving
+                          ? const SizedBox(
+                              height: 24,
+                              width: 24,
+                              child: CircularProgressIndicator(
+                                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : Text(
+                              isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN INVENTARIS',
+                              style: GoogleFonts.plusJakartaSans(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 18,
+                                color: Colors.white,
+                              ),
+                            ),
                     ),
                     const SizedBox(height: 80),
                   ],

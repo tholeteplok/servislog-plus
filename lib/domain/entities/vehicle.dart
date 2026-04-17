@@ -1,6 +1,7 @@
 import 'package:objectbox/objectbox.dart';
 import 'package:uuid/uuid.dart';
 import 'pelanggan.dart';
+import '../../core/constants/logic_constants.dart';
 
 @Entity()
 class Vehicle {
@@ -35,7 +36,7 @@ class Vehicle {
     this.id = 0,
     String? uuid,
     required this.model,
-    this.type = 'Motor',
+    this.type = LogicConstants.vehicleMotor,
     required this.plate,
     this.color,
     this.year,

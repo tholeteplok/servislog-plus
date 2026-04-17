@@ -24,7 +24,9 @@ class SettingsState {
   final int? lastBackupTimestamp;
   final String backupFrequency; // 'off', 'daily', 'weekly'
   final bool isBiometricEnabled;
-  final bool autoLock30m;
+  final int autoLockDuration; // 0, 1, 5, 10, 30, 60
+  final bool requireBiometricSensitive;
+  final bool autoLock30m; 
   final bool syncWifiOnly;
   final bool syncCompressionMax;
   final int reminderThresholdDays;
@@ -50,6 +52,8 @@ class SettingsState {
     this.lastBackupTimestamp,
     this.backupFrequency = 'off',
     this.isBiometricEnabled = false,
+    this.autoLockDuration = 0,
+    this.requireBiometricSensitive = false,
     this.autoLock30m = false,
     this.syncWifiOnly = false,
     this.syncCompressionMax = true,
@@ -77,6 +81,8 @@ class SettingsState {
     int? lastBackupTimestamp,
     String? backupFrequency,
     bool? isBiometricEnabled,
+    int? autoLockDuration,
+    bool? requireBiometricSensitive,
     bool? autoLock30m,
     bool? syncWifiOnly,
     bool? syncCompressionMax,
@@ -103,6 +109,9 @@ class SettingsState {
       lastBackupTimestamp: lastBackupTimestamp ?? this.lastBackupTimestamp,
       backupFrequency: backupFrequency ?? this.backupFrequency,
       isBiometricEnabled: isBiometricEnabled ?? this.isBiometricEnabled,
+      autoLockDuration: autoLockDuration ?? this.autoLockDuration,
+      requireBiometricSensitive:
+          requireBiometricSensitive ?? this.requireBiometricSensitive,
       autoLock30m: autoLock30m ?? this.autoLock30m,
       syncWifiOnly: syncWifiOnly ?? this.syncWifiOnly,
       syncCompressionMax: syncCompressionMax ?? this.syncCompressionMax,
@@ -141,6 +150,10 @@ class Settings extends _$Settings {
       backupFrequency: prefs.getString('backup_frequency') ?? 'off',
       isBiometricEnabled:
           prefs.getBool(AppSettings.isBiometricEnabled) ?? false,
+      autoLockDuration: prefs.getInt(AppSettings.autoLockDuration) ??
+          (prefs.getBool(AppSettings.autoLock30m) == true ? 30 : 0),
+      requireBiometricSensitive:
+          prefs.getBool(AppSettings.requireBiometricSensitive) ?? false,
       autoLock30m: prefs.getBool(AppSettings.autoLock30m) ?? false,
       syncWifiOnly: prefs.getBool(AppSettings.syncWifiOnly) ?? false,
       syncCompressionMax: prefs.getBool(AppSettings.syncCompressionMax) ?? true,
@@ -249,7 +262,19 @@ class Settings extends _$Settings {
 
   Future<void> setAutoLock30m(bool value) async {
     await _prefs.setBool(AppSettings.autoLock30m, value);
-    state = state.copyWith(autoLock30m: value);
+    await _prefs.setInt(AppSettings.autoLockDuration, value ? 30 : 0);
+    state = state.copyWith(autoLock30m: value, autoLockDuration: value ? 30 : 0);
+  }
+
+  Future<void> setAutoLockDuration(int minutes) async {
+    await _prefs.setInt(AppSettings.autoLockDuration, minutes);
+    await _prefs.setBool(AppSettings.autoLock30m, minutes == 30);
+    state = state.copyWith(autoLockDuration: minutes, autoLock30m: minutes == 30);
+  }
+
+  Future<void> setRequireBiometricSensitive(bool value) async {
+    await _prefs.setBool(AppSettings.requireBiometricSensitive, value);
+    state = state.copyWith(requireBiometricSensitive: value);
   }
 
   Future<void> setSyncWifiOnly(bool value) async {

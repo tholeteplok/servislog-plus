@@ -177,6 +177,10 @@ class TeknisiScreen extends ConsumerWidget {
                                     Icons.edit_outlined,
                                     size: 20,
                                   ),
+                                  tooltip: 'Ubah',
+                                  style: IconButton.styleFrom(
+                                    minimumSize: const Size(48, 48),
+                                  ),
                                   onPressed: () => _showForm(context, ref, s),
                                 ),
                                 IconButton(
@@ -184,6 +188,10 @@ class TeknisiScreen extends ConsumerWidget {
                                     Icons.delete_outline,
                                     size: 20,
                                     color: Colors.red,
+                                  ),
+                                  tooltip: 'Hapus',
+                                  style: IconButton.styleFrom(
+                                    minimumSize: const Size(48, 48),
                                   ),
                                   onPressed: () {
                                     showDialog(

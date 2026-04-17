@@ -75,7 +75,7 @@ final authStateProvider = StreamProvider<AuthStateContainer>((ref) async* {
 
         // 📱 Register device → mencabut sesi perangkat lama (Owner only)
         if (profile.role == 'owner') {
-          DeviceSessionService().registerDevice(user.uid);
+          await DeviceSessionService().registerDevice(user.uid);
         }
 
         yield AuthStateContainer(
@@ -97,7 +97,7 @@ final authStateProvider = StreamProvider<AuthStateContainer>((ref) async* {
 
         // 📱 Register device → mencabut sesi perangkat lama (Owner only)
         if (profile.role == 'owner') {
-          DeviceSessionService().registerDevice(user.uid);
+          await DeviceSessionService().registerDevice(user.uid);
         }
 
         yield AuthStateContainer(
@@ -185,8 +185,9 @@ final logoutProvider = Provider<Future<void> Function()>((ref) {
     // yang berjalan setelah user logout.
     ref.invalidate(syncWorkerProvider);
 
-    // SEC-01 FIX 3: Clear semua data secure (master key, session, dll)
-    await encryptionService.clearAllSecureData();
+    // SEC-01 FIX 3: Clear data session (biometrics, dll) tapi pertahankan master key
+    // agar data lokal tidak "terkunci" selamanya setelah logout.
+    await encryptionService.clearSessionDataOnly();
 
     // SEC-01 FIX 4: Bersihkan SharedPreferences yang relevan
     // (bengkelId & lastBackupAt tidak sensitif namun harus direset

@@ -52,10 +52,17 @@ class AtelierHeader extends StatelessWidget {
         24,
         bottomPadding,
       ),
-      decoration: BoxDecoration(
-        gradient: AppColors.headerGradient(context),
-        borderRadius: borderRadius,
-      ),
+       decoration: BoxDecoration(
+         gradient: AppColors.headerGradient(context),
+         borderRadius: borderRadius,
+         boxShadow: [
+           BoxShadow(
+             color: AppColors.precisionViolet.withValues(alpha: 0.08),
+             blurRadius: 32,
+             offset: const Offset(0, 12),
+           ),
+         ],
+       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -74,16 +81,19 @@ class AtelierHeader extends StatelessWidget {
                           SolarIconsOutline.arrowLeft,
                           color: Colors.white,
                         ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                       style: IconButton.styleFrom(
+                         backgroundColor: Colors.white.withValues(alpha: 0.1),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(12),
+                         ),
+                         minimumSize: const Size(48, 48),
+                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                       ),
                       ),
                     ),
-                  ?leading,
+                  if (leading != null) leading!,
                   const Spacer(),
+
                   ...?actions,
                 ],
               ),
@@ -173,10 +183,17 @@ class AtelierHeaderSub extends StatelessWidget {
         24,
         16,
       ),
-      decoration: BoxDecoration(
-        gradient: AppColors.headerGradient(context),
-        borderRadius: borderRadius,
-      ),
+       decoration: BoxDecoration(
+         gradient: AppColors.headerGradient(context),
+         borderRadius: borderRadius,
+         boxShadow: [
+           BoxShadow(
+             color: AppColors.precisionViolet.withValues(alpha: 0.08),
+             blurRadius: 32,
+             offset: const Offset(0, 12),
+           ),
+         ],
+       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -197,15 +214,17 @@ class AtelierHeaderSub extends StatelessWidget {
                           SolarIconsOutline.arrowLeft,
                           color: Colors.white,
                         ),
-                        style: IconButton.styleFrom(
-                          backgroundColor: Colors.white.withValues(alpha: 0.1),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
+                       style: IconButton.styleFrom(
+                         backgroundColor: Colors.white.withValues(alpha: 0.1),
+                         shape: RoundedRectangleBorder(
+                           borderRadius: BorderRadius.circular(12),
+                         ),
+                         minimumSize: const Size(48, 48),
+                         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                       ),
                       ),
                     ),
-                  ?leading,
+                  if (leading != null) leading!,
                   const Spacer(),
                   ...?actions,
                 ],
@@ -326,8 +345,8 @@ class SliverAtelierHeader extends StatelessWidget {
           final bool isCollapsed = top <= collapseThreshold;
 
           // FIX: opacity continuous (smooth fade) — bukan binary snap yang bisa ter-skip saat scroll cepat
-          final double opacity =
-              ((collapseThreshold + 20 - top) / 20).clamp(0.0, 1.0);
+           final double opacity =
+               ((collapseThreshold + 40 - top) / 40).clamp(0.0, 1.0);
 
           return Container(
             decoration: BoxDecoration(
@@ -464,8 +483,8 @@ class SliverAtelierHeaderSub extends StatelessWidget {
           final bool isCollapsed = top <= collapseThreshold;
 
           // FIX: opacity continuous untuk smooth fade-in title
-          final double opacity =
-              ((collapseThreshold + 20 - top) / 20).clamp(0.0, 1.0);
+           final double opacity =
+               ((collapseThreshold + 40 - top) / 40).clamp(0.0, 1.0);
 
           return Container(
             decoration: BoxDecoration(

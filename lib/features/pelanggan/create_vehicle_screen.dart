@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/constants/app_icons.dart';
 import '../../core/services/vehicle_data_service.dart';
 import '../../core/providers/master_providers.dart';
@@ -98,9 +99,9 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
         slivers: [
           SliverAtelierHeaderSub(
             title: widget.initialVehicle != null
-                ? 'PERBARUI DATA'
-                : 'TAMBAH KENDARAAN',
-            subtitle: 'Milik ${widget.pelanggan.nama}',
+                ? AppStrings.customer.updateData.toUpperCase()
+                : AppStrings.customer.addVehicle.toUpperCase(),
+            subtitle: AppStrings.customer.ownedBy(widget.pelanggan.nama),
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -154,8 +155,8 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                                           fontWeight: FontWeight.w700,
                                         ),
                                         decoration: InputDecoration(
-                                          labelText: 'Model Kendaraan',
-                                          hintText: 'Misal: Honda Vario 125',
+                                          labelText: AppStrings.customer.vehicleModel,
+                                          hintText: AppStrings.customer.vehicleModelHint,
                                           prefixIcon: Icon(
                                             _selectedCategory ==
                                                     VehicleCategory.mobil
@@ -164,7 +165,7 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                                           ),
                                         ),
                                         validator: (v) => v?.isEmpty ?? true
-                                            ? 'Wajib diisi'
+                                            ? AppStrings.common.requiredField
                                             : null,
                                         onFieldSubmitted: (v) =>
                                             onFieldSubmitted(),
@@ -187,10 +188,10 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                           style: GoogleFonts.plusJakartaSans(
                             fontWeight: FontWeight.w700,
                           ),
-                          decoration: const InputDecoration(
-                            labelText: 'Nomor Plat',
-                            hintText: 'B 1234 ABC',
-                            prefixIcon: Icon(SolarIconsOutline.tag),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.customer.plateNumber,
+                            hintText: AppStrings.customer.plateHint,
+                            prefixIcon: const Icon(SolarIconsOutline.tag),
                           ),
                           textCapitalization: TextCapitalization.characters,
                           inputFormatters: [
@@ -199,9 +200,9 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                             ),
                           ],
                           validator: (v) {
-                            if (v?.isEmpty ?? true) return 'Wajib diisi';
+                            if (v?.isEmpty ?? true) return AppStrings.common.requiredField;
                             if (!RegExp(r'^[A-Z]').hasMatch(v!)) {
-                              return 'Format tidak valid (cth: B 1234 ABC)';
+                              return AppStrings.customer.invalidPlateFormat;
                             }
                             return null;
                           },
@@ -213,9 +214,9 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                               child: TextFormField(
                                 controller: _yearController,
                                 style: GoogleFonts.plusJakartaSans(),
-                                decoration: const InputDecoration(
-                                  labelText: 'Tahun',
-                                  prefixIcon: Icon(SolarIconsOutline.calendar),
+                                decoration: InputDecoration(
+                                  labelText: AppStrings.customer.year,
+                                  prefixIcon: const Icon(SolarIconsOutline.calendar),
                                 ),
                                 keyboardType: TextInputType.number,
                               ),
@@ -225,9 +226,9 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                               child: TextFormField(
                                 controller: _colorController,
                                 style: GoogleFonts.plusJakartaSans(),
-                                decoration: const InputDecoration(
-                                  labelText: 'Warna',
-                                  prefixIcon: Icon(SolarIconsOutline.palette),
+                                decoration: InputDecoration(
+                                  labelText: AppStrings.customer.color,
+                                  prefixIcon: const Icon(SolarIconsOutline.palette),
                                 ),
                               ),
                             ),
@@ -247,8 +248,8 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
                       ),
                       child: Text(
                         widget.initialVehicle != null
-                            ? 'PERBARUI DATA'
-                            : 'SIMPAN KENDARAAN',
+                            ? AppStrings.customer.updateData.toUpperCase()
+                            : AppStrings.customer.saveVehicle.toUpperCase(),
                         style: GoogleFonts.plusJakartaSans(
                           fontWeight: FontWeight.w900,
                           fontSize: 16,
@@ -277,8 +278,8 @@ class _CreateVehicleScreenState extends ConsumerState<CreateVehicleScreen> {
       ),
       child: Row(
         children: [
-          _buildTypeItem(VehicleCategory.motor, AppIcons.motorcycle, 'Motor'),
-          _buildTypeItem(VehicleCategory.mobil, AppIcons.car, 'Mobil'),
+          _buildTypeItem(VehicleCategory.motor, AppIcons.motorcycle, AppStrings.customer.motor),
+          _buildTypeItem(VehicleCategory.mobil, AppIcons.car, AppStrings.customer.mobil),
         ],
       ),
     );

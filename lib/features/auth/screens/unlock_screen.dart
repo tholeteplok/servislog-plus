@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../../core/services/encryption_service.dart';
@@ -8,6 +7,8 @@ import '../../../core/services/biometric_service.dart';
 import '../../../core/services/bengkel_service.dart';
 import '../../../core/providers/auth_provider.dart';
 import '../../../core/providers/objectbox_provider.dart';
+import '../../../core/providers/pengaturan_provider.dart';
+import '../../../core/constants/app_strings.dart';
 import 'sync_restore_screen.dart';
 
 class UnlockScreen extends ConsumerStatefulWidget {
@@ -79,25 +80,27 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
 
   Future<void> _tryBiometricUnlock() async {
     final success = await _biometric.authenticate(
-      reason: 'Buka Workshop Encrypted Data',
+      reason: AppStrings.auth.reasonUnlock,
     );
 
     if (success) {
       setState(() => _isUnwrapping = true);
       try {
         final savedKey = await _encryption.getSavedDerivedKey(widget.bengkelId);
-        final bengkelDoc = await _bengkel.getBengkel(widget.bengkelId);
-        final data = bengkelDoc.data() as Map<String, dynamic>?;
-        final wrappedKey = data?['masterKey'] as String?;
+        final wrappedKey = await _bengkel.getWrappedMasterKey(widget.bengkelId);
 
         if (savedKey != null && wrappedKey != null) {
           final ok = await _encryption.unwrapWithSavedKey(wrappedKey, savedKey);
           if (ok) {
+            // SEC-02: Reset failures on success
+            await _biometric.resetFailures();
+            
+            await _encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
             _handleSuccessfulUnlock();
             return;
           }
         }
-        setState(() => _errorText = 'Gagal memulihkan kunci dekripsi.');
+        setState(() => _errorText = AppStrings.error.keyRecoveryFailed);
       } catch (e) {
         setState(() => _errorText = 'Error: $e');
       } finally {
@@ -116,34 +119,24 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
     });
 
     try {
-      final bengkelDoc = await _bengkel.getBengkel(widget.bengkelId);
-      final data = bengkelDoc.data() as Map<String, dynamic>?;
-      final wrappedKey = data?['masterKey'] as String?;
+      final wrappedKey = await _bengkel.getWrappedMasterKey(widget.bengkelId);
 
       if (wrappedKey == null) {
-        throw Exception('Bengkel tidak memiliki Master Key');
+        throw Exception(AppStrings.auth.bengkelNoMasterKey);
       }
 
       final success = await _encryption.unwrapAndSaveMasterKey(
         wrappedKey,
         pin,
         widget.bengkelId,
-        // LGK-06 FIX: Push wrapped key baru ke Firestore setelah
-        // migrasi legacy → PBKDF2 berhasil, agar device lain tidak
-        // terus menggunakan legacy key.
         onMigrationComplete: (newWrappedKey) async {
           try {
-            final bengkelRef = _bengkel.firestore
-                .collection('bengkel')
-                .doc(widget.bengkelId);
-            // Push ke sub-collection secrets/masterKey (struktur sesuai bengkel_service)
-            await bengkelRef.collection('secrets').doc('masterKey').set({
-              'value': newWrappedKey,
-              'updatedAt': DateTime.now().toIso8601String(),
-              'version': 'v2_pbkdf2',
-            }, SetOptions(merge: true));
-            // Juga update root doc jika masih pakai legacy field
-            await bengkelRef.update({'masterKey': newWrappedKey});
+            final uid = ref.read(authServiceProvider).currentUser?.uid ?? 'unknown';
+            await _bengkel.updateMasterKey(
+              bengkelId: widget.bengkelId,
+              wrappedKey: newWrappedKey,
+              userId: uid,
+            );
           } catch (e) {
             debugPrint('⚠️ Firestore migration push gagal: $e');
           }
@@ -151,9 +144,27 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
       );
 
       if (success) {
+        // SEC-02: Reset failures on success
+        await _biometric.resetFailures();
+
+        // Auto-link biometric for next time if enabled and supported
+        final settings = ref.read(settingsProvider);
+        if (settings.isBiometricEnabled) {
+          final isSupported = await _biometric.isAvailable();
+          if (isSupported) {
+            // SEC-03: Check if key exists first to prevent unnecessary overwrites
+            final existingKey = await _encryption.getSavedDerivedKey(widget.bengkelId);
+            if (existingKey == null) {
+              await _encryption.saveDerivedKeyForBiometric(pin, widget.bengkelId);
+              debugPrint('🔗 Biometric auto-linked for workshop ${widget.bengkelId}');
+            }
+          }
+        }
+
+        await _encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
         _handleSuccessfulUnlock();
       } else {
-        setState(() => _errorText = 'PIN Workshop salah');
+        setState(() => _errorText = AppStrings.auth.pinIncorrect);
         _pinController.clear();
       }
     } catch (e) {
@@ -205,7 +216,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'Workshop Terkunci',
+                  AppStrings.auth.workshopLocked,
                   style: GoogleFonts.outfit(
                     fontSize: 24,
                     fontWeight: FontWeight.bold,
@@ -214,7 +225,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  'Masukkan 6 digit PIN Workshop Anda untuk mengakses data.',
+                  AppStrings.auth.enterPinDesc,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,
@@ -269,7 +280,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                   TextButton.icon(
                     onPressed: _tryBiometricUnlock,
                     icon: const Icon(Icons.fingerprint),
-                    label: const Text('Gunakan Biometrik'),
+                    label: Text(AppStrings.common.useBiometric),
                     style: TextButton.styleFrom(
                       foregroundColor: const Color(0xFF7C3AED),
                     ),
@@ -280,7 +291,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 TextButton(
                   onPressed: () => ref.read(authServiceProvider).signOut(),
                   child: Text(
-                    'Keluar Akun',
+                    AppStrings.common.logoutAccount,
                     style: GoogleFonts.inter(
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),

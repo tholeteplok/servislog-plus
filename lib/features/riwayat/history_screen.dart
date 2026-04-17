@@ -6,9 +6,11 @@ import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
 import '../../core/providers/history_provider.dart';
 import '../../core/providers/transaction_providers.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/widgets/atelier_header.dart';
 import '../../core/widgets/atelier_list_card.dart';
 import '../home/transaction_detail_screen.dart';
+import '../main/responsive_layout_builder.dart';
 
 class HistoryScreen extends ConsumerStatefulWidget {
   const HistoryScreen({super.key});
@@ -76,11 +78,11 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             SliverAtelierHeader(
-              title: 'Riwayat Transaksi',
-              subtitle: 'Pantau riwayat transaksi workshop Anda.',
+              title: AppStrings.history.title,
+              subtitle: AppStrings.history.subtitle,
               showBackButton: false,
               searchController: _searchController,
-              searchHint: 'Cari riwayat transaksi...',
+              searchHint: AppStrings.history.searchHint,
               onSearchChanged: (val) =>
                   ref.read(historySearchQueryProvider.notifier).set(val),
               actions: [
@@ -95,7 +97,9 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                     color: Colors.white,
                     size: 20,
                   ),
+                  tooltip: AppStrings.common.filter,
                   style: IconButton.styleFrom(
+                    minimumSize: const Size(48, 48),
                     backgroundColor: isDark
                         ? Colors.white.withValues(alpha: 0.1)
                         : Colors.black.withValues(alpha: 0.05),
@@ -132,8 +136,8 @@ class _HistoryScreenState extends ConsumerState<HistoryScreen> {
                       const SizedBox(height: 16),
                       Text(
                         searchQuery.isEmpty
-                            ? 'Belum ada transaksi.'
-                            : 'Tidak ditemukan "$searchQuery"',
+                            ? AppStrings.history.noTransactions
+                            : AppStrings.history.noResultsFor(searchQuery),
                         style: GoogleFonts.plusJakartaSans(
                           color: theme.colorScheme.onSurface.withValues(
                             alpha: 0.4,
@@ -274,7 +278,7 @@ class _FilterBottomSheet extends ConsumerWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                'Filter Riwayat',
+                AppStrings.history.filterTitle,
                 style: GoogleFonts.plusJakartaSans(
                   fontSize: 20,
                   fontWeight: FontWeight.w900,
@@ -284,12 +288,12 @@ class _FilterBottomSheet extends ConsumerWidget {
                 onPressed: () =>
                     ref.read(historyFilterNotifierProvider.notifier).setFilter(
                         HistoryFilter()),
-                child: const Text('Atur Ulang'),
+                child: Text(AppStrings.common.reset),
               ),
             ],
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('Pilih Tanggal'),
+          _buildFilterLabel(AppStrings.history.selectDate),
           const SizedBox(height: 8),
           InkWell(
             onTap: () async {
@@ -313,24 +317,24 @@ class _FilterBottomSheet extends ConsumerWidget {
               ),
               child: Row(
                 children: [
-                  const Icon(SolarIconsOutline.calendar, color: Colors.grey),
-                  const SizedBox(width: 12),
-                  Text(
-                    filter.dateRange == null
-                        ? 'Pilih Tanggal'
-                        : '${DateFormat('dd/MM/yyyy').format(filter.dateRange!.start)} - ${DateFormat('dd/MM/yyyy').format(filter.dateRange!.end)}',
-                    style: TextStyle(
-                      color: filter.dateRange == null
-                          ? Colors.grey
-                          : theme.colorScheme.onSurface,
-                    ),
-                  ),
+                   const Icon(SolarIconsOutline.calendar, color: Colors.grey),
+                   const SizedBox(width: 12),
+                   Text(
+                     filter.dateRange == null
+                         ? AppStrings.history.selectDate
+                         : '${DateFormat('dd/MM/yyyy').format(filter.dateRange!.start)} - ${DateFormat('dd/MM/yyyy').format(filter.dateRange!.end)}',
+                     style: TextStyle(
+                       color: filter.dateRange == null
+                           ? Colors.grey
+                           : theme.colorScheme.onSurface,
+                     ),
+                   ),
                 ],
               ),
             ),
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('Tipe Transaksi'),
+          _buildFilterLabel(AppStrings.history.transactionType),
           const SizedBox(height: 8),
           _buildChoiceRow(
             ref,
@@ -341,7 +345,7 @@ class _FilterBottomSheet extends ConsumerWidget {
                 .update((s) => s.copyWith(type: val)),
           ),
           const SizedBox(height: 24),
-          _buildFilterLabel('Metode Pembayaran'),
+          _buildFilterLabel(AppStrings.history.paymentMethod),
           const SizedBox(height: 8),
           _buildChoiceRow(
             ref,
@@ -363,9 +367,9 @@ class _FilterBottomSheet extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(16),
                 ),
               ),
-              child: const Text(
-                'Terapkan Filter',
-                style: TextStyle(
+              child: Text(
+                AppStrings.history.applyFilter,
+                style: const TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.bold,
                 ),
@@ -403,7 +407,11 @@ class _FilterBottomSheet extends ConsumerWidget {
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: ChoiceChip(
-              label: Text(opt == 'ALL' ? 'Semua' : (opt == 'SERVIS' ? 'Servis' : (opt == 'PRODUK' ? 'Produk' : opt))),
+              label: Text(opt == 'ALL'
+                  ? AppStrings.history.all
+                  : (opt == 'SERVIS'
+                      ? AppStrings.history.typeService
+                      : (opt == 'PRODUK' ? AppStrings.history.typeProduct : opt))),
               selected: isSelected,
               onSelected: (val) => val ? onSelected(opt) : null,
               selectedColor: AppColors.precisionViolet.withValues(alpha: 0.1),
@@ -423,7 +431,7 @@ class _FilterBottomSheet extends ConsumerWidget {
   }
 }
 
-class _HistoryCard extends StatelessWidget {
+class _HistoryCard extends ConsumerWidget {
   final HistoryItemData item;
 
   const _HistoryCard({required this.item});
@@ -437,7 +445,7 @@ class _HistoryCard extends StatelessWidget {
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final isService = item.type == 'SERVICE';
@@ -466,7 +474,9 @@ class _HistoryCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       child: Text(
-                        item.type == 'SERVICE' ? 'Servis' : 'Produk',
+                        item.type == 'SERVICE'
+                            ? AppStrings.history.typeService
+                            : AppStrings.history.typeProduct,
                         style: GoogleFonts.plusJakartaSans(
                           fontSize: 9,
                           fontWeight: FontWeight.w900,
@@ -536,17 +546,17 @@ class _HistoryCard extends StatelessWidget {
                     final trxList = trxListAsync.value ?? [];
                     try {
                       final trx = trxList.firstWhere((t) => t.uuid == item.id);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              TransactionDetailScreen(transaction: trx),
-                        ),
+                      AdaptiveNavigator.push(
+                        context: context,
+                        ref: ref,
+                        detailContent: TransactionDetailScreen(transaction: trx),
+                        routeBuilder: () =>
+                            TransactionDetailScreen(transaction: trx),
                       );
                     } catch (e) {
                       ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text('Detail transaksi tidak ditemukan'),
+                        SnackBar(
+                          content: Text(AppStrings.history.detailNotFound),
                         ),
                       );
                     }

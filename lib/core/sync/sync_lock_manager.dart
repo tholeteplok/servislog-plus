@@ -115,10 +115,20 @@ class SyncLockManager {
     final file = await _lockFileInstance;
     final data = _LockData(
       timestamp: DateTime.now(),
-      pid: pid, // Using real process ID if available (dart:io)
+      pid: _getPid(), // Using real process ID if available (dart:io)
       instanceId: _instanceId,
     );
     await file.writeAsString(jsonEncode(data.toJson()));
+  }
+
+  int _getPid() {
+    // dart:io is not available on web
+    try {
+      // ignore: undefined_prefixed_name
+      return pid;
+    } catch (e) {
+      return 0; // Web fallback
+    }
   }
 }
 

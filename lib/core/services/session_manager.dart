@@ -9,8 +9,12 @@ import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:device_info_plus/device_info_plus.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'device_session_service.dart';
+import 'encryption_service.dart';
+import '../config/app_config.dart';
+import '../models/user_profile.dart';
+import '../providers/auth_provider.dart';
 
 // 🎯 Policy Constants
 class SessionPolicy {
@@ -83,6 +87,10 @@ enum CriticalActionType {
   viewFinancials,
   manageStaff,
   changeSettings,
+  manageInventory,
+  editCustomer,
+  deleteCustomer,
+  manageBackup,
 }
 
 // 🛠️ Session Manager Class
@@ -98,9 +106,52 @@ class SessionManager {
   // ─────────────────────────────────────────────────────────────
   // CONFIGURATION
   // ─────────────────────────────────────────────────────────────
-  
-  // TODO: Pastikan Region dan Project ID sesuai dengan deployment Anda
-  static const String _handshakeUrl = 'https://us-central1-servislog-plus.cloudfunctions.net/verifySession';
+
+  /// Cached handshake URL resolved from env var / Firestore / default.
+  String? _cachedHandshakeUrl;
+
+  /// Resolve handshake URL with 3-layer priority:
+  /// 1. Cache (already resolved)
+  /// 2. Compile-time env var (AppConfig.handshakeUrl)
+  /// 3. Firestore remote config (_internal/handshake_config)
+  /// 4. Default (AppConfig.defaultHandshakeUrl)
+  Future<String> _getHandshakeUrl() async {
+    // 1. Check cache
+    if (_cachedHandshakeUrl != null) {
+      return _cachedHandshakeUrl!;
+    }
+
+    // 2. Use compile-time env var
+    final envUrl = AppConfig.handshakeUrl;
+    if (envUrl != AppConfig.defaultHandshakeUrl) {
+      _cachedHandshakeUrl = envUrl;
+      debugPrint('🔧 Using handshake URL from env: $envUrl');
+      return envUrl;
+    }
+
+    // 3. Fallback to Firestore config (only once)
+    try {
+      final doc = await _firestore
+          .collection('_internal')
+          .doc('handshake_config')
+          .get();
+
+      if (doc.exists) {
+        final firestoreUrl = doc.data()?['url'] as String?;
+        if (firestoreUrl != null && firestoreUrl.isNotEmpty) {
+          _cachedHandshakeUrl = firestoreUrl;
+          debugPrint('🔧 Using handshake URL from Firestore: $firestoreUrl');
+          return firestoreUrl;
+        }
+      }
+    } catch (e) {
+      debugPrint('⚠️ Failed to fetch handshake config from Firestore: $e');
+    }
+
+    // 4. Final fallback to default
+    _cachedHandshakeUrl = AppConfig.defaultHandshakeUrl;
+    return _cachedHandshakeUrl!;
+  }
   
   // ─────────────────────────────────────────────────────────────
   // MASTER PASSWORD (OWNER ONLY)
@@ -192,7 +243,8 @@ class SessionManager {
   
   /// Clear session (logout)
   Future<void> clearSession() async {
-    await _secureStorage.deleteAll();
+    // SEC-01 FIX: Gunakan clearSessionDataOnly agar master key tetap aman.
+    await EncryptionService().clearSessionDataOnly();
     await _auth.signOut();
     debugPrint('🚪 Session cleared & Signed out');
   }
@@ -255,14 +307,8 @@ class SessionManager {
 
     String appVersion = 'unknown';
     try {
-      final deviceInfoPlugin = DeviceInfoPlugin();
-      if (Platform.isAndroid) {
-        final info = await deviceInfoPlugin.androidInfo;
-        appVersion = info.version.sdkInt.toString();
-      } else if (Platform.isIOS) {
-        final info = await deviceInfoPlugin.iosInfo;
-        appVersion = info.systemVersion;
-      }
+      final packageInfo = await PackageInfo.fromPlatform();
+      appVersion = '${packageInfo.version}+${packageInfo.buildNumber}';
     } catch (_) {}
 
     final requestBody = jsonEncode({
@@ -280,8 +326,10 @@ class SessionManager {
         final token = await user.getIdToken(true);
         if (token == null) return SessionStatus.invalid;
 
+        final handshakeUrl = await _getHandshakeUrl();
+
         final response = await http.post(
-          Uri.parse(_handshakeUrl),
+          Uri.parse(handshakeUrl),
           headers: {
             'Authorization': 'Bearer $token',
             'Content-Type': 'application/json',
@@ -506,79 +554,48 @@ class SessionManager {
 // 🔄 Riverpod Providers
 final sessionManagerProvider = Provider<SessionManager>((ref) => SessionManager());
 
-/// 🔑 Access Level Provider — sumber kebenaran: Firebase Auth token
-/// Logic:
-///   1. Jika Firebase Auth tidak ada session → blocked
-///   2. Jika Firebase Auth token valid (belum expired) → full
-///   3. Jika token expired tapi dalam grace period → warning/readOnly
-///   4. Jika melewati grace period → blocked
-///
-/// Handshake Cloud Function adalah opsional dan tidak memblokir akses.
-final accessLevelProvider = StreamProvider<AccessLevel>((ref) async* {
-  // 🛡️ SECURITY GUARD: Block all access during Nuclear Sequence (Wipe)
+/// 🛡️ Unified Access Level Provider (H-04 FIX)
+/// Synchronously derives access status from the consolidated AuthStateContainer.
+/// Effectively eliminates race conditions between FirebaseAuth and LocalStorage.
+final accessLevelProvider = Provider<AccessLevel>((ref) {
+  // 1. Block all access during Nuclear Sequence (Wipe)
   final isWiping = ref.watch(isWipingProvider);
-  if (isWiping) {
-    yield AccessLevel.blocked;
-    return;
+  if (isWiping) return AccessLevel.blocked;
+
+  final authContainer = ref.watch(authStateProvider).value;
+
+  // 2. Loading / No Value yet
+  if (authContainer == null) return AccessLevel.full; // Treat as full during short loading gaps
+
+  // 3. Unauthenticated 
+  if (authContainer.state == AuthState.unauthenticated) return AccessLevel.blocked;
+
+  // 4. Authenticating / Initial Redirects
+  if (authContainer.state == AuthState.authenticating || 
+      authContainer.state == AuthState.missingProfile) {
+    return AccessLevel.full;
   }
 
-  // Reaktif terhadap perubahan auth state Firebase
-  yield* FirebaseAuth.instance.idTokenChanges().asyncMap((user) async {
-    if (user == null) {
+  // 5. Authenticated & Session Validation
+  final profile = authContainer.profile;
+  if (profile == null) return AccessLevel.blocked;
+
+  // Note: For offline grace periods, we still check the policy but relative to the profile's role
+  // which is already resolved in authStateProvider using Custom Claims (Trusted source).
+  // This removes the need for unsafe manual storage reads for 'user_role'.
+  
+  final status = ref.watch(sessionStatusProvider).value ?? SessionStatus.full;
+  
+  switch (status) {
+    case SessionStatus.full:
+    case SessionStatus.valid:
+      return AccessLevel.full;
+    case SessionStatus.warning:
+      return profile.role == 'owner' ? AccessLevel.readOnlyFinancial : AccessLevel.readOnly;
+    case SessionStatus.blocked:
+    case SessionStatus.invalid:
       return AccessLevel.blocked;
-    }
-
-    try {
-      // Storage instance (dibuat sekali)
-      final storage = FlutterSecureStorage(
-        aOptions: const AndroidOptions(),
-        iOptions: const IOSOptions(accessibility: KeychainAccessibility.first_unlock_this_device),
-      );
-
-      // Ambil token result untuk cek expiry
-      final tokenResult = await user.getIdTokenResult();
-      final expiry = tokenResult.expirationTime;
-      final now = DateTime.now();
-
-      // Token Firebase masih valid → Full Access
-      if (expiry != null && now.isBefore(expiry)) {
-        // Simpan timestamp otomatis setiap kali token valid
-        await storage.write(
-          key: 'last_auth_timestamp',
-          value: now.millisecondsSinceEpoch.toString(),
-        );
-        return AccessLevel.full;
-      }
-
-      // Token expired → cek grace period dari storage
-      final lastAuthStr = await storage.read(key: 'last_auth_timestamp');
-      final roleStr = await storage.read(key: 'user_role');
-
-      if (lastAuthStr == null) {
-        // Tidak ada histori → anggap readOnly dulu (bukan blocked)
-        return AccessLevel.readOnly;
-      }
-
-      final lastAuth = DateTime.fromMillisecondsSinceEpoch(int.parse(lastAuthStr));
-      final offlineDuration = now.difference(lastAuth);
-      final isOwner = roleStr == 'owner';
-
-      final gracePeriod = isOwner ? SessionPolicy.ownerGracePeriod : SessionPolicy.staffGracePeriod;
-      final warningThreshold = isOwner ? SessionPolicy.ownerWarningThreshold : SessionPolicy.staffWarningThreshold;
-
-      if (offlineDuration < warningThreshold) {
-        return AccessLevel.full;
-      } else if (offlineDuration < gracePeriod) {
-        return isOwner ? AccessLevel.readOnlyFinancial : AccessLevel.readOnly;
-      } else {
-        return AccessLevel.blocked;
-      }
-    } catch (e) {
-      debugPrint('❌ accessLevelProvider security error: $e');
-      // 🛡️ FAIL-CLOSED: Block all access on security check errors
-      return AccessLevel.blocked;
-    }
-  });
+  }
 });
 
 final sessionStatusProvider = FutureProvider<SessionStatus>((ref) async {

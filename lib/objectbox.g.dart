@@ -14,6 +14,7 @@ import 'package:objectbox/internal.dart'
 import 'package:objectbox/objectbox.dart' as obx;
 import 'package:objectbox_flutter_libs/objectbox_flutter_libs.dart';
 
+import 'core/services/transaction_number_service.dart';
 import 'domain/entities/pelanggan.dart';
 import 'domain/entities/sale.dart';
 import 'domain/entities/service_master.dart';
@@ -963,7 +964,7 @@ final _entities = <obx_int.ModelEntity>[
   obx_int.ModelEntity(
       id: const obx_int.IdUid(11, 1430484909220037664),
       name: 'SyncQueueItem',
-      lastPropertyId: const obx_int.IdUid(9, 8452736014142267912),
+      lastPropertyId: const obx_int.IdUid(10, 6982026874734661143),
       flags: 0,
       properties: <obx_int.ModelProperty>[
         obx_int.ModelProperty(
@@ -1011,6 +1012,36 @@ final _entities = <obx_int.ModelEntity>[
             id: const obx_int.IdUid(9, 8452736014142267912),
             name: 'status',
             type: 9,
+            flags: 0),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(10, 6982026874734661143),
+            name: 'lastRetryAt',
+            type: 10,
+            flags: 0)
+      ],
+      relations: <obx_int.ModelRelation>[],
+      backlinks: <obx_int.ModelBacklink>[]),
+  obx_int.ModelEntity(
+      id: const obx_int.IdUid(13, 1544516814584306382),
+      name: 'TrxCounter',
+      lastPropertyId: const obx_int.IdUid(3, 1138415339049082105),
+      flags: 0,
+      properties: <obx_int.ModelProperty>[
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(1, 3633920374411291746),
+            name: 'id',
+            type: 6,
+            flags: 1),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(2, 3968233899538006727),
+            name: 'date',
+            type: 9,
+            flags: 2080,
+            indexId: const obx_int.IdUid(37, 5889893864035660952)),
+        obx_int.ModelProperty(
+            id: const obx_int.IdUid(3, 1138415339049082105),
+            name: 'count',
+            type: 6,
             flags: 0)
       ],
       relations: <obx_int.ModelRelation>[],
@@ -1052,16 +1083,19 @@ Future<obx.Store> openStore(
 obx_int.ModelDefinition getObjectBoxModel() {
   final model = obx_int.ModelInfo(
       entities: _entities,
-      lastEntityId: const obx_int.IdUid(11, 1430484909220037664),
-      lastIndexId: const obx_int.IdUid(35, 2288060139555503314),
+      lastEntityId: const obx_int.IdUid(13, 1544516814584306382),
+      lastIndexId: const obx_int.IdUid(37, 5889893864035660952),
       lastRelationId: const obx_int.IdUid(0, 0),
       lastSequenceId: const obx_int.IdUid(0, 0),
-      retiredEntityUids: const [],
+      retiredEntityUids: const [1700870677764719325],
       retiredIndexUids: const [],
       retiredPropertyUids: const [
         1729473330981476020,
         3036252673134846327,
-        6835213827130394741
+        6835213827130394741,
+        6617295292592052027,
+        8727624652846839627,
+        8722023271082496791
       ],
       retiredRelationUids: const [],
       modelVersion: 5,
@@ -1552,6 +1586,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final transactionIdParam =
               const fb.StringReader(asciiOptimization: true)
                   .vTableGetNullable(buffer, rootOffset, 22);
+          final stokUuidParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGetNullable(buffer, rootOffset, 28);
           final uuidParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
           final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
@@ -1563,6 +1599,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
               costPrice: costPriceParam,
               customerName: customerNameParam,
               transactionId: transactionIdParam,
+              stokUuid: stokUuidParam,
               uuid: uuidParam,
               createdAt: createdAtParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
@@ -1571,9 +1608,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
             ..paymentMethod = const fb.StringReader(asciiOptimization: true)
                 .vTableGetNullable(buffer, rootOffset, 20)
             ..totalProfit =
-                const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0)
-            ..stokUuid = const fb.StringReader(asciiOptimization: true)
-                .vTableGetNullable(buffer, rootOffset, 28);
+                const fb.Int64Reader().vTableGet(buffer, rootOffset, 26, 0);
 
           return object;
         }),
@@ -2023,7 +2058,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final entityTypeOffset = fbb.writeString(object.entityType);
           final entityUuidOffset = fbb.writeString(object.entityUuid);
           final statusOffset = fbb.writeString(object.status);
-          fbb.startTable(10);
+          fbb.startTable(11);
           fbb.addInt64(0, object.id);
           fbb.addOffset(1, uuidOffset);
           fbb.addOffset(2, entityTypeOffset);
@@ -2033,6 +2068,7 @@ obx_int.ModelDefinition getObjectBoxModel() {
           fbb.addInt64(6, object.syncedAt?.millisecondsSinceEpoch);
           fbb.addInt64(7, object.retryCount);
           fbb.addOffset(8, statusOffset);
+          fbb.addInt64(9, object.lastRetryAt?.millisecondsSinceEpoch);
           fbb.finish(fbb.endTable());
           return object.id;
         },
@@ -2041,6 +2077,8 @@ obx_int.ModelDefinition getObjectBoxModel() {
           final rootOffset = buffer.derefObject(0);
           final syncedAtValue =
               const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 16);
+          final lastRetryAtValue =
+              const fb.Int64Reader().vTableGetNullable(buffer, rootOffset, 22);
           final uuidParam = const fb.StringReader(asciiOptimization: true)
               .vTableGet(buffer, rootOffset, 6, '');
           final entityTypeParam = const fb.StringReader(asciiOptimization: true)
@@ -2051,6 +2089,9 @@ obx_int.ModelDefinition getObjectBoxModel() {
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 12, 0);
           final createdAtParam = DateTime.fromMillisecondsSinceEpoch(
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 14, 0));
+          final lastRetryAtParam = lastRetryAtValue == null
+              ? null
+              : DateTime.fromMillisecondsSinceEpoch(lastRetryAtValue);
           final retryCountParam =
               const fb.Int64Reader().vTableGet(buffer, rootOffset, 18, 0);
           final statusParam = const fb.StringReader(asciiOptimization: true)
@@ -2061,12 +2102,42 @@ obx_int.ModelDefinition getObjectBoxModel() {
               entityUuid: entityUuidParam,
               priority: priorityParam,
               createdAt: createdAtParam,
+              lastRetryAt: lastRetryAtParam,
               retryCount: retryCountParam,
               status: statusParam)
             ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0)
             ..syncedAt = syncedAtValue == null
                 ? null
                 : DateTime.fromMillisecondsSinceEpoch(syncedAtValue);
+
+          return object;
+        }),
+    TrxCounter: obx_int.EntityDefinition<TrxCounter>(
+        model: _entities[11],
+        toOneRelations: (TrxCounter object) => [],
+        toManyRelations: (TrxCounter object) => {},
+        getId: (TrxCounter object) => object.id,
+        setId: (TrxCounter object, int id) {
+          object.id = id;
+        },
+        objectToFB: (TrxCounter object, fb.Builder fbb) {
+          final dateOffset = fbb.writeString(object.date);
+          fbb.startTable(4);
+          fbb.addInt64(0, object.id);
+          fbb.addOffset(1, dateOffset);
+          fbb.addInt64(2, object.count);
+          fbb.finish(fbb.endTable());
+          return object.id;
+        },
+        objectFromFB: (obx.Store store, ByteData fbData) {
+          final buffer = fb.BufferContext(fbData);
+          final rootOffset = buffer.derefObject(0);
+          final dateParam = const fb.StringReader(asciiOptimization: true)
+              .vTableGet(buffer, rootOffset, 6, '');
+          final countParam =
+              const fb.Int64Reader().vTableGet(buffer, rootOffset, 8, 0);
+          final object = TrxCounter(date: dateParam, count: countParam)
+            ..id = const fb.Int64Reader().vTableGet(buffer, rootOffset, 4, 0);
 
           return object;
         })
@@ -2777,4 +2848,23 @@ class SyncQueueItem_ {
   /// See [SyncQueueItem.status].
   static final status =
       obx.QueryStringProperty<SyncQueueItem>(_entities[10].properties[8]);
+
+  /// See [SyncQueueItem.lastRetryAt].
+  static final lastRetryAt =
+      obx.QueryDateProperty<SyncQueueItem>(_entities[10].properties[9]);
+}
+
+/// [TrxCounter] entity fields to define ObjectBox queries.
+class TrxCounter_ {
+  /// See [TrxCounter.id].
+  static final id =
+      obx.QueryIntegerProperty<TrxCounter>(_entities[11].properties[0]);
+
+  /// See [TrxCounter.date].
+  static final date =
+      obx.QueryStringProperty<TrxCounter>(_entities[11].properties[1]);
+
+  /// See [TrxCounter.count].
+  static final count =
+      obx.QueryIntegerProperty<TrxCounter>(_entities[11].properties[2]);
 }

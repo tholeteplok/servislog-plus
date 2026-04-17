@@ -21,7 +21,7 @@ final sharedPreferencesProvider = Provider<SharedPreferences>.internal(
 );
 
 typedef SharedPreferencesRef = ProviderRef<SharedPreferences>;
-String _$trxNumberServiceHash() => r'3519ad68640856a47a5bad26f214c072de7f685f';
+String _$trxNumberServiceHash() => r'05f5fbe71cf14f58e434e8a7913d15d53564d511';
 
 /// See also [trxNumberService].
 @ProviderFor(trxNumberService)

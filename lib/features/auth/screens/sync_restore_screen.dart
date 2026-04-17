@@ -5,6 +5,8 @@ import 'package:lottie/lottie.dart';
 import '../../../core/services/firestore_sync_service.dart';
 import '../../../core/services/sync_worker.dart';
 import '../../../core/providers/objectbox_provider.dart';
+import '../../../core/services/encryption_service.dart';
+import '../../../core/services/session_manager.dart';
 
 class SyncRestoreScreen extends ConsumerStatefulWidget {
   final String bengkelId;
@@ -24,6 +26,7 @@ class _SyncRestoreScreenState extends ConsumerState<SyncRestoreScreen> {
   String _statusText = 'Menyiapkan pemulihan data...';
   double _progress = 0.1;
   bool _isError = false;
+  String _errorDetail = '';
 
   @override
   void initState() {
@@ -34,12 +37,33 @@ class _SyncRestoreScreenState extends ConsumerState<SyncRestoreScreen> {
   }
 
   Future<void> _startRestore() async {
+    // Reset state agar UI kembali ke loading saat "Coba Lagi" ditekan
+    setState(() {
+      _isError = false;
+      _errorDetail = '';
+      _statusText = 'Menyiapkan pemulihan data...';
+      _progress = 0.1;
+    });
+
     try {
-      // Accessing service (Assuming FirestoreSyncService will be available via a provider)
-      // If it doesn't have a provider yet, I'll need to double check how it's accessed.
-      // Based on typical riverpod patterns in this project, I'll assume standard providers.
-      final syncService = FirestoreSyncService(); // Fallback if no provider, but usually there's one.
+      final syncService = FirestoreSyncService();
+      final encryption = EncryptionService();
       final db = ref.read(dbProvider);
+
+      // Guard: Pastikan EncryptionService sudah siap sebelum menarik data
+      // terenkripsi dari Firestore. Coba init ulang dulu sebelum throw.
+      if (!encryption.isInitialized) {
+        setState(() {
+          _statusText = 'Mempersiapkan kunci enkripsi...';
+          _progress = 0.15;
+        });
+        await encryption.init();
+        if (!encryption.isInitialized) {
+          throw Exception(
+            'Kunci enkripsi tidak tersedia. Pastikan PIN Workshop sudah dimasukkan dengan benar sebelum memulihkan data.',
+          );
+        }
+      }
       
       setState(() {
         _statusText = 'Mengunduh data dari Cloud...';
@@ -58,6 +82,7 @@ class _SyncRestoreScreenState extends ConsumerState<SyncRestoreScreen> {
       final worker = SyncWorker(
         db: db,
         syncService: syncService,
+        sessionManager: ref.read(sessionManagerProvider),
         bengkelId: widget.bengkelId,
       );
 
@@ -80,6 +105,7 @@ class _SyncRestoreScreenState extends ConsumerState<SyncRestoreScreen> {
         setState(() {
           _isError = true;
           _statusText = 'Gagal memulihkan data.';
+          _errorDetail = e.toString().replaceAll('Exception: ', '');
         });
       }
     }
@@ -136,6 +162,18 @@ class _SyncRestoreScreenState extends ConsumerState<SyncRestoreScreen> {
                     color: Colors.grey[600],
                   ),
                 ),
+                if (_isError && _errorDetail.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    _errorDetail,
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.inter(
+                      color: Colors.redAccent,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                ],
                 const SizedBox(height: 40),
                 if (!_isError) ...[
                   ClipRRect(

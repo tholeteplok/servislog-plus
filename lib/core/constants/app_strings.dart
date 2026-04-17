@@ -1,0 +1,562 @@
+// Sentralisasi semua string UI untuk memudahkan pemeliharaan dan lokalisasi.
+// ADR-002: Seluruh string UI statis harus dipindahkan ke file ini.
+// 
+// Usage:
+// ```dart
+// Text(AppStrings.common.save)
+// Text(AppStrings.transaction.stepUnit)
+// ```
+import 'package:intl/intl.dart';
+
+class AppStrings {
+  const AppStrings._();
+  
+  static const CommonStrings common = CommonStrings();
+  static const AuthStrings auth = AuthStrings();
+  static const HomeStrings home = HomeStrings();
+  static const TrxStrings transaction = TrxStrings();
+  static const CatalogStrings catalog = CatalogStrings();
+  static const CustomerStrings customer = CustomerStrings();
+  static const HistoryStrings history = HistoryStrings();
+  static const SettingStrings settings = SettingStrings();
+  static const ErrorStrings error = ErrorStrings();
+  static const SuccessStrings success = SuccessStrings();
+  static const AccessStrings access = AccessStrings();
+  static const ReminderStrings reminder = ReminderStrings();
+  static const SyncStrings sync = SyncStrings();
+  static const DatePatterns date = DatePatterns();
+  static const WhatsAppTemplates whatsapp = WhatsAppTemplates();
+}
+
+class CommonStrings {
+  const CommonStrings();
+  final cancel = 'Batal';
+  final save = 'Simpan';
+  final delete = 'Hapus';
+  final edit = 'Edit';
+  final search = 'Cari...';
+  final loading = 'Memuat...';
+  final noData = 'Tidak ada data';
+  final confirm = 'Konfirmasi';
+  final yes = 'Ya';
+  final no = 'Tidak';
+  final back = 'Kembali';
+  final next = 'Selanjutnya';
+  final aturSekarang = 'Atur Sekarang';
+  final useBiometric = 'Gunakan Biometrik';
+  final logoutAccount = 'Keluar Akun';
+  final add = 'Tambahkan';
+  final addShort = 'Tambah';
+  final fullName = 'Nama Lengkap';
+  final customerNameLabel = 'Nama Pelanggan';
+  final phone = 'Nomor HP';
+  final notFound = 'Tidak ditemukan';
+  final item = 'Item';
+  final emptyData = 'Data masih kosong';
+  final noCategory = 'Tanpa Kategori';
+  final close = 'Tutup';
+  final refresh = 'Segarkan';
+  final filter = 'Filter';
+  final reset = 'Atur Ulang';
+  final applyFilter = 'Terapkan Filter';
+  final understand = 'Mengerti';
+  
+  final dateLabel = 'Tanggal';
+  final typeLabel = 'Jenis';
+  final thankYouShort = 'TERIMA KASIH';
+  final camera = 'Kamera';
+  final gallery = 'Galeri';
+  final requiredField = 'Wajib diisi';
+  final none = 'Belum diisi';
+  final all = 'Semua';
+  final service = 'Servis';
+  final product = 'Produk';
+  final cash = 'Tunai';
+  final qris = 'QRIS';
+  final transfer = 'Transfer';
+  final phoneNumberWA = 'Nomor Telepon/WA';
+  final saveChanges = 'Simpan Perubahan';
+  
+  String deleteSuccess(String item) => '$item berhasil dihapus';
+  String saveSuccess(String item) => '$item berhasil disimpan';
+
+  final thousand = 'rb';
+  final million = 'jt';
+  final currencySymbol = 'Rp';
+}
+
+class AuthStrings {
+  const AuthStrings();
+  final reasonUnlock = 'Buka Workshop Encrypted Data';
+  final pinRequired = 'Tentukan PIN Workshop';
+  final enterPin = 'Masukkan PIN Workshop';
+  final workshopLocked = 'Workshop Terkunci';
+  final enterPinDesc = 'Masukkan 6 digit PIN Workshop Anda untuk mengakses data.';
+  final setPinDesc = 'PIN ini digunakan untuk mengenkripsi data workshop Anda secara lokal.';
+  final bengkelNoMasterKey = 'Bengkel tidak memiliki Master Key';
+  final pinIncorrect = 'PIN Workshop salah';
+  final restoreChoice = 'Restore Data Cloud?';
+  final restoreChoiceDesc = 'Device baru terdeteksi. Ingin memulihkan data dari Cloud?';
+}
+
+class HomeStrings {
+  const HomeStrings();
+  final searchHint = 'Cari transaksi hari ini...';
+  final todayRevenue = 'PENDAPATAN HARI INI';
+  final reminder = 'REMINDER';
+  final visitors = 'PENGUNJUNG';
+  final inventory = 'INVENTARIS';
+  final inventorySafe = 'Aman';
+  final todayActivities = 'Aktivitas Hari Ini';
+  final seeAll = 'Lihat Semua';
+  final settings = 'Pengaturan';
+  final qrisNotSet = 'QRIS Belum Diatur';
+  final qrisNotSetDesc = 'Fitur QRIS aktif tetapi gambar belum diunggah. Atur sekarang?';
+  final setPicture = 'Atur Gambar';
+  
+  // Bento Cards
+  final service = 'Servis';
+  final sellItems = 'Jual Barang';
+  final customers = 'Pelanggan';
+  final reports = 'Laporan';
+  
+  // Bottom Nav
+  final navHome = 'Beranda';
+  final navCatalog = 'Inventaris';
+  final navHistory = 'Riwayat';
+
+  // Bento labels & stats
+  final totalRevenueLabel = 'Total Pendapatan';
+  final upcoming = 'Mendatang';
+  final processed = 'Diproses';
+  final inventoryStatus = 'Status Inventaris';
+  final sectionCustomerPlate = 'PELANGGAN & PLAT';
+  final sectionInventory = 'INVENTARIS';
+  final sectionHistory = 'RIWAYAT TRANSAKSI';
+  final monthlyTarget = 'Target Bulanan';
+  final progress = 'progress';
+  final performanceGood = 'Kinerja Baik!';
+  final badgeCustomer = 'Pelanggan';
+  final badgeVehicle = 'Kendaraan';
+  final noVisitorsToday = 'Belum ada pengunjung hari ini.';
+  final noSearchResults = 'Tidak ada hasil untuk';
+  final remainingTarget = 'Sisa target: ';
+}
+
+class TrxStrings {
+  const TrxStrings();
+  
+  // Wizard Steps
+  final stepUnit = 'Unit';
+  final stepDiagnosa = 'Diagnosa';
+  final stepPekerjaan = 'Pekerjaan';
+  final stepRingkasan = 'Ringkasan';
+  
+  // Status
+  final statusAntri = 'Antri';
+  final statusServis = 'Servis';
+  final statusSelesai = 'Selesai';
+  final statusLunas = 'Lunas';
+  final statusPaid = 'LUNAS';
+  final statusUnpaid = 'BELUM LUNAS';
+  
+  // Labels
+  final newTransaction = 'Transaksi Baru';
+  final editTransaction = 'Edit Transaksi';
+  final saveTransaction = 'Simpan Transaksi';
+  final next = 'Selanjutnya';
+  final back = 'Kembali';
+  final deleteTrxTooltip = 'Hapus Transaksi';
+  
+  // Unit Info
+  final unitInfo = 'Informasi Unit';
+  final unitInfoDesc = 'Pilih jenis kendaraan dan masukkan nomor plat.';
+  final plateNumber = 'Nomor Plat';
+  final vehicleModel = 'Model Kendaraan';
+  final vehicleModelHint = 'Misal: Honda Vario 125';
+  final year = 'Tahun';
+  final color = 'Warna';
+  final motor = 'Motor';
+  final mobil = 'Mobil';
+  
+  // Customer Info
+  final customerInfo = 'Informasi Pelanggan';
+  final customerInfoDesc = 'Cari pelanggan lama atau ketik untuk pelanggan baru.';
+  final customerName = 'Nama Pelanggan';
+  final phoneNumber = 'Nomor Telepon';
+  final address = 'Alamat Pelanggan';
+  final addressHint = 'Jl. Contoh No. 123...';
+  
+  // Diagnosa
+  final complaint = 'Keluhan Pelanggan';
+  final addPhoto = 'Tambah Foto Unit';
+  final sparepartOptional = 'Suku Cadang (Opsional)';
+  final sparepartDesc = 'Pilih kategori item untuk ditambahkan dengan cepat.';
+  final technician = 'Teknisi Penanggung Jawab';
+  final selectTechnician = 'Pilih Teknisi';
+  
+  // Items
+  final serviceAndParts = 'Item Servis & Part';
+  final serviceAndPartsDesc = 'Tambahkan jasa servis dan sparepart yang digunakan.';
+  final addServicePart = 'Tambah Jasa / Part';
+  final quickSearch = 'Cari & tambah item cepat...';
+  
+  // Summary
+  final summary = 'Ringkasan Transaksi';
+  final summaryDesc = 'Review semua data sebelum disimpan.';
+  final totalEstimate = 'TOTAL ESTIMASI';
+  final totalCost = 'Total Biaya';
+  final transactionDate = 'Tanggal Transaksi';
+  final recommendation = 'REKOMENDASI KEMBALI (OPSIONAL)';
+  final recommendationDesc = 'Estimasi waktu dan jarak servis berikutnya.';
+  final byTime = 'Berdasarkan Waktu';
+  final byDistance = 'Berdasarkan Jarak';
+  final currentOdometer = 'Tulis Jarak (Km) saat ini';
+  final targetService = 'Target Servis (Km)';
+  final month = 'Bulan';
+  
+  // Sections Detail
+  final sectionCustomerDetail = 'DETAIL PELANGGAN';
+  final sectionVehicleDetail = 'DETAIL KENDARAAN';
+  final sectionCostTime = 'BIAYA & WAKTU';
+  final sectionServiceNotes = 'CATATAN SERVIS';
+  final sectionReturnRecommendation = 'REKOMENDASI KEMBALI';
+  final sectionServiceItems = 'ITEM SERVIS & SPAREPART';
+  final sectionPhotos = 'FOTO BUKTI / KENDARAAN';
+  final noItemsRecorded = 'Tidak ada item tercatat';
+  
+  // Overdue / Due banners
+  final overdueBanner = '⚠️ MASA SERVIS BERIKUTNYA SUDAH TERLEWAT';
+  final dueSoonBanner = '🔔 SUDAH MASUK WAKTU SERVIS BERKALA';
+  
+  // Dialogs
+  final deleteTrxTitle = 'Hapus Transaksi?';
+  final deleteTrxDesc = 'Yakin ingin menghapus transaksi ini? Tindakan ini tidak bisa dibatalkan.';
+  
+  // Mechanics
+  final mechanicNotes = 'Catatan Mekanik';
+  
+  String totalEstimateValue(int itemCount, String amount) => 
+      '$itemCount ITEM • $amount';
+
+  String formatCurrency(num amount) => 
+      'Rp ${NumberFormat('#,###', 'id_ID').format(amount)}';
+      
+  String recommendationTarget(String km) => 
+      'Target servis berikutnya: $km km';
+      
+  String bonusValue(String amount) => 
+      'Bonus: $amount';
+  
+  String deleteConfirmation(String trxNumber) => 
+      'Transaksi $trxNumber dihapus';
+  
+  String returnMonthsValue(int months) => 'Kembali dalam $months Bulan';
+  String returnDistanceValue(String km) => 'Kembali pada $km Km';
+  String followUpMessage(String dateStr) => 'Estimasi servis berikutnya seharusnya pada $dateStr. Segera lakukan follow-up pelanggan.';
+  
+  // Activity Card & Actions
+  final statusAntriCaps = 'ANTRI';
+  final statusServisCaps = 'DI SERVIS';
+  final statusSelesaiCaps = 'SELESAI';
+  final statusLunasCaps = 'LUNAS';
+  final actionProses = 'PROSES SERVIS';
+  final actionSelesaikan = 'SELESAIKAN';
+  final actionLunas = 'SIAP / LUNAS';
+  final deleteActivityTitle = 'Hapus Aktivitas?';
+  final deleteActivityDesc = 'Ingin menghapus catatan ini secara permanen?';
+  final swipeToDeleteHint = 'Geser sekali lagi untuk menghapus';
+  final confirmDelete = 'KONFIRMASI HAPUS';
+  final deleteCaps = 'HAPUS?';
+  
+  // Tech Note Sheet
+  final techNotesTitle = 'Catatan Teknisi';
+  final techNotesSubtitle = 'Tambahkan detail teknis & rekomendasi servis.';
+  final techNotesLabel = 'Kondisi & Tindakan';
+  final techNotesHint = 'Contoh: Kampas rem tipis, sudah diganti...';
+  final returnRecommendation = 'Rekomendasi Servis Kembali';
+  final odometerLabel = 'Kilometer (+KM)';
+  final timeLabel = 'Waktu (+Bulan)';
+  final techNotesSuccess = 'Catatan teknisi berhasil disimpan';
+  final defaultServiceNote = 'Servis selesai.';
+  
+  // Extra Wizard & Picker
+  final addTechnician = 'Tambah Teknisi Baru';
+  final catalogTitle = 'Katalog Item';
+  final catalogSearchHint = 'Cari jasa atau barang...';
+  final sectionService = 'Jasa & Servis';
+  final sectionPart = 'Suku Cadang & Barang';
+  final emptyItems = 'Belum ada item ditambahkan';
+  final labelPlate = 'Plat Nomor';
+  final labelCustomer = 'Pelanggan';
+  final labelTechnician = 'Teknisi';
+  final editBonusDesc = 'Tentukan jumlah bonus teknisi untuk item ini.';
+  final bonusLabel = 'Jumlah Bonus (Rp)';
+  final selectVehicle = 'Pilih Kendaraan';
+  final selectCustomer = 'Pilih Pelanggan';
+  final customerSearchHint = 'Cari nama, telp, atau plat nomor...';
+  final noVehicle = 'Tidak ada kendaraan';
+  final addItem = 'Tambah Item';
+  final typeService = 'JASA';
+  final typePart = 'PART';
+  final addNewService = 'Tambah Jasa Baru';
+  final addNewPart = 'Tambah Stok Baru';
+  final searchServiceHint = 'Cari jasa servis...';
+  final searchPartHint = 'Cari sparepart...';
+  final pricePerUnit = 'Harga Satuan';
+  final tooltipVehicleDb = 'Database Kendaraan';
+  final tooltipScanPlate = 'Scan Plat';
+  final tooltipSearchDb = 'Cari Database';
+  final noOwner = 'Tanpa Owner';
+  final subTotalItem = 'Sub Total Item';
+  final paymentMethod = 'Metode Pembayaran';
+  final requiredService = 'Wajib menambahkan minimal 1 layanan (jasa) dari inventaris.';
+  
+  // Categories Quick Add
+  final catAki = 'Aki';
+  final catOli = 'Oli';
+  final catBan = 'Ban';
+  final catKampas = 'Kampas';
+  final catFilter = 'Filter';
+  final catSuspensi = 'Suspensi';
+  
+  String editBonusTitle(String name) => 'edit Bonus: $name';
+  
+  // WhatsApp Receipt
+  final whatsappReceiptHeader = 'NOTA PEMBAYARAN';
+  final trxNumberLabel = 'No. Transaksi';
+  final vehicleLabel = 'Kendaraan';
+  final unitLabel = 'Unit'; // For PDF
+  final detailLabel = 'Detail';
+  final totalLabel = 'TOTAL';
+  final techNotesLabelReceipt = 'Catatan Teknisi';
+  final serviceDoneLabel = 'Servis selesai.';
+  final recServiceLabel = 'Rekomendasi Servis Kembali';
+  final recKmLabel = 'Setelah +';
+  final recTimeLabel = 'Setelah +';
+  final recDefaultLabel = 'Cek kembali 1 bulan/1000 KM.';
+  final thankYouLabel = 'Terima kasih telah mempercayakan kendaraan Anda kepada kami!';
+  final kmOrReminder = ' atau saat KM mencapai ';
+}
+
+class CustomerStrings {
+  const CustomerStrings();
+  final title = 'Daftar Pelanggan';
+  final subtitle = 'Kelola data pelanggan dan mitra workshop Anda.';
+  final searchHint = 'Cari nama atau telepon...';
+  final emptyTitle = 'Belum Ada Pelanggan';
+  final emptyMessage = 'Belum ada data pelanggan.';
+  final noData = 'Belum ada pelanggan terdaftar';
+  final addCustomer = 'Tambah Pelanggan';
+  final newCustomer = 'Pelanggan Baru';
+  final newSubtitle = 'Tambahkan mitra setia bisnismu di sini.';
+  final editData = 'Ubah Data';
+  final editSubtitle = 'Perbarui informasi mitra bisnismu.';
+  final fullName = 'Nama Lengkap';
+  final phoneLabel = 'Nomor Telepon/WA';
+  final addressLabel = 'Alamat';
+  final addressOptional = 'Alamat (Opsional)';
+  final noteLabel = 'Catatan';
+  final saveCustomer = 'Simpan Pelanggan';
+  final vehicles = 'Kendaraan';
+  final addVehicle = 'Tambah Kendaraan';
+  final updateData = 'Perbarui Data';
+  final vehicleModel = 'Model Kendaraan';
+  final vehicleModelHint = 'Misal: Honda Vario 125';
+  final plateNumber = 'Nomor Plat';
+  final plateHint = 'B 1234 ABC';
+  final invalidPlateFormat = 'Format tidak valid (cth: B 1234 ABC)';
+  final year = 'Tahun';
+  final color = 'Warna';
+  final saveVehicle = 'Simpan Kendaraan';
+  final motor = 'Motor';
+  final mobil = 'Mobil';
+  final visits = 'Kunjungan';
+  final totalSpending = 'Total';
+  final historyActivity = 'RIWAYAT AKTIVITAS';
+  final noVehiclesReg = 'Belum ada kendaraan terdaftar';
+  final noTransactionHistory = 'Belum ada riwayat transaksi';
+  final deleteTitle = 'Hapus Pelanggan?';
+  final confirmDeleteTitle = 'Hapus Pelanggan?';
+  final confirmDeleteMessage =
+      'Semua data kendaraan terkait akan tetap ada, namun relasi pelanggan akan terputus. Lanjutkan?';
+  final changeProfilePhoto = 'Ubah Foto Profil';
+
+  String ownedBy(String name) => 'Milik $name';
+
+  String deleteConfirmation(String name) =>
+      'Yakin ingin menghapus data $name? Tindakan ini tidak bisa dibatalkan.';
+}
+
+class HistoryStrings {
+  const HistoryStrings();
+  final title = 'Riwayat Transaksi';
+  final subtitle = 'Pantau riwayat transaksi workshop Anda.';
+  final searchHint = 'Cari riwayat transaksi...';
+  final filterTitle = 'Filter Riwayat';
+  final selectDate = 'Pilih Tanggal';
+  final transactionType = 'Tipe Transaksi';
+  final paymentMethod = 'Metode Pembayaran';
+  final emptyMessage = 'Belum ada transaksi.';
+  final notFoundMessage = 'Tidak ditemukan';
+  final noTransactions = 'Belum ada transaksi.';
+  final noResultsFound = 'Tidak ditemukan';
+  final detailNotFound = 'Detail transaksi tidak ditemukan';
+  final applyFilter = 'Terapkan Filter';
+  final typeService = 'Servis';
+  final typeProduct = 'Produk';
+  final all = 'Semua';
+  final cash = 'Tunai';
+  final qris = 'QRIS';
+  final transfer = 'Transfer';
+
+  String noResultsFor(String query) => 'Tidak ditemukan "$query"';
+}
+
+class CatalogStrings {
+  const CatalogStrings();
+  final inventoryTitle = 'Katalog Barang';
+  final lowStock = 'Stok Menipis';
+  final stockValue = 'Nilai Stok';
+  final addInventory = 'Tambah Barang';
+  final salesLabel = 'Penjualan Barang';
+}
+
+class SettingStrings {
+  const SettingStrings();
+  final title = 'Pengaturan';
+  final workshopProfile = 'Profil Workshop';
+  final syncData = 'Sinkronisasi Data';
+  final backupRestore = 'Backup & Restore';
+  final biometricSecurity = 'Keamanan Biometrik';
+  final featureSettings = 'Pengaturan Fitur';
+}
+
+class ErrorStrings {
+  const ErrorStrings();
+  
+  // Auth
+  final biometricFailed = 'Autentikasi biometrik gagal';
+  final pinIncorrect = 'PIN yang dimasukkan salah';
+  final pinTooShort = 'PIN minimal 6 digit';
+  final sessionExpired = 'Sesi berakhir. Silakan login kembali';
+  final keyRecoveryFailed = 'Gagal memulihkan kunci dekripsi (Kunci tidak ditemukan atau data biometrik kedaluwarsa).';
+  
+  // Network
+  final noConnection = 'Tidak ada koneksi internet';
+  final syncFailed = 'Gagal menyinkronkan data';
+  
+  // Validation
+  final plateRequired = 'Nomor plat harus diisi';
+  final customerRequired = 'Nama pelanggan harus diisi';
+  final phoneInvalid = 'Nomor HP tidak valid (minimal 8 digit)';
+  final itemEmpty = 'Item servis masih kosong';
+  final serviceRequired = 'Wajib menambahkan minimal 1 layanan (jasa)';
+  final saveFailed = 'Gagal menyimpan';
+  
+  // Generic
+  final generic = 'Terjadi kesalahan. Silakan coba lagi';
+  String specific(String error) => 'Terjadi kesalahan: $error';
+  
+  String stockInsufficient(String itemName, int available) => 
+      'Stok $itemName tidak mencukupi. Tersedia: $available';
+}
+
+class SuccessStrings {
+  const SuccessStrings();
+  
+  final transactionCreated = 'Transaksi berhasil dibuat';
+  final transactionUpdated = 'Transaksi berhasil diperbarui';
+  final transactionDeleted = 'Transaksi berhasil dihapus';
+  final backupCreated = 'Cadangan berhasil dibuat';
+  final backupRestored = 'Data berhasil dipulihkan';
+  final syncCompleted = 'Sinkronisasi selesai';
+}
+
+class AccessStrings {
+  const AccessStrings();
+  final readOnlyMode = 'Mode Baca Saja';
+  final restrictedAccess = 'Akses Terbatas';
+  final sessionExpired = 'Sesi Kedaluwarsa';
+  final readOnlyLabel = 'Baca Saja';
+  final restrictedLabel = 'Akses Terbatas';
+  final sessionExpiredLabel = 'Sesi Habis';
+  final readOnlyDesc = 'Perangkat offline > 8 jam.\nAnda masih bisa melihat data, tapi tidak bisa mengedit sampai sesi diperbarui.';
+  final restrictedDesc = 'Perangkat offline > 12 jam.\nFitur laporan keuangan dan edit biaya dibatasi sementara.';
+  final sessionExpiredDesc = 'Sesi keamanan telah berakhir (offline > 24 jam).\nHubungkan internet untuk verifikasi ulang.';
+  final understand = 'Mengerti';
+}
+
+class ReminderStrings {
+  const ReminderStrings();
+  final title = 'Pengingat Servis';
+  final subtitle = 'Daftar pelanggan yang perlu segera dihubungi.';
+  final emptyTitle = 'Belum Ada Pengingat';
+  final emptyMessage = 'Pelanggan yang masuk masa servis akan muncul di sini.';
+  final overdue = 'Terlambat Servis';
+  final upcoming = 'Sudah Waktunya Servis';
+  final estimateLabel = 'Estimasi:';
+  final kmTargetLabel = 'KM Target:';
+  final kmSuffix = ' KM';
+}
+
+class DatePatterns {
+  const DatePatterns();
+  final displayDate = 'dd MMM yyyy';
+  final fullDateTime = 'EEEE, dd MMMM yyyy - HH:mm';
+  final shortDate = 'dd/MM/yy';
+  final dateTimeReceipt = 'dd/MM/yyyy HH:mm';
+  final localeID = 'id_ID';
+}
+
+class WhatsAppTemplates {
+  const WhatsAppTemplates();
+  
+  String serviceReminder({
+    required String customerName,
+    required String vehiclePlate,
+    required String vehicleModel,
+    required String bengkelName,
+    required String dateStr,
+    String? kmStr,
+  }) => 
+    'Halo kak *$customerName*, kami dari *$bengkelName*. 🛠️\n\n'
+    'Ingin mengingatkan bahwa kendaraan *$vehicleModel* ($vehiclePlate) sudah memasuki waktu servis berkala berikutnya (estimasi sekitar tanggal $dateStr${kmStr ?? ""}).\n\n'
+    'Yuk kak, jadwalkan servisnya agar kendaraan tetap prima dan nyaman dikendarai! Kami tunggu kedatangannya ya. 😊';
+  
+  final thankYou = 'Terima kasih telah mempercayakan kendaraan Anda kepada kami!';
+}
+
+class SyncStrings {
+  const SyncStrings();
+
+  final title = 'Sinkronisasi Cloud';
+  final pending = 'Menunggu';
+  final syncing = 'Menyinkronkan...';
+  final synced = 'Sinkron';
+  final failed = 'Gagal';
+
+  final starting = 'Memulai sinkronisasi...';
+  final idle = 'Siap';
+  final anotherActive = 'Proses lain aktif, menunggu antrian...';
+  final wifiOnlyNotice = 'Sinkronisasi tertunda (Hanya WiFi aktif)';
+  final noConnection = 'Tidak ada koneksi internet';
+  final success = 'Sinkronisasi berhasil';
+  final error = 'Terjadi kesalahan sinkronisasi';
+
+  // State labels for UI
+  String statusLabel(String state) {
+    switch (state.toLowerCase()) {
+      case 'pending':
+        return pending;
+      case 'syncing':
+        return syncing;
+      case 'synced':
+        return synced;
+      case 'failed':
+        return failed;
+      default:
+        return state;
+    }
+  }
+}

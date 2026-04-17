@@ -58,18 +58,40 @@ abstract class TelemetrySink {
 
 class SyncTelemetry {
   static final SyncTelemetry _instance = SyncTelemetry._();
-  factory SyncTelemetry() => _instance;
+  factory SyncTelemetry() {
+    // Auto-initialize with default sinks if never initialized
+    if (!_instance._isInitialized) {
+      _instance._initializeDefault();
+    }
+    return _instance;
+  }
   SyncTelemetry._();
 
+  bool _isInitialized = false;
   final List<TelemetrySink> _sinks = [];
   String? _sessionId;
   String? _deviceId;
+
+  void _initializeDefault() {
+    final sinks = <TelemetrySink>[];
+    
+    // Add Crashlytics for mobile
+    if (!kIsWeb && (Platform.isAndroid || Platform.isIOS)) {
+      sinks.add(FirebaseTelemetrySink());
+    }
+    
+    // Always add local file for audit trail
+    sinks.add(LocalFileTelemetrySink());
+    
+    initialize(sinks, deviceId: 'pending');
+  }
 
   void initialize(List<TelemetrySink> sinks, {required String deviceId}) {
     _sinks.clear();
     _sinks.addAll(sinks);
     _sessionId = _generateSessionId();
     _deviceId = deviceId;
+    _isInitialized = true;
     debugPrint('📊 SyncTelemetry: Initialized with session=$_sessionId');
   }
 
@@ -185,6 +207,8 @@ class FirebaseTelemetrySink implements TelemetrySink {
 /// Sink to write logs to a local file for emergency lookup.
 /// Uses a buffer-like approach to minimize I/O overhead.
 class LocalFileTelemetrySink implements TelemetrySink {
+  static const int _maxFileSizeBytes = 5 * 1024 * 1024; // 5MB
+  static const int _maxFiles = 5;
   static final List<String> _buffer = [];
   static bool _isWriting = false;
 
@@ -202,6 +226,14 @@ class LocalFileTelemetrySink implements TelemetrySink {
       final dir = await getApplicationSupportDirectory(); // Better for logs than documents
       final file = File('${dir.path}/security_audit.log');
       
+      // Check file size before writing
+      if (await file.exists()) {
+        final size = await file.length();
+        if (size > _maxFileSizeBytes) {
+          await _rotateLogs(dir);
+        }
+      }
+      
       final sink = file.openWrite(mode: FileMode.append);
       while (_buffer.isNotEmpty) {
         sink.write(_buffer.removeAt(0));
@@ -212,6 +244,21 @@ class LocalFileTelemetrySink implements TelemetrySink {
     } finally {
       _isWriting = false;
       if (_buffer.isNotEmpty) _processBuffer();
+    }
+  }
+
+  Future<void> _rotateLogs(Directory dir) async {
+    for (int i = _maxFiles - 1; i > 0; i--) {
+      final oldFile = File('${dir.path}/security_audit.log.$i');
+      final newFile = File('${dir.path}/security_audit.log.${i + 1}');
+      if (await oldFile.exists()) {
+        await oldFile.rename(newFile.path);
+      }
+    }
+    
+    final mainFile = File('${dir.path}/security_audit.log');
+    if (await mainFile.exists()) {
+      await mainFile.rename('${dir.path}/security_audit.log.1');
     }
   }
 }

@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/session_manager.dart';
 import '../services/biometric_service.dart';
+import '../providers/pengaturan_provider.dart';
 
 // 🛡️ Critical Action Guard Widget
 class CriticalActionGuard extends ConsumerStatefulWidget {
@@ -14,6 +15,7 @@ class CriticalActionGuard extends ConsumerStatefulWidget {
   final Widget child;
   final String? customReason;
   final bool showTooltip;
+  final bool forceGuard; // If true, ignore requireBiometricSensitive toggle
   
   const CriticalActionGuard({
     required this.onVerified,
@@ -21,11 +23,190 @@ class CriticalActionGuard extends ConsumerStatefulWidget {
     required this.child,
     this.customReason,
     this.showTooltip = true,
+    this.forceGuard = false,
     super.key,
   });
   
   @override
   ConsumerState<CriticalActionGuard> createState() => _CriticalActionGuardState();
+
+  /// 🛡️ Static Imperative Guard
+  static Future<bool> check(
+    WidgetRef ref,
+    BuildContext context,
+    CriticalActionType actionType, {
+    String? customReason,
+    bool forceGuard = false,
+  }) async {
+    final settings = ref.read(settingsProvider);
+    final sessionManager = ref.read(sessionManagerProvider);
+    final biometricService = ref.read(biometricServiceProvider);
+
+    // 1. Check access level
+    final accessLevel = await sessionManager.getAccessLevel();
+    if (accessLevel == AccessLevel.blocked) {
+      if (context.mounted) showBlockedDialog(context);
+      return false;
+    }
+
+    // 2. Check if action is allowed (Zone check)
+    final canPerform = await sessionManager.canPerformAction(actionType);
+    if (!canPerform) {
+      if (context.mounted) showRestrictedDialog(context);
+      return false;
+    }
+
+    // 🛡️ SECURITY TOGGLE CHECK:
+    if (!forceGuard) {
+      if (!settings.isBiometricEnabled || !settings.requireBiometricSensitive) {
+        return true;
+      }
+    }
+
+    // 3. Re-auth dengan biometric
+    final reason = customReason ?? getAuthReason(actionType);
+    final result = await biometricService.verifyWithRetry(
+      reason: reason,
+      maxRetry: 3,
+    );
+
+    if (result.success) {
+      return true;
+    } else {
+      // 🚀 Fallback to Master Password
+      if (!context.mounted) return false;
+
+      final pinVerified = await showMasterPasswordDialog(context, ref);
+      if (pinVerified) {
+        await biometricService.resetFailures();
+        return true;
+      }
+    }
+    return false;
+  }
+
+  static String getAuthReason(CriticalActionType actionType) {
+    switch (actionType) {
+      case CriticalActionType.deleteTransaction:
+        return 'Verifikasi untuk menghapus transaksi';
+      case CriticalActionType.editPaidFee:
+        return 'Verifikasi untuk edit biaya lunas';
+      case CriticalActionType.exportData:
+        return 'Verifikasi untuk export data';
+      case CriticalActionType.viewFinancials:
+        return 'Verifikasi untuk akses laporan keuangan';
+      case CriticalActionType.manageStaff:
+        return 'Verifikasi untuk kelola tim';
+      case CriticalActionType.changeSettings:
+        return 'Verifikasi untuk ubah pengaturan';
+      case CriticalActionType.manageInventory:
+        return 'Verifikasi untuk modifikasi inventori';
+      case CriticalActionType.editCustomer:
+        return 'Verifikasi untuk edit data pelanggan';
+      case CriticalActionType.deleteCustomer:
+        return 'Verifikasi untuk hapus pelanggan';
+      case CriticalActionType.manageBackup:
+        return 'Verifikasi untuk kelola cadangan data';
+    }
+  }
+
+  static void showBlockedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.lock_outline, color: Colors.red, size: 48),
+        title: const Text('Aksi Ditolak'),
+        content: const Text(
+            'Perangkat offline terlalu lama. Sila perbarui sesi Anda dengan menghubungkan ke internet.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static void showRestrictedDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        icon: const Icon(Icons.warning, color: Colors.amber, size: 48),
+        title: const Text('Akses Dibatasi'),
+        content: const Text(
+            'Mode Baca Saja (Offline > 8 jam). Fitur ini sementara tidak dapat digunakan.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Mengerti'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Future<bool> showMasterPasswordDialog(
+      BuildContext context, WidgetRef ref) async {
+    final controller = TextEditingController();
+    bool isVisible = false;
+
+    final result = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          icon: const Icon(Icons.admin_panel_settings,
+              color: Colors.indigo, size: 48),
+          title: const Text('Master Password'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text(
+                'Gunakan PIN 6-Digit Master Password Anda sebagai fallback verifikasi harian.',
+                style: TextStyle(fontSize: 12),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: controller,
+                keyboardType: TextInputType.number,
+                obscureText: !isVisible,
+                maxLength: 6,
+                decoration: InputDecoration(
+                  labelText: 'Master Password',
+                  border: const OutlineInputBorder(),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                        isVisible ? Icons.visibility : Icons.visibility_off),
+                    onPressed: () => setState(() => isVisible = !isVisible),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Batal'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                final manager = ref.read(sessionManagerProvider);
+                final isValid =
+                    await manager.verifyMasterPassword(controller.text);
+                if (context.mounted) {
+                  Navigator.pop(context, isValid);
+                }
+              },
+              child: const Text('Verifikasi'),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    return result ?? false;
+  }
 }
 
 class _CriticalActionGuardState extends ConsumerState<CriticalActionGuard> {
@@ -62,61 +243,22 @@ class _CriticalActionGuardState extends ConsumerState<CriticalActionGuard> {
   }
   
   Future<void> _requireCriticalAuth() async {
-    final sessionManager = ref.read(sessionManagerProvider);
-    final biometricService = ref.read(biometricServiceProvider);
-    
-    // 1. Check access level
-    final accessLevel = await sessionManager.getAccessLevel();
-    if (accessLevel == AccessLevel.blocked) {
-      if (mounted) _showBlockedDialog();
-      return;
-    }
-    
-    // 2. Check if action is allowed (Zone check)
-    final canPerform = await sessionManager.canPerformAction(widget.actionType);
-    if (!canPerform) {
-      if (mounted) _showRestrictedDialog();
-      return;
-    }
-    
-    // 3. Re-auth dengan biometric (3x retry → Master Password fallback)
-    final reason = widget.customReason ?? _getAuthReason();
-    final result = await biometricService.verifyWithRetry(
-      reason: reason,
-      maxRetry: 3,
+    final verified = await CriticalActionGuard.check(
+      ref,
+      context,
+      widget.actionType,
+      customReason: widget.customReason,
+      forceGuard: widget.forceGuard,
     );
     
-    if (result.success) {
+    if (verified && mounted) {
       widget.onVerified();
-    } else {
-      // 🚀 Fallback to Master Password (PIN 6-digit)
-      if (!mounted) return;
-      final pinVerified = await _showMasterPasswordDialog();
-      if (pinVerified) {
-        widget.onVerified();
-      } else {
-        if (mounted) _showVerificationFailed();
-      }
+    } else if (!verified && mounted) {
+      // CriticalActionGuard.check() internally handles showing blocked/error dialogs.
     }
   }
-  
-  String _getAuthReason() {
-    switch (widget.actionType) {
-      case CriticalActionType.deleteTransaction:
-        return 'Verifikasi untuk menghapus transaksi';
-      case CriticalActionType.editPaidFee:
-        return 'Verifikasi untuk edit biaya lunas';
-      case CriticalActionType.exportData:
-        return 'Verifikasi untuk export data';
-      case CriticalActionType.viewFinancials:
-        return 'Verifikasi untuk akses laporan keuangan';
-      case CriticalActionType.manageStaff:
-        return 'Verifikasi untuk kelola tim';
-      case CriticalActionType.changeSettings:
-        return 'Verifikasi untuk ubah pengaturan';
-    }
-  }
-  
+
+
   String _getActionDescription() {
     switch (widget.actionType) {
       case CriticalActionType.deleteTransaction:
@@ -131,108 +273,15 @@ class _CriticalActionGuardState extends ConsumerState<CriticalActionGuard> {
         return 'Kelola Tim (Verifikasi Required)';
       case CriticalActionType.changeSettings:
         return 'Ubah Pengaturan (Verifikasi Required)';
+      case CriticalActionType.manageInventory:
+        return 'Modifikasi Inventori (Verifikasi Required)';
+      case CriticalActionType.editCustomer:
+        return 'Edit Pelanggan (Verifikasi Required)';
+      case CriticalActionType.deleteCustomer:
+        return 'Hapus Pelanggan (Verifikasi Required)';
+      case CriticalActionType.manageBackup:
+        return 'Kelola Cadangan Data (Verifikasi Required)';
     }
-  }
-  
-  void _showBlockedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.lock_outline, color: Colors.red, size: 48),
-        title: const Text('Aksi Ditolak'),
-        content: const Text('Perangkat offline terlalu lama. Sila perbarui sesi Anda dengan menghubungkan ke internet.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showRestrictedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        icon: const Icon(Icons.warning, color: Colors.amber, size: 48),
-        title: const Text('Akses Dibatasi'),
-        content: const Text('Mode Baca Saja (Offline > 8 jam). Fitur ini sementara tidak dapat digunakan.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Mengerti'),
-          ),
-        ],
-      ),
-    );
-  }
-  
-  void _showVerificationFailed() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Verifikasi gagal untuk ${_getAuthReason()}'),
-        backgroundColor: Colors.red,
-      ),
-    );
-  }
-  
-  Future<bool> _showMasterPasswordDialog() async {
-    final controller = TextEditingController();
-    bool isVisible = false;
-    
-    final result = await showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) => AlertDialog(
-          icon: const Icon(Icons.admin_panel_settings, color: Colors.indigo, size: 48),
-          title: const Text('Master Password'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              const Text(
-                'Gunakan PIN 6-Digit Master Password Anda sebagai fallback verifikasi harian.',
-                style: TextStyle(fontSize: 12),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: controller,
-                keyboardType: TextInputType.number,
-                obscureText: !isVisible,
-                maxLength: 6,
-                decoration: InputDecoration(
-                  labelText: 'Master Password',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: IconButton(
-                    icon: Icon(isVisible ? Icons.visibility : Icons.visibility_off),
-                    onPressed: () => setState(() => isVisible = !isVisible),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Batal'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final manager = ref.read(sessionManagerProvider);
-                final isValid = await manager.verifyMasterPassword(controller.text);
-                if (context.mounted) {
-                  Navigator.pop(context, isValid);
-                }
-              },
-              child: const Text('Verifikasi'),
-            ),
-          ],
-        ),
-      ),
-    );
-    
-    return result ?? false;
   }
 }
 

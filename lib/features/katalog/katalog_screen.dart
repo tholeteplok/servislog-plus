@@ -15,7 +15,10 @@ import 'create_barang_screen.dart';
 import 'create_service_master_screen.dart';
 import 'stok_history_screen.dart';
 import '../../core/providers/navigation_provider.dart';
+import '../../core/utils/app_haptic.dart';
 import '../../core/widgets/atelier_header.dart';
+import '../../core/widgets/critical_action_guard.dart';
+import '../../core/services/session_manager.dart';
 
 class KatalogScreen extends ConsumerStatefulWidget {
   final PageController? mainPageController;
@@ -111,7 +114,9 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                   onPressed: _openScanner,
                   icon: const Icon(SolarIconsOutline.scanner,
                       color: Colors.white, size: 20),
+                  tooltip: 'Pindai Barcode',
                   style: IconButton.styleFrom(
+                    minimumSize: const Size(48, 48),
                     backgroundColor: isDark
                         ? Colors.white.withValues(alpha: 0.1)
                         : Colors.black.withValues(alpha: 0.05),
@@ -123,7 +128,9 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                 onPressed: () => ref.invalidate(serviceMasterListProvider),
                 icon: const Icon(SolarIconsOutline.refresh,
                     color: Colors.white, size: 20),
+                tooltip: 'Segarkan',
                 style: IconButton.styleFrom(
+                  minimumSize: const Size(48, 48),
                   backgroundColor: isDark
                       ? Colors.white.withValues(alpha: 0.1)
                       : Colors.black.withValues(alpha: 0.05),
@@ -157,9 +164,45 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
-              tabs: const [
-                Tab(text: 'Barang'),
-                Tab(text: 'Layanan Jasa'),
+              tabs: [
+                Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Barang'),
+                      if (stokList.isEmpty) ...[
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
+                Tab(
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text('Layanan Jasa'),
+                      if (serviceListAsync.isLoading) ...[
+                        const SizedBox(width: 8),
+                        SizedBox(
+                          width: 12,
+                          height: 12,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: theme.colorScheme.primary,
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
@@ -269,7 +312,10 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
         label: Text(label),
         selected: isSelected,
         onSelected: (selected) {
-          if (selected) ref.read(stokSortNotifierProvider.notifier).setSort(sort);
+          if (selected) {
+            AppHaptic.selection();
+            ref.read(stokSortNotifierProvider.notifier).setSort(sort);
+          }
         },
         selectedColor: AppColors.amethyst.withValues(alpha: 0.1),
         labelStyle: GoogleFonts.plusJakartaSans(
@@ -334,12 +380,18 @@ class _StokCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    // Status colors
+    // Status colors & icons (semantic labels for accessibility)
     final isLow = item.isLowStock && item.jumlah > 0;
     final isEmpty = item.jumlah == 0;
     final Color badgeColor = isEmpty
         ? AppColors.error
         : (isLow ? Colors.amber : AppColors.success);
+    final IconData statusIcon = isEmpty
+        ? SolarIconsBold.boxMinimalistic
+        : (isLow ? SolarIconsBold.bell : SolarIconsBold.checkCircle);
+    final String statusLabel = isEmpty
+        ? 'Stok Habis'
+        : (isLow ? 'Stok Rendah' : 'Stok Tersedia');
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -438,13 +490,25 @@ class _StokCard extends StatelessWidget {
                   color: badgeColor,
                   borderRadius: BorderRadius.circular(100),
                 ),
-                child: Text(
-                  '${item.jumlah} pcs',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 11,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      statusIcon,
+                      color: Colors.white,
+                      size: 12,
+                      semanticLabel: statusLabel,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      '${item.jumlah} pcs',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
               const Spacer(),
@@ -462,18 +526,32 @@ class _StokCard extends StatelessWidget {
       builder: (context, ref, child) {
         return PopupMenuButton<String>(
           icon: const Icon(SolarIconsOutline.menuDots, size: 20),
+          padding: EdgeInsets.zero,
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ),
+          onOpened: () => AppHaptic.light(),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),
           onSelected: (value) {
             switch (value) {
               case 'edit':
-                Navigator.push(
+                CriticalActionGuard.check(
+                  ref,
                   context,
-                  MaterialPageRoute(
-                    builder: (_) => CreateBarangScreen(itemToEdit: item),
-                  ),
-                );
+                  CriticalActionType.manageInventory,
+                ).then((verified) {
+                  if (verified && context.mounted) {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => CreateBarangScreen(itemToEdit: item),
+                      ),
+                    );
+                  }
+                });
                 break;
               case 'tambah':
                 _showRestockDialog(context, ref);
@@ -487,7 +565,15 @@ class _StokCard extends StatelessWidget {
                 );
                 break;
               case 'hapus':
-                _confirmDelete(context, ref);
+                CriticalActionGuard.check(
+                  ref,
+                  context,
+                  CriticalActionType.manageInventory,
+                ).then((verified) {
+                  if (verified && context.mounted) {
+                    _confirmDelete(context, ref);
+                  }
+                });
                 break;
             }
           },
@@ -706,7 +792,7 @@ class _ServiceCard extends StatelessWidget {
                   Text(
                     item.category ?? 'Umum',
                     style: theme.textTheme.bodySmall?.copyWith(
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
+                      color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.bold,
                       fontSize: 11,
                     ),
@@ -742,6 +828,12 @@ class _ServiceCard extends StatelessWidget {
       builder: (context, ref, child) {
         return PopupMenuButton<String>(
           icon: const Icon(SolarIconsOutline.menuDots, size: 20),
+          padding: EdgeInsets.zero,
+          style: IconButton.styleFrom(
+            minimumSize: const Size(48, 48),
+            tapTargetSize: MaterialTapTargetSize.padded,
+          ),
+          onOpened: () => AppHaptic.light(),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(20),
           ),

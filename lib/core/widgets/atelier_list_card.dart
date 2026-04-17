@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../utils/app_haptic.dart';
 
 class AtelierListGroup extends StatelessWidget {
   final List<Widget> children;
@@ -27,33 +28,47 @@ class AtelierListGroup extends StatelessWidget {
               style: GoogleFonts.manrope(
                 fontSize: 10,
                 fontWeight: FontWeight.w800,
-                letterSpacing: 1.2,
+                letterSpacing: 0.8,
                 color: theme.colorScheme.primary.withValues(alpha: 0.7),
               ),
             ),
           ),
         Container(
-          margin: const EdgeInsets.symmetric(horizontal: 20),
-          decoration: BoxDecoration(
-            color: isDark
-                ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
-                : theme.colorScheme.surface,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : theme.colorScheme.outline.withValues(alpha: 0.1),
-            ),
-            boxShadow: isDark
-                ? []
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 20,
-                      offset: const Offset(0, 10),
-                    ),
-                  ],
-          ),
+          margin: const EdgeInsets.symmetric(horizontal: 24),
+           decoration: BoxDecoration(
+             color: isDark
+                 ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
+                 : theme.colorScheme.surface,
+             borderRadius: BorderRadius.circular(24),
+             border: Border.all(
+               color: isDark
+                   ? Colors.white.withValues(alpha: 0.08)
+                   : theme.colorScheme.outline.withValues(alpha: 0.12),
+               width: 1.2,
+             ),
+             boxShadow: isDark
+                 ? [
+                     BoxShadow(
+                       color: Colors.black.withValues(alpha: 0.12),
+                       blurRadius: 16,
+                       offset: const Offset(0, 6),
+                       spreadRadius: -4,
+                     ),
+                   ]
+                 : [
+                     BoxShadow(
+                       color: Colors.black.withValues(alpha: 0.04),
+                       blurRadius: 24,
+                       offset: const Offset(0, 8),
+                       spreadRadius: -2,
+                     ),
+                     BoxShadow(
+                       color: Colors.black.withValues(alpha: 0.02),
+                       blurRadius: 8,
+                       offset: const Offset(0, 2),
+                     ),
+                   ],
+           ),
           child: Column(
             children: children,
           ),
@@ -70,9 +85,11 @@ class AtelierListTile extends StatelessWidget {
   final String title;
   final Widget? customTitle;
   final String? subtitle;
+  final Widget? customSubtitle;
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
   final Widget? trailing;
+  final EdgeInsetsGeometry? padding;
 
   const AtelierListTile({
     super.key,
@@ -82,9 +99,11 @@ class AtelierListTile extends StatelessWidget {
     this.title = '',
     this.customTitle,
     this.subtitle,
+    this.customSubtitle,
     required this.onTap,
     this.onLongPress,
     this.trailing,
+    this.padding,
   });
 
   @override
@@ -106,34 +125,69 @@ class AtelierListTile extends StatelessWidget {
       return const SizedBox.shrink();
     }
 
-    return ListTile(
-      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-      leading: buildLeading(),
-      title: customTitle ?? Text(
-        title,
-        style: GoogleFonts.plusJakartaSans(
-          fontWeight: FontWeight.w800,
-          fontSize: 15,
-          color: theme.colorScheme.onSurface,
+    final leading = buildLeading();
+
+    return InkWell(
+      borderRadius: BorderRadius.circular(24),
+      onTap: () {
+        AppHaptic.light();
+        onTap();
+      },
+      onLongPress: onLongPress != null
+          ? () {
+              AppHaptic.medium();
+              onLongPress!();
+            }
+          : null,
+      highlightColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+      splashColor: theme.colorScheme.primary.withValues(alpha: 0.08),
+      child: Padding(
+        padding: padding ?? const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            if (leading is! SizedBox) ...[
+              leading,
+              const SizedBox(width: 16),
+            ],
+            Expanded(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  customTitle ??
+                      Text(
+                        title,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.w800,
+                          fontSize: 15,
+                          color: theme.colorScheme.onSurface,
+                        ),
+                      ),
+                  if (customSubtitle != null || subtitle != null) ...[
+                    const SizedBox(height: 4),
+                    customSubtitle ??
+                        Text(
+                          subtitle!,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
+                          ),
+                        ),
+                  ],
+                ],
+              ),
+            ),
+            const SizedBox(width: 12),
+            trailing ??
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.45),
+                ),
+          ],
         ),
       ),
-      subtitle: subtitle != null
-          ? Text(
-              subtitle!,
-              style: GoogleFonts.inter(
-                fontSize: 12,
-                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-              ),
-            )
-          : null,
-      trailing: trailing ??
-          Icon(
-            Icons.chevron_right_rounded,
-            size: 20,
-            color: theme.colorScheme.onSurface.withValues(alpha: 0.3),
-          ),
-      onTap: onTap,
-      onLongPress: onLongPress,
     );
   }
 }

@@ -42,9 +42,9 @@ class BackupService {
             .map(
               (e) => {
                 'uuid': e.uuid,
-                'nama': isEncrypted ? _encryption.encryptTextWithKey(e.nama, backupKey!) : e.nama,
-                'telepon': isEncrypted ? _encryption.encryptTextWithKey(e.telepon, backupKey!) : e.telepon,
-                'alamat': isEncrypted ? _encryption.encryptTextWithKey(e.alamat, backupKey!) : e.alamat,
+                'nama': _encryptField(e.nama, isEncrypted, backupKey),
+                'telepon': _encryptField(e.telepon, isEncrypted, backupKey),
+                'alamat': _encryptField(e.alamat, isEncrypted, backupKey),
                 'catatan': e.catatan,
                 'createdAt': e.createdAt.toIso8601String(),
               },
@@ -56,9 +56,9 @@ class BackupService {
             .map(
               (e) => {
                 'uuid': e.uuid,
-                'name': isEncrypted ? _encryption.encryptTextWithKey(e.name, backupKey!) : e.name,
+                'name': _encryptField(e.name, isEncrypted, backupKey),
                 'role': e.role,
-                'phoneNumber': isEncrypted && e.phoneNumber != null ? _encryption.encryptTextWithKey(e.phoneNumber!, backupKey!) : e.phoneNumber,
+                'phoneNumber': _encryptField(e.phoneNumber, isEncrypted, backupKey),
                 'isActive': e.isActive,
                 'createdAt': e.createdAt.toIso8601String(),
               },
@@ -102,7 +102,7 @@ class BackupService {
                 'model': e.model,
                 'color': e.color,
                 'year': e.year,
-                'vin': isEncrypted && e.vin != null ? _encryption.encryptTextWithKey(e.vin!, backupKey!) : e.vin,
+                'vin': _encryptField(e.vin, isEncrypted, backupKey),
                 'ownerUuid': e.owner.target?.uuid,
               },
             )
@@ -113,8 +113,8 @@ class BackupService {
               (e) => {
                 'uuid': e.uuid,
                 'trxNumber': e.trxNumber,
-                'customerName': isEncrypted ? _encryption.encryptText(e.customerName) : e.customerName,
-                'customerPhone': isEncrypted ? _encryption.encryptText(e.customerPhone) : e.customerPhone,
+                'customerName': _encryptField(e.customerName, isEncrypted, backupKey),
+                'customerPhone': _encryptField(e.customerPhone, isEncrypted, backupKey),
                 'vehicleModel': e.vehicleModel,
                 'vehiclePlate': e.vehiclePlate,
                 'totalAmount': e.totalAmount,
@@ -146,8 +146,9 @@ class BackupService {
             .map(
               (e) => {
                 'uuid': e.uuid,
-                'customerName': isEncrypted && e.customerName != null ? _encryption.encryptText(e.customerName!) : e.customerName,
+                'customerName': _encryptField(e.customerName, isEncrypted, backupKey),
                 'totalPrice': e.totalPrice,
+
                 'paymentMethod': e.paymentMethod,
                 'createdAt': e.createdAt.toIso8601String(),
               },
@@ -236,4 +237,12 @@ class BackupService {
       rethrow;
     }
   }
+
+  /// Safe encryption helper
+  String _encryptField(String? value, bool isEncrypted, encrypt.Key? key) {
+    if (value == null || value.isEmpty) return '';
+    if (!isEncrypted || key == null) return value;
+    return _encryption.encryptTextWithKey(value, key);
+  }
 }
+

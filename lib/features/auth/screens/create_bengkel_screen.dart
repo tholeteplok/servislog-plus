@@ -146,7 +146,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
         );
 
         if (authOk) {
-          await _encryptionService.saveDerivedKeySecurely(pin, bengkelId);
+          await _encryptionService.saveDerivedKeyForBiometric(pin, bengkelId);
           await _biometricService.savePin(pin);
         } else {
           if (mounted) {

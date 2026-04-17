@@ -294,15 +294,162 @@ class _FiturScreenState extends ConsumerState<FiturScreen> {
                   ),
 
                   const SizedBox(height: 40),
-                  Text('Keamanan', style: theme.sectionLabelStyle),
+                  Text('Keamanan Internal', style: theme.sectionLabelStyle),
                   const SizedBox(height: 16),
-                  _FeatureToggle(
-                    title: 'Kunci Biometrik & PIN',
-                    subtitle:
-                        'Amankan aplikasi dengan sidik jari & PIN 6 angka',
-                    icon: Icons.security_rounded,
-                    value: settings.isBiometricEnabled,
-                    onChanged: _toggleBiometric,
+                  
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.surfaceContainer,
+                      borderRadius: BorderRadius.circular(24),
+                      border: Border.all(
+                        color: theme.colorScheme.outlineVariant.withValues(alpha: 0.5),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(10),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                SolarIconsBold.shieldKeyhole,
+                                color: theme.colorScheme.primary,
+                                size: 24,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    'Perlindungan Biometrik',
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  Text(
+                                    'Gunakan sidik jari untuk akses aplikasi',
+                                    style: TextStyle(
+                                      color: theme.colorScheme.onSurfaceVariant,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Switch.adaptive(
+                              value: settings.isBiometricEnabled,
+                              onChanged: _toggleBiometric,
+                            ),
+                          ],
+                        ),
+                        
+                        if (settings.isBiometricEnabled) ...[
+                          const Padding(
+                            padding: EdgeInsets.symmetric(vertical: 20),
+                            child: Divider(height: 1),
+                          ),
+                          
+                          const Text(
+                            'Kunci Otomatis (Auto-Lock)',
+                            style: TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              children: [
+                                _LockDurationChip(
+                                  label: 'Off',
+                                  value: 0,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                                const SizedBox(width: 8),
+                                _LockDurationChip(
+                                  label: '1m',
+                                  value: 1,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                                const SizedBox(width: 8),
+                                _LockDurationChip(
+                                  label: '5m',
+                                  value: 5,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                                const SizedBox(width: 8),
+                                _LockDurationChip(
+                                  label: '10m',
+                                  value: 10,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                                const SizedBox(width: 8),
+                                _LockDurationChip(
+                                  label: '30m',
+                                  value: 30,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                                const SizedBox(width: 8),
+                                _LockDurationChip(
+                                  label: '60m',
+                                  value: 60,
+                                  selectedValue: settings.autoLockDuration,
+                                  onSelected: (v) => ref.read(settingsProvider.notifier).setAutoLockDuration(v),
+                                ),
+                              ],
+                            ),
+                          ),
+                          
+                          const SizedBox(height: 24),
+                          
+                          Row(
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      'Proteksi Aksi Sensitif',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Verifikasi sidik jari sebelum hapus/edit data',
+                                      style: TextStyle(
+                                        color: theme.colorScheme.onSurfaceVariant,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Switch.adaptive(
+                                value: settings.requireBiometricSensitive,
+                                onChanged: (v) => ref.read(settingsProvider.notifier).setRequireBiometricSensitive(v),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ],
+                    ),
                   ),
 
                   const Spacer(),
@@ -352,6 +499,56 @@ class _FeatureToggle extends StatelessWidget {
         value: value,
         onChanged: isLocked ? null : onChanged,
         activeThumbColor: theme.colorScheme.primary,
+      ),
+    );
+  }
+}
+
+class _LockDurationChip extends StatelessWidget {
+  final String label;
+  final int value;
+  final int selectedValue;
+  final ValueChanged<int> onSelected;
+
+  const _LockDurationChip({
+    required this.label,
+    required this.value,
+    required this.selectedValue,
+    required this.onSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isSelected = value == selectedValue;
+
+    return InkWell(
+      onTap: () => onSelected(value),
+      borderRadius: BorderRadius.circular(12),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? theme.colorScheme.primary
+              : theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected
+                ? theme.colorScheme.primary
+                : theme.colorScheme.outlineVariant.withValues(alpha: 0.3),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected
+                ? theme.colorScheme.onPrimary
+                : theme.colorScheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12,
+          ),
+        ),
       ),
     );
   }

@@ -184,7 +184,7 @@ class _AtelierShimmerWrapper extends StatelessWidget {
       highlightColor: isDark
           ? Colors.white.withValues(alpha: 0.08)
           : Colors.grey.withValues(alpha: 0.04),
-      period: const Duration(milliseconds: 1400),
+      period: const Duration(milliseconds: 1200),
       child: child,
     );
   }

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../core/constants/app_colors.dart';
@@ -14,6 +15,7 @@ class OnboardingIntroScreen extends ConsumerStatefulWidget {
 class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
+  double _pageOffset = 0.0;
 
   @override
   void dispose() {
@@ -26,39 +28,41 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
   }
 
   void _nextPage() {
+    HapticFeedback.lightImpact();
     if (_currentPage < 2) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 600),
         curve: Curves.easeInOutCubic,
       );
     } else {
+      HapticFeedback.mediumImpact();
       _finishOnboarding();
     }
   }
 
   @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+  void initState() {
+    super.initState();
+    _pageController.addListener(() {
+      setState(() {
+        _pageOffset = _pageController.page ?? 0.0;
+      });
+    });
+  }
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.obsidianBase : Colors.white,
+  @override
+  Widget build(BuildContext context) {
+
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.dark.copyWith(
+        statusBarColor: Colors.transparent,
+        systemNavigationBarColor: Colors.white,
+        systemNavigationBarIconBrightness: Brightness.dark,
+      ),
+      child: Scaffold(
+        backgroundColor: Colors.white,
       body: Stack(
         children: [
-          // Background Aura
-          Positioned(
-            top: -100,
-            right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.precisionViolet.withValues(alpha: isDark ? 0.05 : 0.03),
-              ),
-            ),
-          ),
-          
           SafeArea(
             child: Column(
               children: [
@@ -66,26 +70,26 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                   child: PageView(
                     controller: _pageController,
                     onPageChanged: (idx) => setState(() => _currentPage = idx),
-                    children: [
-                      _buildIntroPage(
-                        isDark: isDark,
-                        image: 'assets/illustrations/onboarding_mgmt.png',
-                        title: 'Manajemen Bengkel\nDigital & Efisien',
-                        subtitle: 'Kelola Inventaris, Teknisi, dan rincian Pendapatan dalam satu sistem terintegrasi.',
-                      ),
-                      _buildIntroPage(
-                        isDark: isDark,
-                        image: 'assets/illustrations/onboarding_security.png',
-                        title: 'Keamanan Data\nStandar Korporat',
-                        subtitle: 'Proteksi sesi perangkat dan enkripsi data cloud untuk ketenangan bisnis Anda.',
-                      ),
-                      _buildIntroPage(
-                        isDark: isDark,
-                        image: 'assets/illustrations/onboarding_sync.png',
-                        title: 'Sinkronisasi Cloud\nReal-time',
-                        subtitle: 'Akses data bengkel dari mana saja dengan sinkronisasi instan antar tim.',
-                      ),
-                    ],
+                     children: [
+                       _buildIntroPage(
+                         image: 'assets/illustrations/onboarding_mgmt.png',
+                         title: 'Manajemen Bengkel\nDigital & Efisien',
+                         subtitle: 'Kelola Inventaris, Teknisi, dan rincian Pendapatan dalam satu sistem terintegrasi.',
+                         index: 0,
+                       ),
+                       _buildIntroPage(
+                         image: 'assets/illustrations/onboarding_security.png',
+                         title: 'Keamanan Data\nStandar Korporat',
+                         subtitle: 'Proteksi sesi perangkat dan enkripsi data cloud untuk ketenangan bisnis Anda.',
+                         index: 1,
+                       ),
+                       _buildIntroPage(
+                         image: 'assets/illustrations/onboarding_sync.png',
+                         title: 'Sinkronisasi Cloud\nReal-time',
+                         subtitle: 'Akses data bengkel dari mana saja dengan sinkronisasi instan antar tim.',
+                         index: 2,
+                       ),
+                     ],
                   ),
                 ),
 
@@ -99,7 +103,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: List.generate(
                           3,
-                          (index) => _buildIndicator(index == _currentPage, isDark),
+                          (index) => _buildIndicator(index == _currentPage),
                         ),
                       ),
                       const SizedBox(height: 48),
@@ -115,7 +119,7 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
                                 style: GoogleFonts.manrope(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
-                                  color: isDark ? Colors.white38 : Colors.black38,
+                                  color: Colors.black38,
                                 ),
                               ),
                             ),
@@ -174,79 +178,95 @@ class _OnboardingIntroScreenState extends ConsumerState<OnboardingIntroScreen> {
           ),
         ],
       ),
-    );
-  }
+    ),
+  );
+}
 
-  Widget _buildIndicator(bool isActive, bool isDark) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
-      margin: const EdgeInsets.only(right: 8),
-      height: 6,
-      width: isActive ? 24 : 6,
-      decoration: BoxDecoration(
-        color: isActive 
-            ? AppColors.precisionViolet 
-            : (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.05)),
-        borderRadius: BorderRadius.circular(3),
+  Widget _buildIndicator(bool isActive) {
+    return AnimatedScale(
+      duration: const Duration(milliseconds: 250),
+      scale: isActive ? 1.15 : 1.0,
+      curve: Curves.easeOutBack,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 300),
+        margin: const EdgeInsets.only(right: 8),
+        height: 6,
+        width: isActive ? 24 : 6,
+        decoration: BoxDecoration(
+          color: isActive 
+              ? AppColors.precisionViolet 
+              : Colors.black.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(3),
+          boxShadow: isActive ? [
+            BoxShadow(
+              color: AppColors.precisionViolet.withValues(alpha: 0.3),
+              blurRadius: 6,
+              offset: const Offset(0, 2),
+            ),
+          ] : [],
+        ),
       ),
     );
   }
 
   Widget _buildIntroPage({
-    required bool isDark,
     required String image,
     required String title,
     required String subtitle,
+    required int index,
   }) {
+    final relativeOffset = _pageOffset - index;
+    final parallaxOffset = relativeOffset * 80;
+    final opacity = 1.0 - relativeOffset.abs().clamp(0.0, 1.0);
+    
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 40),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          // Illustration with Ambient Glow
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              Container(
-                width: 240,
-                height: 240,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  gradient: RadialGradient(
-                    colors: [
-                      AppColors.precisionViolet.withValues(alpha: 0.1),
-                      AppColors.precisionViolet.withValues(alpha: 0),
-                    ],
-                  ),
-                ),
-              ),
-              Image.asset(
+          Transform.translate(
+            offset: Offset(parallaxOffset, 0),
+            child: Opacity(
+              opacity: Curves.easeOut.transform(opacity),
+              child: Image.asset(
                 image,
                 height: 280,
                 fit: BoxFit.contain,
               ),
-            ],
+            ),
           ),
           const SizedBox(height: 40),
-          Text(
-            title,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.manrope(
-              fontSize: 28,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-              letterSpacing: -0.5,
-              color: isDark ? Colors.white : AppColors.obsidianBase,
+          Transform.translate(
+            offset: Offset(parallaxOffset * 0.5, 0),
+            child: Opacity(
+              opacity: Curves.easeOut.transform(opacity),
+              child: Text(
+                title,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.manrope(
+                  fontSize: 28,
+                  fontWeight: FontWeight.w800,
+                  height: 1.2,
+                  letterSpacing: -0.5,
+                  color: AppColors.obsidianBase,
+                ),
+              ),
             ),
           ),
           const SizedBox(height: 20),
-          Text(
-            subtitle,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.inter(
-              fontSize: 15,
-              height: 1.6,
-              color: isDark ? Colors.white38 : Colors.black45,
+          Transform.translate(
+            offset: Offset(parallaxOffset * 0.25, 0),
+            child: Opacity(
+              opacity: Curves.easeOut.transform(opacity),
+              child: Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                style: GoogleFonts.inter(
+                  fontSize: 15,
+                  height: 1.6,
+                  color: Colors.black45,
+                ),
+              ),
             ),
           ),
         ],
