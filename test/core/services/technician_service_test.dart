@@ -14,6 +14,9 @@ void main() {
 
   setUp(() {
     fakeDb = FakeObjectBoxProvider();
+    final box = fakeDb.staffBox as FakeBox<Staff>;
+    box.queryPredicate = (item, cond) => !(item as Staff).isDeleted;
+
     fakeSyncWorker = FakeSyncWorker();
 
     container = createContainer(
@@ -37,7 +40,7 @@ void main() {
 
       
       // Wait for future to complete
-      final list = await container.read(staffListProvider.future);
+      final list = container.read(staffListProvider).value!;
       
       expect(list.length, 1);
       expect(list.first.name, 'Technician 1');
@@ -60,7 +63,7 @@ void main() {
       staff.id = id;
       
       // Initialize provider
-      await container.read(staffListProvider.future);
+      container.read(staffListProvider);
 
       await container.read(staffListProvider.notifier).delete(id);
       

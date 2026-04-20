@@ -1,0 +1,518 @@
+[
+  {
+    "id": "TC001",
+    "title": "Unlock encrypted session with correct PIN to access main app",
+    "description": "Verifies an authenticated user can unlock the local encrypted session with the correct PIN and then access the main app.",
+    "category": "End-to-End Encryption Setup (Unlock)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Input a valid PIN into the PIN field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PIN to unlock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the main dashboard with unlocked app data available"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC002",
+    "title": "Sign in with email/password to reach the app shell",
+    "description": "Verifies a staff user can sign in using email and password and is taken into the authenticated app area.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands in the authenticated app area"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC003",
+    "title": "Create a new bengkel during onboarding and reach main app",
+    "description": "Verifies an authenticated owner/admin can create a bengkel by entering a name and setup PIN and then reach the main app.",
+    "category": "Bengkel Registration (Onboarding)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Enter a bengkel name into the bengkel name field"
+      },
+      {
+        "type": "action",
+        "description": "Provide a valid setup PIN into the setup PIN field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bengkel creation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the main dashboard for the new bengkel"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC004",
+    "title": "View transaction list after secure login and unlock",
+    "description": "Verifies that a staff member can log in, unlock the local encrypted session, and view the service transaction list.",
+    "category": "Transaction Management (List & Create)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Fill the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the unlock form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the transaction list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a service transaction list view is displayed"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC005",
+    "title": "Create a new service transaction and see it in the list",
+    "description": "Verifies that a staff member can create a new transaction with customer, vehicle, services/parts and see it appear in the transaction list.",
+    "category": "Transaction Management (List & Create)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Fill the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the unlock form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the transaction list"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new transaction"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid customer details"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid vehicle details"
+      },
+      {
+        "type": "action",
+        "description": "Add at least one service item"
+      },
+      {
+        "type": "action",
+        "description": "Add at least one part item"
+      },
+      {
+        "type": "action",
+        "description": "Save the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the newly created transaction is visible in the transaction list"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC006",
+    "title": "Use biometric sign-in to enter the authenticated app area",
+    "description": "Verifies a returning staff user can use biometric authentication from the login screen and enter the authenticated app area.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Choose biometric authentication"
+      },
+      {
+        "type": "action",
+        "description": "Complete biometric authentication in the prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands in the authenticated app area"
+      }
+    ],
+    "priority": "High"
+  },
+  {
+    "id": "TC007",
+    "title": "Block access on wrong PIN and allow retry with correct PIN",
+    "description": "Verifies entering an incorrect PIN shows a validation error and a subsequent correct PIN unlocks access to the main app.",
+    "category": "End-to-End Encryption Setup (Unlock)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Input an incorrect PIN into the PIN field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PIN to unlock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a PIN validation error is visible"
+      },
+      {
+        "type": "action",
+        "description": "Input a valid PIN into the PIN field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the PIN to unlock"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the user lands on the main dashboard"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC008",
+    "title": "Prevent saving a transaction when required customer information is missing",
+    "description": "Verifies that the app blocks saving a new transaction when required customer information is missing and shows a validation error.",
+    "category": "Transaction Management (List & Create)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Fill the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the unlock form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the transaction list"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new transaction"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid vehicle details"
+      },
+      {
+        "type": "action",
+        "description": "Leave the required customer information empty"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a customer information validation error is visible"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify no new transaction is added to the transaction list"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC009",
+    "title": "Reject invalid email format on login",
+    "description": "Verifies the login form blocks submission with an invalid email format and shows an email validation error.",
+    "category": "User Authentication",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill invalid-email-format into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill any-password into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an email format validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC010",
+    "title": "Require bengkel name on onboarding",
+    "description": "Verifies onboarding prevents bengkel creation when the bengkel name is empty and shows a validation error.",
+    "category": "Bengkel Registration (Onboarding)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Leave the bengkel name field empty"
+      },
+      {
+        "type": "action",
+        "description": "Provide a valid setup PIN into the setup PIN field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the bengkel creation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a bengkel name required validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC011",
+    "title": "Keep user on transaction creation when saving fails due to missing required fields",
+    "description": "Verifies that when required fields are missing, the user remains on the create-transaction form and can correct inputs.",
+    "category": "Transaction Management (List & Create)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Fill the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the unlock form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the transaction list"
+      },
+      {
+        "type": "action",
+        "description": "Start creating a new transaction"
+      },
+      {
+        "type": "action",
+        "description": "Leave a required customer field empty"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the transaction"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify the create-transaction form is still displayed"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify a required-field validation error is visible"
+      }
+    ],
+    "priority": "Medium"
+  },
+  {
+    "id": "TC012",
+    "title": "Show empty state when there are no transactions",
+    "description": "Verifies that the transaction list shows an empty state when no transactions exist for the current local store.",
+    "category": "Transaction Management (List & Create)",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to /login"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_USER}} into the email field"
+      },
+      {
+        "type": "action",
+        "description": "Fill {{LOGIN_PASSWORD}} into the password field"
+      },
+      {
+        "type": "action",
+        "description": "Submit the login form"
+      },
+      {
+        "type": "action",
+        "description": "Fill the PIN field with a valid PIN"
+      },
+      {
+        "type": "action",
+        "description": "Submit the unlock form"
+      },
+      {
+        "type": "action",
+        "description": "Click the navigation item to open the transaction list"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify an empty state is displayed for the transaction list"
+      }
+    ],
+    "priority": "Low"
+  }
+]

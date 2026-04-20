@@ -1,4 +1,4 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/transaction.dart';
 import 'package:flutter/material.dart';
 import '../constants/app_icons.dart';
@@ -6,7 +6,9 @@ import 'transaction_providers.dart';
 import 'sale_providers.dart';
 import 'navigation_provider.dart';
 
-part 'history_provider.g.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+// 📊 History Models
+// ─────────────────────────────────────────────────────────────────────────────
 
 /// Filter state for History
 class HistoryFilter {
@@ -34,55 +36,6 @@ class HistoryFilter {
   }
 }
 
-@riverpod
-class HistoryFilterNotifier extends _$HistoryFilterNotifier {
-  @override
-  HistoryFilter build() => HistoryFilter();
-
-  void setFilter(HistoryFilter filter) => state = filter;
-  void update(HistoryFilter Function(HistoryFilter) cb) => state = cb(state);
-  void updateFilter({
-    DateTimeRange? dateRange,
-    String? type,
-    String? paymentMethod,
-    bool clearDateRange = false,
-  }) {
-    state = state.copyWith(
-      dateRange: dateRange,
-      type: type,
-      paymentMethod: paymentMethod,
-      clearDateRange: clearDateRange,
-    );
-  }
-}
-
-/// Provider to toggle search mode in History screen
-@riverpod
-class HistorySearchActive extends _$HistorySearchActive {
-  @override
-  bool build() => false;
-  void toggle() => state = !state;
-  void set(bool value) => state = value;
-}
-
-/// Provider to store the current search query for History
-@riverpod
-class HistorySearchQuery extends _$HistorySearchQuery {
-  @override
-  String build() {
-    // 🔍 Listen to navigation changes to clear search
-    ref.listen(navigationProvider, (previous, next) {
-      if (next != 3) {
-        // 3 is History tab
-        state = '';
-      }
-    });
-    return '';
-  }
-
-  void set(String query) => state = query;
-}
-
 /// Data structure for a unified history item
 class HistoryItemData {
   final String id;
@@ -106,7 +59,6 @@ class HistoryItemData {
   });
 }
 
-/// State for the paginated history
 class HistoryState {
   final List<HistoryItemData> items;
   final bool isLoading;
@@ -139,19 +91,46 @@ class HistoryState {
   }
 }
 
-/// Notifier to handle paginated, merged history (Transactions + Sales)
-@riverpod
-class HistoryList extends _$HistoryList {
+// ─────────────────────────────────────────────────────────────────────────────
+// 🕹️ Notifiers
+// ─────────────────────────────────────────────────────────────────────────────
+
+class HistoryFilterNotifier extends StateNotifier<HistoryFilter> {
+  HistoryFilterNotifier() : super(HistoryFilter());
+
+  void setFilter(HistoryFilter filter) => state = filter;
+  void update(HistoryFilter Function(HistoryFilter) cb) => state = cb(state);
+  
+  void updateFilter({
+    DateTimeRange? dateRange,
+    String? type,
+    String? paymentMethod,
+    bool clearDateRange = false,
+  }) {
+    state = state.copyWith(
+      dateRange: dateRange,
+      type: type,
+      paymentMethod: paymentMethod,
+      clearDateRange: clearDateRange,
+    );
+  }
+}
+
+class HistorySearchQueryNotifier extends StateNotifier<String> {
+  HistorySearchQueryNotifier(Ref ref) : super('') {
+    ref.listen(navigationProvider, (previous, next) {
+      if (next != 3) state = '';
+    });
+  }
+  void set(String query) => state = query;
+}
+
+class HistoryListNotifier extends StateNotifier<HistoryState> {
+  final Ref ref;
   static const int pageSize = 10;
 
-  @override
-  HistoryState build() {
-    // Watch relevant providers to trigger a reset/refresh when they change
-    ref.watch(historyFilterNotifierProvider);
-    ref.watch(transactionListProvider);
-    ref.watch(saleListProvider);
-    
-    return _fetchItems(0, 0, []);
+  HistoryListNotifier(this.ref) : super(HistoryState(items: [])) {
+    // Initial fetch triggered by UI or manually
   }
 
   HistoryState _fetchItems(int tOffset, int sOffset, List<HistoryItemData> existingItems) {
@@ -159,28 +138,18 @@ class HistoryList extends _$HistoryList {
     final saleRepo = ref.read(saleRepositoryProvider);
     final filter = ref.read(historyFilterNotifierProvider);
 
-    // Fetch next chunks
-    final newTransactions = transactionRepo.getAll(
-      limit: pageSize,
-      offset: tOffset,
-    );
+    final newTransactions = transactionRepo.getAll(limit: pageSize, offset: tOffset);
     final newSales = saleRepo.getAll(limit: pageSize, offset: sOffset);
 
-    // Map to HistoryItemData
     final List<HistoryItemData> newItems = [
       ...newTransactions
           .where((t) => t.serviceStatus == ServiceStatus.lunas)
           .where((t) {
-            if (filter.paymentMethod != 'ALL' &&
-                t.paymentMethod != filter.paymentMethod) {
-              return false;
-            }
             if (filter.type == 'SALE') return false;
+            if (filter.paymentMethod != 'ALL' && t.paymentMethod != filter.paymentMethod) return false;
             if (filter.dateRange != null) {
               if (t.createdAt.isBefore(filter.dateRange!.start) ||
-                  t.createdAt.isAfter(
-                    filter.dateRange!.end.add(const Duration(days: 1)),
-                  )) {
+                  t.createdAt.isAfter(filter.dateRange!.end.add(const Duration(days: 1)))) {
                 return false;
               }
             }
@@ -189,9 +158,7 @@ class HistoryList extends _$HistoryList {
           .map((t) => HistoryItemData(
                 id: t.uuid,
                 title: t.vehicleModel,
-                subtitle: t.items.isEmpty
-                    ? 'Detail Servis'
-                    : t.items.map((i) => i.name).join(', '),
+                subtitle: t.items.isEmpty ? 'Detail Servis' : t.items.map((i) => i.name).join(', '),
                 amount: t.totalAmount,
                 date: t.createdAt,
                 type: 'SERVICE',
@@ -201,15 +168,10 @@ class HistoryList extends _$HistoryList {
       ...newSales
           .where((s) {
             if (filter.type == 'SERVICE') return false;
-            if (filter.paymentMethod != 'ALL' &&
-                s.paymentMethod != filter.paymentMethod) {
-              return false;
-            }
+            if (filter.paymentMethod != 'ALL' && s.paymentMethod != filter.paymentMethod) return false;
             if (filter.dateRange != null) {
               if (s.createdAt.isBefore(filter.dateRange!.start) ||
-                  s.createdAt.isAfter(
-                    filter.dateRange!.end.add(const Duration(days: 1)),
-                  )) {
+                  s.createdAt.isAfter(filter.dateRange!.end.add(const Duration(days: 1)))) {
                 return false;
               }
             }
@@ -230,27 +192,47 @@ class HistoryList extends _$HistoryList {
     final combined = [...existingItems, ...newItems];
     combined.sort((a, b) => b.date.compareTo(a.date));
 
-    final hasMore = newTransactions.length == pageSize || newSales.length == pageSize;
-
     return HistoryState(
       items: combined,
       isLoading: false,
-      hasMore: hasMore,
+      hasMore: newTransactions.length == pageSize || newSales.length == pageSize,
       transactionOffset: tOffset + newTransactions.length,
       saleOffset: sOffset + newSales.length,
     );
   }
 
   Future<void> loadInitial() async {
-    // build() already handles initial fetch via state refresh
-    ref.invalidateSelf();
+    state = _fetchItems(0, 0, []);
   }
 
-  Future<void> loadMore() async {
+  void loadMore() {
     if (state.isLoading || !state.hasMore) return;
     state = state.copyWith(isLoading: true);
-
-    // Repos are sync, so we just update the state using the helper
     state = _fetchItems(state.transactionOffset, state.saleOffset, state.items);
   }
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final historyFilterNotifierProvider = StateNotifierProvider<HistoryFilterNotifier, HistoryFilter>((ref) {
+  return HistoryFilterNotifier();
+});
+
+final historySearchActiveProvider = StateProvider<bool>((ref) => false);
+
+final historySearchQueryProvider = StateNotifierProvider<HistorySearchQueryNotifier, String>((ref) {
+  return HistorySearchQueryNotifier(ref);
+});
+
+final historyListProvider = StateNotifierProvider<HistoryListNotifier, HistoryState>((ref) {
+  // Reset when filters change
+  ref.watch(historyFilterNotifierProvider);
+  ref.watch(transactionListProvider);
+  ref.watch(saleListProvider);
+  
+  final notifier = HistoryListNotifier(ref);
+  notifier.loadInitial();
+  return notifier;
+});

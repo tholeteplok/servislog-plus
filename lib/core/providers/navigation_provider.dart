@@ -1,11 +1,10 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-part 'navigation_provider.g.dart';
-
-@riverpod
-class Navigation extends _$Navigation {
-  @override
-  int build() => 0;
-
+class NavigationNotifier extends StateNotifier<int> {
+  NavigationNotifier() : super(0);
   void setIndex(int index) => state = index;
 }
+
+final navigationProvider = StateNotifierProvider<NavigationNotifier, int>((ref) {
+  return NavigationNotifier();
+});

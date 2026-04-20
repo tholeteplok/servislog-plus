@@ -4,7 +4,6 @@
 
 import 'package:flutter/services.dart';
 import 'package:local_auth/local_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'encryption_service.dart';
 import '../utils/app_logger.dart';
@@ -324,20 +323,4 @@ class BiometricService {
   }
 }
 
-// 🔄 Riverpod Providers
-final biometricServiceProvider = Provider<BiometricService>((ref) {
-  return BiometricService(
-    encryptionService: ref.read(encryptionServiceProvider),
-  );
-});
-
-final biometricAvailableProvider = FutureProvider<bool>((ref) async {
-  final service = ref.read(biometricServiceProvider);
-  return await service.canCheckBiometrics();
-});
-
-final biometricTypesProvider = FutureProvider<List<BiometricType>>((ref) async {
-  final service = ref.read(biometricServiceProvider);
-  return await service.getAvailableBiometrics();
-});
 

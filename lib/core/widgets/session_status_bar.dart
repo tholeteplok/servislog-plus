@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/session_manager.dart';
+import '../providers/system_providers.dart';
 
 // 📊 Status Configuration Model
 class StatusConfig {
@@ -27,7 +28,7 @@ class SessionStatusBar extends ConsumerWidget {
   
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final accessLevel = ref.watch(accessLevelProvider);
+    final accessLevel = ref.watch(currentAccessLevelProvider);
     
     if (accessLevel == AccessLevel.full) return const SizedBox.shrink();
     

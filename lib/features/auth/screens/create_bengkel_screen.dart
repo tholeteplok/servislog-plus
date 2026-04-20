@@ -4,10 +4,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../core/services/bengkel_service.dart';
-import '../../../core/services/biometric_service.dart';
-import '../../../core/services/encryption_service.dart';
+import '../../../core/constants/app_strings.dart';
+import '../../../core/constants/app_colors.dart';
+import '../../../core/providers/system_providers.dart';
 
 class CreateBengkelScreen extends ConsumerStatefulWidget {
   const CreateBengkelScreen({super.key});
@@ -22,9 +21,6 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
   final _nameController = TextEditingController();
   final _bengkelIdController = TextEditingController();
   final _pinController = TextEditingController();
-  final _bengkelService = BengkelService();
-  final _biometricService = BiometricService();
-  final _encryptionService = EncryptionService();
 
   bool _isChecking = false;
   bool? _isAvailable;
@@ -42,7 +38,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
   }
 
   Future<void> _checkBiometricAvailability() async {
-    final available = await _biometricService.isAvailable();
+    final available = await ref.read(biometricServiceProvider).isAvailable();
     if (mounted) setState(() => _canCheckBiometric = available);
   }
 
@@ -57,14 +53,21 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
 
   void _onNameChanged() {
     final name = _nameController.text.trim();
+    final bengkelService = ref.read(bengkelServiceProvider);
     if (name.length >= 3) {
       // Auto-generate preview ID
-      final previewId = _bengkelService.generateBengkelId(name);
+      final previewId = bengkelService.generateBengkelId(name);
       _bengkelIdController.text = previewId;
+
+      // Reset state before checking
+      setState(() {
+        _isAvailable = null;
+        _isChecking = true;
+      });
 
       // Debounce availability check
       _debounceTimer?.cancel();
-      _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      _debounceTimer = Timer(const Duration(milliseconds: 700), () {
         _checkAvailability(previewId);
       });
     } else {
@@ -76,9 +79,12 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
   }
 
   Future<void> _checkAvailability(String bengkelId) async {
+    if (!mounted) return;
     setState(() => _isChecking = true);
+    
     try {
-      final available = await _bengkelService.isBengkelIdAvailable(bengkelId);
+      final bengkelService = ref.read(bengkelServiceProvider);
+      final available = await bengkelService.isBengkelIdAvailable(bengkelId);
       if (mounted) {
         setState(() {
           _isAvailable = available;
@@ -86,11 +92,21 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
         });
       }
     } catch (e) {
+      debugPrint('Check Availability Error: $e');
       if (mounted) {
         setState(() {
           _isAvailable = null;
           _isChecking = false;
         });
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('${AppStrings.error.failedToCheckId}: ${e.toString().contains('permission') ? 'Masalah perizinan' : 'Koneksi bermasalah'}'),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+            duration: const Duration(seconds: 2),
+          ),
+        );
       }
     }
   }
@@ -98,7 +114,8 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
   void _regenerateId() {
     final name = _nameController.text.trim();
     if (name.length >= 3) {
-      final newId = _bengkelService.generateBengkelId(name);
+      final bengkelService = ref.read(bengkelServiceProvider);
+      final newId = bengkelService.generateBengkelId(name);
       _bengkelIdController.text = newId;
       _checkAvailability(newId);
     }
@@ -106,53 +123,57 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
 
   Future<void> _claimBengkel() async {
     if (!_formKey.currentState!.validate()) return;
-    if (_isAvailable != true) return;
+    
+    // Safety check: ensure ID is still available before claiming
+    if (_isAvailable != true) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppStrings.auth.idUnavailable),
+          backgroundColor: AppColors.error,
+        ),
+      );
+      return;
+    }
 
     setState(() => _isClaiming = true);
 
     try {
       final user = FirebaseAuth.instance.currentUser;
-      if (user == null) throw Exception('User not authenticated');
+      if (user == null) throw Exception('Sesi tidak valid. Silakan login ulang.');
+
+      final encryption = ref.read(encryptionServiceProvider);
+      final bengkelService = ref.read(bengkelServiceProvider);
+      final biometric = ref.read(biometricServiceProvider);
 
       final bengkelId = _bengkelIdController.text.trim();
       final bengkelName = _nameController.text.trim();
       final pin = _pinController.text.trim();
 
-      // 0. Generate fresh master key for the new bengkel
-      await _encryptionService.generateNewMasterKey();
-
-      // 1. Claim the Bengkel ID
-      await _bengkelService.claimBengkelId(
+      // 1. Setup master key di memory (session-only)
+      await encryption.generateNewMasterKey();
+      
+      // 2. Claim ID di Firestore & Register Owner
+      await bengkelService.claimBengkelId(
         bengkelId: bengkelId,
         ownerUid: user.uid,
         bengkelName: bengkelName,
         pin: pin,
       );
 
-      // 2. Join the newly created bengkel
-      await _bengkelService.joinBengkel(
-        bengkelId: bengkelId,
-        uid: user.uid,
-        name: user.displayName ?? '',
-        email: user.email ?? '',
-        pin: pin,
-        role: 'owner',
-      );
-
-      // 3. Save derived key for Biometric if enabled
+      // 3. Setup Biometric if enabled
       if (_biometricEnabled) {
-        final authOk = await _biometricService.authenticate(
+        final authOk = await biometric.authenticate(
           reason: 'Verifikasi identitas untuk mengaktifkan akses cepat',
         );
 
         if (authOk) {
-          await _encryptionService.saveDerivedKeyForBiometric(pin, bengkelId);
-          await _biometricService.savePin(pin, bengkelId);
+          await encryption.saveDerivedKeyForBiometric(pin, bengkelId);
+          await biometric.savePin(pin, bengkelId);
         } else {
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Sidik jari diperlukan untuk mengaktifkan akses cepat'),
+              SnackBar(
+                content: Text(AppStrings.error.biometricRequired),
                 backgroundColor: Colors.orange,
               ),
             );
@@ -161,8 +182,20 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
       }
 
       // Refresh auth state to pick up new profile
+      // Memberi waktu untuk Cloud Function meng-assign custom claims 'owner'
+      await Future.delayed(const Duration(seconds: 3));
+      await user.getIdTokenResult(true); // Force refresh token dari server
+      
       if (mounted) {
         ref.invalidate(authStateProvider);
+        
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(AppStrings.success.bengkelCreated),
+            backgroundColor: AppColors.success,
+          ),
+        );
+
         // Navigate will happen automatically via auth state listener
         Navigator.of(context).popUntil((route) => route.isFirst);
       }
@@ -187,7 +220,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'Buat Bengkel Baru',
+          AppStrings.auth.createBengkelTitle,
           style: GoogleFonts.outfit(fontWeight: FontWeight.w600),
         ),
         backgroundColor: Colors.transparent,
@@ -212,7 +245,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
               children: [
                 // Nama Bengkel
                 Text(
-                  'Nama Bengkel',
+                  AppStrings.auth.workshopNameLabel,
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -223,7 +256,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                 TextFormField(
                   controller: _nameController,
                   decoration: InputDecoration(
-                    hintText: 'Contoh: Bengkel Tentrem Auto',
+                    hintText: AppStrings.auth.workshopNameHint,
                     prefixIcon: Icon(
                       SolarIconsOutline.shop,
                       color: isDark ? Colors.white38 : Colors.black38,
@@ -242,7 +275,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                   ),
                   validator: (value) {
                     if (value == null || value.trim().length < 3) {
-                      return 'Nama bengkel minimal 3 karakter';
+                      return AppStrings.error.minChars(3);
                     }
                     return null;
                   },
@@ -254,7 +287,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                 Row(
                   children: [
                     Text(
-                      'Bengkel ID',
+                      AppStrings.auth.workshopIdLabel,
                       style: GoogleFonts.inter(
                         fontSize: 13,
                         fontWeight: FontWeight.w600,
@@ -267,13 +300,13 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                       icon: const Icon(
                         SolarIconsOutline.refresh,
                         size: 16,
-                        color: Color(0xFF7C3AED),
+                        color: AppColors.precisionViolet,
                       ),
                       label: Text(
                         'Generate Ulang',
                         style: GoogleFonts.inter(
                           fontSize: 12,
-                          color: const Color(0xFF7C3AED),
+                          color: AppColors.precisionViolet,
                         ),
                       ),
                     ),
@@ -284,21 +317,21 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                   controller: _bengkelIdController,
                   readOnly: true,
                   decoration: InputDecoration(
-                    hintText: 'Auto-generated dari nama',
+                    hintText: AppStrings.auth.workshopIdHint,
                     prefixIcon: Icon(
                       SolarIconsOutline.key,
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),
                     suffixIcon: _buildAvailabilityIndicator(),
                     // Inline helper/error text
-                    helperText: _isAvailable == true ? 'ID Bengkel tersedia' : null,
+                    helperText: _isAvailable == true ? AppStrings.auth.idAvailable : null,
                     helperStyle: GoogleFonts.inter(
-                      color: const Color(0xFF10B981),
+                      color: AppColors.success,
                       fontWeight: FontWeight.w600,
                     ),
-                    errorText: _isAvailable == false ? 'ID sudah digunakan, coba generate ulang' : null,
+                    errorText: _isAvailable == false ? AppStrings.auth.idUnavailable : null,
                     errorStyle: GoogleFonts.inter(
-                      color: Colors.redAccent,
+                      color: AppColors.error,
                       fontWeight: FontWeight.w600,
                     ),
                     filled: true,
@@ -322,7 +355,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
 
                 // Workshop PIN
                 Text(
-                  'PIN Bengkel (6-angka)',
+                  '${AppStrings.auth.enterPin} (6-angka)',
                   style: GoogleFonts.inter(
                     fontSize: 13,
                     fontWeight: FontWeight.w600,
@@ -336,7 +369,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                   keyboardType: TextInputType.number,
                   maxLength: 6,
                   decoration: InputDecoration(
-                    hintText: 'Masukkan 6 angka PIN',
+                    hintText: 'PIN 6 digit',
                     prefixIcon: Icon(
                       SolarIconsOutline.lock,
                       color: isDark ? Colors.white38 : Colors.black38,
@@ -344,7 +377,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                     counterText: '',
                     // Inline error feedback
                     errorText: _pinController.text.isNotEmpty && _pinController.text.length < 6 
-                        ? 'PIN harus 6 digit' 
+                        ? AppStrings.error.pinTooShort 
                         : null,
                     suffixIcon: IconButton(
                       onPressed: () =>
@@ -375,7 +408,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                   onChanged: (val) => setState(() {}),
                   validator: (value) {
                     if (value == null || value.length != 6 || int.tryParse(value) == null) {
-                      return 'PIN harus 6 digit angka';
+                      return AppStrings.error.pinInvalid;
                     }
                     return null;
                   },
@@ -396,7 +429,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                       value: _biometricEnabled,
                       onChanged: (val) => setState(() => _biometricEnabled = val),
                       title: Text(
-                        'Gunakan Biometrik',
+                        AppStrings.common.useBiometric,
                         style: GoogleFonts.inter(
                           fontSize: 14,
                           fontWeight: FontWeight.w500,
@@ -412,9 +445,10 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                       ),
                       secondary: Icon(
                         Icons.fingerprint,
-                        color: _biometricEnabled ? const Color(0xFF7C3AED) : (isDark ? Colors.white38 : Colors.black38),
+                        color: _biometricEnabled ? AppColors.precisionViolet : (isDark ? Colors.white38 : Colors.black38),
                       ),
-                      activeThumbColor: const Color(0xFF7C3AED),
+                      activeThumbColor: AppColors.precisionViolet,
+                      activeTrackColor: AppColors.precisionViolet.withValues(alpha: 0.2),
                     ),
                   ),
 
@@ -440,7 +474,7 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          'PENTING: Ingat PIN Bengkel Anda. PIN ini digunakan untuk mengenkripsi data penting dan login di perangkat baru.',
+                          'PENTING: ${AppStrings.auth.setPinDesc} PIN ini digunakan untuk login di perangkat lain.',
                           style: GoogleFonts.inter(
                             fontSize: 11,
                             color: isDark ? Colors.white70 : Colors.black87,
@@ -468,18 +502,18 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                     children: [
                       const Icon(
                         SolarIconsOutline.infoCircle,
-                        color: Color(0xFF7C3AED),
+                        color: AppColors.precisionViolet,
                         size: 18,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
                         child: Text(
-                          'Bengkel ID digunakan staff untuk bergabung. Bagikan ID ini ke tim Anda.',
+                          'ID Bengkel digunakan staff untuk bergabung. Bagikan ID ini ke tim Anda.',
                           style: GoogleFonts.inter(
                             fontSize: 12,
                             color: isDark
-                                ? const Color(0xFFa855f7)
-                                : const Color(0xFF7C3AED),
+                                ? AppColors.precisionViolet.withValues(alpha: 0.8)
+                                : AppColors.precisionViolet,
                           ),
                         ),
                       ),
@@ -498,11 +532,9 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                         ? _claimBengkel
                         : null,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF7C3AED),
+                      backgroundColor: AppColors.precisionViolet,
                       foregroundColor: Colors.white,
-                      disabledBackgroundColor: const Color(
-                        0xFF7C3AED,
-                      ).withValues(alpha: 0.3),
+                      disabledBackgroundColor: AppColors.precisionViolet.withValues(alpha: 0.3),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(14),
                       ),
@@ -518,8 +550,8 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
                             ),
                           )
                         : Text(
-                            'Buat Bengkel',
-                            style: GoogleFonts.inter(
+                            AppStrings.auth.registerNow,
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w600,
                             ),
@@ -543,17 +575,26 @@ class _CreateBengkelScreenState extends ConsumerState<CreateBengkelScreen> {
           height: 18,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            color: Color(0xFF7C3AED),
+            color: AppColors.precisionViolet,
           ),
         ),
       );
     }
     if (_isAvailable == true) {
-      return const Icon(Icons.check_circle, color: Color(0xFF10B981));
+      return const Icon(Icons.check_circle, color: AppColors.success);
     }
     if (_isAvailable == false) {
-      return const Icon(Icons.cancel, color: Colors.redAccent);
+      return const Icon(Icons.cancel, color: AppColors.error);
     }
+    
+    // Fallback/Error state indicator
+    if (_isAvailable == null && !_isChecking && _nameController.text.length >= 3) {
+      return Tooltip(
+        message: 'Gagal memverifikasi ID. Coba ubah nama atau cek koneksi.',
+        child: Icon(SolarIconsOutline.infoCircle, color: AppColors.warning.withValues(alpha: 0.7)),
+      );
+    }
+    
     return const SizedBox.shrink();
   }
 

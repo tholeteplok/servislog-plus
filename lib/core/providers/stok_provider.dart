@@ -1,4 +1,4 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/stok.dart';
 import '../../domain/entities/stok_history.dart';
 import '../../data/repositories/stok_repository.dart';
@@ -6,26 +6,19 @@ import '../../data/repositories/stok_history_repository.dart';
 import 'objectbox_provider.dart';
 import 'sync_provider.dart';
 
-part 'stok_provider.g.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+// Stok Notifiers
+// ─────────────────────────────────────────────────────────────────────────────
 
-@riverpod
-StokRepository stokRepository(StokRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return StokRepository(db.stokBox);
-}
+class StokListNotifier extends StateNotifier<List<Stok>> {
+  final Ref ref;
+  StokListNotifier(this.ref) : super([]) {
+    _init();
+  }
 
-@riverpod
-StokHistoryRepository stokHistoryRepository(StokHistoryRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return StokHistoryRepository(db.stokHistoryBox);
-}
-
-@riverpod
-class StokList extends _$StokList {
-  @override
-  List<Stok> build() {
-    final repository = ref.watch(stokRepositoryProvider);
-    return repository.getAll();
+  void _init() {
+    final repository = ref.read(stokRepositoryProvider);
+    state = repository.getAll();
   }
 
   void loadStok() {
@@ -113,8 +106,6 @@ class StokList extends _$StokList {
     final repository = ref.read(stokRepositoryProvider);
     final syncWorker = ref.read(syncWorkerProvider);
     
-    // M-P02 FIX: Dapatkan data sebelum dihapus untuk mendapatkan UUID.
-    // Gunakan softDelete agar sinkronisasi ke Cloud bisa dilakukan.
     final items = repository.getAll();
     final item = items.cast<Stok?>().firstWhere((e) => e?.id == id, orElse: () => null);
     
@@ -138,16 +129,34 @@ class StokList extends _$StokList {
 
 enum StokSort { none, lowToHigh, highToLow }
 
-@riverpod
-class StokSortNotifier extends _$StokSortNotifier {
-  @override
-  StokSort build() => StokSort.none;
-
+class StokSortNotifier extends StateNotifier<StokSort> {
+  StokSortNotifier() : super(StokSort.none);
   void setSort(StokSort sort) => state = sort;
 }
 
-@riverpod
-List<Stok> sortedStok(SortedStokRef ref) {
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final stokRepositoryProvider = Provider<StokRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return StokRepository(db.stokBox);
+});
+
+final stokHistoryRepositoryProvider = Provider<StokHistoryRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return StokHistoryRepository(db.stokHistoryBox);
+});
+
+final stokListProvider = StateNotifierProvider<StokListNotifier, List<Stok>>((ref) {
+  return StokListNotifier(ref);
+});
+
+final stokSortNotifierProvider = StateNotifierProvider<StokSortNotifier, StokSort>((ref) {
+  return StokSortNotifier();
+});
+
+final sortedStokProvider = Provider<List<Stok>>((ref) {
   final list = ref.watch(stokListProvider);
   final sort = ref.watch(stokSortNotifierProvider);
 
@@ -160,10 +169,9 @@ List<Stok> sortedStok(SortedStokRef ref) {
     sortedList.sort((a, b) => b.jumlah.compareTo(a.jumlah));
   }
   return sortedList;
-}
+});
 
-@riverpod
-List<StokHistory> stokHistory(StokHistoryRef ref, String stokUuid) {
+final stokHistoryProvider = Provider.family<List<StokHistory>, String>((ref, stokUuid) {
   final repository = ref.watch(stokHistoryRepositoryProvider);
   return repository.getAllForStok(stokUuid);
-}
+});

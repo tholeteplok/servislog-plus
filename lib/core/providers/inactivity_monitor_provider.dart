@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/encryption_service.dart';
-import 'auth_provider.dart';
+import 'system_providers.dart';
 import 'pengaturan_provider.dart';
 
 /// Provider to monitor app inactivity and background time.

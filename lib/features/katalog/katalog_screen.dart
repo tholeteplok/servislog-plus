@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:intl/intl.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/widgets/barcode_scanner_dialog.dart';
 import '../../core/providers/katalog_provider.dart';
 import '../../domain/entities/stok.dart';
@@ -96,13 +97,13 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
       body: NestedScrollView(
         headerSliverBuilder: (context, innerBoxIsScrolled) => [
           SliverAtelierHeader(
-            title: 'Inventaris',
-            subtitle: 'Kelola stok dan layanan jasa workshop Anda.',
+            title: AppStrings.catalog.inventoryTitle,
+            subtitle: AppStrings.catalog.inventorySubtitle,
             showBackButton: false,
             searchController: _searchController,
             searchHint: _tabController.index == 0
-                ? 'Cari item inventaris...'
-                : 'Cari layanan jasa...',
+                ? AppStrings.catalog.searchBarang
+                : AppStrings.catalog.searchJasa,
             onSearchChanged: (v) {
               if (_tabController.index == 0) {
                 ref.read(stokListProvider.notifier).search(v);
@@ -114,7 +115,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                   onPressed: _openScanner,
                   icon: const Icon(SolarIconsOutline.scanner,
                       color: Colors.white, size: 20),
-                  tooltip: 'Pindai Barcode',
+                  tooltip: AppStrings.catalog.tooltipScanner,
                   style: IconButton.styleFrom(
                     minimumSize: const Size(48, 48),
                     backgroundColor: isDark
@@ -128,7 +129,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                 onPressed: () => ref.invalidate(serviceMasterListProvider),
                 icon: const Icon(SolarIconsOutline.refresh,
                     color: Colors.white, size: 20),
-                tooltip: 'Segarkan',
+                tooltip: AppStrings.common.refresh,
                 style: IconButton.styleFrom(
                   minimumSize: const Size(48, 48),
                   backgroundColor: isDark
@@ -169,7 +170,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Barang'),
+                      Text(AppStrings.catalog.tabBarang),
                       if (stokList.isEmpty) ...[
                         const SizedBox(width: 8),
                         SizedBox(
@@ -188,7 +189,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Text('Layanan Jasa'),
+                      Text(AppStrings.catalog.tabJasa),
                       if (serviceListAsync.isLoading) ...[
                         const SizedBox(width: 8),
                         SizedBox(
@@ -263,7 +264,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Belum ada item inventaris.',
+              AppStrings.catalog.emptyBarang,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -281,9 +282,9 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
           child: Row(
             children: [
-              _buildSortChip('Semua', StokSort.none, currentSort),
-              _buildSortChip('Tersedikit', StokSort.lowToHigh, currentSort),
-              _buildSortChip('Terbanyak', StokSort.highToLow, currentSort),
+              _buildSortChip(AppStrings.catalog.sortAll, StokSort.none, currentSort),
+              _buildSortChip(AppStrings.catalog.sortLow, StokSort.lowToHigh, currentSort),
+              _buildSortChip(AppStrings.catalog.sortHigh, StokSort.highToLow, currentSort),
             ],
           ),
         ),
@@ -347,7 +348,7 @@ class _KatalogScreenState extends ConsumerState<KatalogScreen>
             ),
             const SizedBox(height: 16),
             Text(
-              'Belum ada data layanan jasa.',
+              AppStrings.catalog.emptyJasa,
               style: theme.textTheme.titleMedium?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -390,8 +391,8 @@ class _StokCard extends StatelessWidget {
         ? SolarIconsBold.boxMinimalistic
         : (isLow ? SolarIconsBold.bell : SolarIconsBold.checkCircle);
     final String statusLabel = isEmpty
-        ? 'Stok Habis'
-        : (isLow ? 'Stok Rendah' : 'Stok Tersedia');
+        ? AppStrings.catalog.statusOutOfStock
+        : (isLow ? AppStrings.catalog.statusLowStock : AppStrings.catalog.statusInStock);
 
     return Container(
       padding: const EdgeInsets.all(16),
@@ -501,7 +502,7 @@ class _StokCard extends StatelessWidget {
                     ),
                     const SizedBox(width: 4),
                     Text(
-                      '${item.jumlah} pcs',
+                      '${item.jumlah} ${AppStrings.catalog.unitPcs}',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -578,22 +579,22 @@ class _StokCard extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            _buildMenuItem('edit', SolarIconsOutline.penNewSquare, 'Ubah Data'),
+            _buildMenuItem('edit', SolarIconsOutline.penNewSquare, AppStrings.catalog.actionEdit),
             _buildMenuItem(
               'tambah',
               SolarIconsOutline.addSquare,
-              'Tambah Stok',
+              AppStrings.catalog.actionAddStock,
             ),
             _buildMenuItem(
               'history',
               SolarIconsOutline.history,
-              'Riwayat Stok',
+              AppStrings.catalog.actionStockHistory,
             ),
             const PopupMenuDivider(),
             _buildMenuItem(
               'hapus',
               SolarIconsOutline.trashBinTrash,
-              'Hapus',
+              AppStrings.common.delete,
               isDestructive: true,
             ),
           ],
@@ -636,23 +637,23 @@ class _StokCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
-          'Tambah Stok',
+          AppStrings.catalog.dialogAddStockTitle,
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900),
         ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             Text(
-              'Masukkan jumlah stok tambahan untuk ${item.nama}:',
+              AppStrings.catalog.dialogAddStockContent(item.nama),
               style: GoogleFonts.plusJakartaSans(),
             ),
             const SizedBox(height: 16),
             TextField(
               controller: controller,
-              decoration: const InputDecoration(
-                labelText: 'Jumlah',
-                suffixText: 'pcs',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppStrings.catalog.labelQuantity,
+                suffixText: AppStrings.catalog.unitPcs,
+                border: const OutlineInputBorder(),
               ),
               keyboardType: TextInputType.number,
               autofocus: true,
@@ -663,7 +664,7 @@ class _StokCard extends StatelessWidget {
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'BATAL',
+              AppStrings.common.cancel.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(color: Colors.grey),
             ),
           ),
@@ -681,7 +682,7 @@ class _StokCard extends StatelessWidget {
               backgroundColor: AppColors.amethyst,
             ),
             child: Text(
-              'SIMPAN',
+              AppStrings.common.save.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
@@ -699,18 +700,18 @@ class _StokCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
-          'Hapus Barang?',
+          AppStrings.catalog.dialogDeleteTitleBarang,
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900),
         ),
         content: Text(
-          'Apakah Anda yakin ingin menghapus ${item.nama} dari inventaris?',
+          AppStrings.catalog.dialogDeleteContentBarang(item.nama),
           style: GoogleFonts.plusJakartaSans(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'BATAL',
+              AppStrings.common.cancel.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(color: Colors.grey),
             ),
           ),
@@ -720,7 +721,7 @@ class _StokCard extends StatelessWidget {
               Navigator.pop(context);
             },
             child: Text(
-              'HAPUS',
+              AppStrings.common.delete.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,
@@ -790,7 +791,7 @@ class _ServiceCard extends StatelessWidget {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    item.category ?? 'Umum',
+                    item.category ?? AppStrings.common.noCategory,
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
                       fontWeight: FontWeight.bold,
@@ -853,12 +854,12 @@ class _ServiceCard extends StatelessWidget {
             }
           },
           itemBuilder: (context) => [
-            _buildMenuItem('edit', SolarIconsOutline.penNewSquare, 'Ubah Data'),
+            _buildMenuItem('edit', SolarIconsOutline.penNewSquare, AppStrings.catalog.actionEdit),
             const PopupMenuDivider(),
             _buildMenuItem(
               'hapus',
               SolarIconsOutline.trashBinTrash,
-              'Hapus',
+              AppStrings.common.delete,
               isDestructive: true,
             ),
           ],
@@ -900,18 +901,18 @@ class _ServiceCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
-          'Hapus Jasa?',
+          AppStrings.catalog.dialogDeleteTitleJasa,
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900),
         ),
         content: Text(
-          'Apakah Anda yakin ingin menghapus ${item.name} dari katalog?',
+          AppStrings.catalog.dialogDeleteContentJasa(item.name),
           style: GoogleFonts.plusJakartaSans(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'BATAL',
+              AppStrings.common.cancel.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(color: Colors.grey),
             ),
           ),
@@ -921,7 +922,7 @@ class _ServiceCard extends StatelessWidget {
               Navigator.pop(context);
             },
             child: Text(
-              'HAPUS',
+              AppStrings.common.delete.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.red,
                 fontWeight: FontWeight.bold,

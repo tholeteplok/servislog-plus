@@ -1,4 +1,5 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'dart:async';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../objectbox.g.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/entities/pelanggan.dart';
@@ -8,8 +9,6 @@ import '../../domain/entities/sale.dart';
 import '../../domain/entities/staff.dart';
 import '../../domain/entities/vehicle.dart';
 import '../../domain/entities/sync_queue_item.dart';
-
-part 'objectbox_provider.g.dart';
 
 class ObjectBoxProvider {
   late final Store _store;
@@ -47,30 +46,33 @@ class ObjectBoxProvider {
     final store = await openStore(); // Default directory
     return ObjectBoxProvider._create(store);
   }
+
+  void dispose() {
+    _store.close();
+  }
 }
 
-// ── Database Initialization & Swapping ──
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
 
-/// Provider that manages the ObjectBox instance.
-/// It uses [Future] for initial setup and can be updated at runtime.
-@Riverpod(keepAlive: true)
-class DbInstance extends _$DbInstance {
+class DbInstanceNotifier extends AsyncNotifier<ObjectBoxProvider> {
   @override
   FutureOr<ObjectBoxProvider> build() async {
-    // Initial creation. 
-    // If already initialized in main.dart and passed here, we could optimize,
-    // but building it here is cleaner for testability.
-    return await ObjectBoxProvider.create();
+    final provider = await ObjectBoxProvider.create();
+    ref.onDispose(() => provider.dispose());
+    return provider;
   }
 
-  /// Manually update the database instance (e.g. after a restore operation).
-  void setInstance(ObjectBoxProvider newInstance) {
+  Future<void> setInstance(ObjectBoxProvider newInstance) async {
     state = AsyncData(newInstance);
   }
 }
 
-/// Global provider for application logic.
-/// WARNING: This should only be accessed when [dbInstanceProvider] is ready.
+final dbInstanceProvider = AsyncNotifierProvider<DbInstanceNotifier, ObjectBoxProvider>(() {
+  return DbInstanceNotifier();
+});
+
 final dbProvider = Provider<ObjectBoxProvider>((ref) {
   final asyncInstance = ref.watch(dbInstanceProvider);
   return asyncInstance.maybeWhen(
@@ -80,11 +82,3 @@ final dbProvider = Provider<ObjectBoxProvider>((ref) {
     ),
   );
 });
-
-// Since the store closure is critical, we should ensure the ObjectBoxProvider 
-// instance itself is capable of closing.
-extension ObjectBoxProviderExtension on ObjectBoxProvider {
-  void dispose() {
-    _store.close();
-  }
-}

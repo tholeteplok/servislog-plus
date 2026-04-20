@@ -43,24 +43,29 @@ void main() {
       const userId = 'user-123';
       await service.getOrCreateDeviceId();
 
-      
       // Register me
       await service.registerDevice(userId);
       
       final stream = service.watchSessionValidity(userId);
+      final events = <DeviceSessionStatus>[];
       
-      // Initially valid
-      expect(await stream.first, DeviceSessionStatus.valid);
+      // Keep subscription alive
+      final sub = stream.listen(events.add);
+      
+      // Let initial fetch complete
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(events.first, DeviceSessionStatus.valid);
       
       // Simulate another device login
       await firestore.collection('users').doc(userId).update({
         'activeDeviceId': 'other-device-id',
       });
       
-      // Should emit displaced
-      // Note: In fake_cloud_firestore, snapshots might need a tick
-      final status = await stream.skip(1).first;
-      expect(status, DeviceSessionStatus.displaced);
+      // Wait for snapshot
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(events.last, DeviceSessionStatus.displaced);
+      
+      await sub.cancel();
     });
 
     test('requestRemoteWipe() should set flag', () async {

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/providers/stok_provider.dart';
 import '../../domain/entities/stok.dart';
 import '../../core/widgets/atelier_header.dart';
@@ -23,8 +24,8 @@ class StokHistoryScreen extends ConsumerWidget {
       body: CustomScrollView(
         slivers: [
           SliverAtelierHeaderSub(
-            title: 'Riwayat Inventaris',
-            subtitle: 'Detail perubahan stok: ${stok.nama}',
+            title: AppStrings.catalog.headerHistory,
+            subtitle: AppStrings.catalog.subheaderHistory(stok.nama),
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -78,7 +79,7 @@ class StokHistoryScreen extends ConsumerWidget {
           ),
           if (item.sku != null)
             Text(
-              'SKU: ${item.sku}',
+              '${AppStrings.catalog.labelSkuShort}: ${item.sku}',
               style: GoogleFonts.plusJakartaSans(
                 color: Theme.of(context).colorScheme.onSurfaceVariant,
                 fontSize: 14,
@@ -88,8 +89,8 @@ class StokHistoryScreen extends ConsumerWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              _buildHeaderStat(context, 'STOK SAAT INI', '${item.jumlah} pcs'),
-              _buildHeaderStat(context, 'KATEGORI', item.kategori),
+              _buildHeaderStat(context, AppStrings.catalog.labelStockCurrent, '${item.jumlah} ${AppStrings.catalog.unitPcs}'),
+              _buildHeaderStat(context, AppStrings.catalog.labelCategoryCaps, item.kategori),
             ],
           ),
         ],
@@ -137,16 +138,16 @@ class StokHistoryScreen extends ConsumerWidget {
     String typeText = log.type;
     switch (log.type) {
       case 'INITIAL':
-        typeText = 'Stok Awal';
+        typeText = AppStrings.catalog.historyInitial;
         break;
       case 'RESTOCK':
-        typeText = 'Restock';
+        typeText = AppStrings.catalog.historyRestock;
         break;
       case 'SALE':
-        typeText = 'Penjualan';
+        typeText = AppStrings.catalog.historySale;
         break;
       case 'MANUAL_ADJUSTMENT':
-        typeText = 'Penyesuaian';
+        typeText = AppStrings.catalog.historyAdjustment;
         break;
     }
 
@@ -197,7 +198,7 @@ class StokHistoryScreen extends ConsumerWidget {
                           Icon(icon, size: 20, color: color),
                           const SizedBox(width: 8),
                           Text(
-                            '${isAddition ? '+' : ''}${log.quantityChange} pcs',
+                            '${isAddition ? '+' : ''}${log.quantityChange} ${AppStrings.catalog.unitPcs}',
                             style: GoogleFonts.plusJakartaSans(
                               fontWeight: FontWeight.w900,
                               fontSize: 18,
@@ -249,7 +250,7 @@ class StokHistoryScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            'Belum ada riwayat stok',
+            AppStrings.catalog.emptyHistory,
             style: GoogleFonts.plusJakartaSans(
               color: theme.colorScheme.onSurfaceVariant,
               fontSize: 16,

@@ -6,7 +6,7 @@ import '../../../core/services/firestore_sync_service.dart';
 import '../../../core/services/sync_worker.dart';
 import '../../../core/providers/objectbox_provider.dart';
 import '../../../core/services/encryption_service.dart';
-import '../../../core/services/session_manager.dart';
+import '../../../core/providers/system_providers.dart';
 
 class SyncRestoreScreen extends ConsumerStatefulWidget {
   final String bengkelId;

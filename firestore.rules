@@ -23,8 +23,10 @@ service cloud.firestore {
     match /bengkel/{bengkelId} {
       // Any authenticated user can create a bengkel
       allow create: if isSignedIn();
-      // Only users belonging to this bengkel can read it
-      allow read: if isSignedIn() && getUserBengkelId() == bengkelId;
+      // Any authenticated user can check if a bengkel exists or get its basic info
+      allow get: if isSignedIn();
+      // Only users belonging to this bengkel can list/query it
+      allow list: if isSignedIn() && getUserBengkelId() == bengkelId;
       // Only the owner of the bengkel can write/update it
       allow update, delete: if isSignedIn() && getUserBengkelId() == bengkelId && isOwner();
       
@@ -52,6 +54,15 @@ service cloud.firestore {
         allow create: if isSignedIn() && getUserBengkelId() == bengkelId && (isOwner() || hasStaffPermission('stok_create'));
         allow update: if isSignedIn() && getUserBengkelId() == bengkelId && (isOwner() || hasStaffPermission('stok_update_jumlah'));
         allow delete: if isSignedIn() && getUserBengkelId() == bengkelId && isOwner();
+      }
+
+      match /secrets/{documentId} {
+        allow read: if isSignedIn() && getUserBengkelId() == bengkelId && isOwner();
+        allow create: if isSignedIn() && (
+          (getUserBengkelId() == bengkelId && isOwner()) ||
+          (getAfter(/databases/$(database)/documents/bengkel/$(bengkelId)).data.ownerUid == request.auth.uid)
+        );
+        allow update: if isSignedIn() && getUserBengkelId() == bengkelId && isOwner();
       }
 
       match /{subcollection}/{documentId} {

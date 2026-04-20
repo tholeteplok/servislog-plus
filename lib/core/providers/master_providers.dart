@@ -1,4 +1,4 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:objectbox/objectbox.dart';
 import '../../domain/entities/staff.dart';
 import '../../domain/entities/service_master.dart';
@@ -7,24 +7,19 @@ import '../../data/repositories/master_repositories.dart';
 import 'objectbox_provider.dart';
 import 'sync_provider.dart';
 
-part 'master_providers.g.dart';
-
 // ─────────────────────────────────────────────────────────────────────────────
 // Staff Providers
 // ─────────────────────────────────────────────────────────────────────────────
 
-@Riverpod(keepAlive: true)
-StaffRepository staffRepository(StaffRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return StaffRepository(Box<Staff>(db.store));
-}
+class StaffListNotifier extends StateNotifier<AsyncValue<List<Staff>>> {
+  final Ref ref;
+  StaffListNotifier(this.ref) : super(const AsyncLoading()) {
+    _init();
+  }
 
-@riverpod
-class StaffList extends _$StaffList {
-  @override
-  FutureOr<List<Staff>> build() async {
-    final repository = ref.watch(staffRepositoryProvider);
-    return repository.getAll();
+  void _init() {
+    final repository = ref.read(staffRepositoryProvider);
+    state = AsyncData(repository.getAll());
   }
 
   Future<void> add(Staff staff) async {
@@ -51,7 +46,7 @@ class StaffList extends _$StaffList {
 
   Future<void> delete(int id) async {
     final stateBefore = state.valueOrNull ?? [];
-    state = const AsyncLoading();
+    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(staffRepositoryProvider);
       final syncWorker = ref.read(syncWorkerProvider);
@@ -69,19 +64,15 @@ class StaffList extends _$StaffList {
 // Service Master Providers
 // ─────────────────────────────────────────────────────────────────────────────
 
-@Riverpod(keepAlive: true)
-ServiceMasterRepository serviceMasterRepository(
-    ServiceMasterRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return ServiceMasterRepository(Box<ServiceMaster>(db.store));
-}
+class ServiceMasterListNotifier extends StateNotifier<AsyncValue<List<ServiceMaster>>> {
+  final Ref ref;
+  ServiceMasterListNotifier(this.ref) : super(const AsyncLoading()) {
+    _init();
+  }
 
-@riverpod
-class ServiceMasterList extends _$ServiceMasterList {
-  @override
-  FutureOr<List<ServiceMaster>> build() async {
-    final repository = ref.watch(serviceMasterRepositoryProvider);
-    return repository.getAll();
+  void _init() {
+    final repository = ref.read(serviceMasterRepositoryProvider);
+    state = AsyncData(repository.getAll());
   }
 
   Future<void> addItem(ServiceMaster item) async {
@@ -113,38 +104,21 @@ class ServiceMasterList extends _$ServiceMasterList {
       return stateBefore;
     });
   }
-
-  // FIX [MINOR]: search() shell dihapus. Gunakan provider turunan di bawah.
-}
-
-// Provider turunan untuk pencarian service master — menggantikan shell search().
-// Gunakan ini di UI: ref.watch(filteredServiceMasterProvider(query))
-@riverpod
-List<ServiceMaster> filteredServiceMaster(
-    FilteredServiceMasterRef ref, String query) {
-  final asyncList = ref.watch(serviceMasterListProvider);
-  final list = asyncList.valueOrNull ?? [];
-  if (query.isEmpty) return list;
-  final q = query.toLowerCase();
-  return list.where((s) => s.name.toLowerCase().contains(q)).toList();
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Vehicle Providers
 // ─────────────────────────────────────────────────────────────────────────────
 
-@Riverpod(keepAlive: true)
-VehicleRepository vehicleRepository(VehicleRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return VehicleRepository(Box<Vehicle>(db.store));
-}
+class VehicleListNotifier extends StateNotifier<AsyncValue<List<Vehicle>>> {
+  final Ref ref;
+  VehicleListNotifier(this.ref) : super(const AsyncLoading()) {
+    _init();
+  }
 
-@riverpod
-class VehicleList extends _$VehicleList {
-  @override
-  FutureOr<List<Vehicle>> build() async {
-    final repository = ref.watch(vehicleRepositoryProvider);
-    return repository.getAll();
+  void _init() {
+    final repository = ref.read(vehicleRepositoryProvider);
+    state = AsyncData(repository.getAll());
   }
 
   Future<void> addVehicle(Vehicle vehicle) async {
@@ -183,12 +157,48 @@ class VehicleList extends _$VehicleList {
       return stateBefore;
     });
   }
-
-  // FIX [MINOR]: search() shell dihapus.
 }
 
-@riverpod
-List<Vehicle> customerVehicles(CustomerVehiclesRef ref, int pelangganId) {
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final staffRepositoryProvider = Provider<StaffRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return StaffRepository(Box<Staff>(db.store));
+});
+
+final staffListProvider = StateNotifierProvider<StaffListNotifier, AsyncValue<List<Staff>>>((ref) {
+  return StaffListNotifier(ref);
+});
+
+final serviceMasterRepositoryProvider = Provider<ServiceMasterRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return ServiceMasterRepository(Box<ServiceMaster>(db.store));
+});
+
+final serviceMasterListProvider = StateNotifierProvider<ServiceMasterListNotifier, AsyncValue<List<ServiceMaster>>>((ref) {
+  return ServiceMasterListNotifier(ref);
+});
+
+final filteredServiceMasterProvider = Provider.family<List<ServiceMaster>, String>((ref, query) {
+  final asyncList = ref.watch(serviceMasterListProvider);
+  final list = asyncList.valueOrNull ?? [];
+  if (query.isEmpty) return list;
+  final q = query.toLowerCase();
+  return list.where((s) => s.name.toLowerCase().contains(q)).toList();
+});
+
+final vehicleRepositoryProvider = Provider<VehicleRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return VehicleRepository(Box<Vehicle>(db.store));
+});
+
+final vehicleListProvider = StateNotifierProvider<VehicleListNotifier, AsyncValue<List<Vehicle>>>((ref) {
+  return VehicleListNotifier(ref);
+});
+
+final customerVehiclesProvider = Provider.family<List<Vehicle>, int>((ref, pelangganId) {
   final repository = ref.watch(vehicleRepositoryProvider);
   return repository.getByOwnerId(pelangganId);
-}
+});

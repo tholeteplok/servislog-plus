@@ -61,7 +61,7 @@ void main() {
       box.put(ServiceMaster(name: 'Ganti Ban', basePrice: 0));
       box.put(ServiceMaster(name: 'Cuci Motor', basePrice: 0));
       
-      await container.read(serviceMasterListProvider.future); // Wait init
+      container.read(serviceMasterListProvider); // Trigger init
 
       final filtered = container.read(filteredServiceMasterProvider('Ganti'));
       expect(filtered.length, 2);

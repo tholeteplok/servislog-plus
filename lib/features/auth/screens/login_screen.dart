@@ -2,8 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
-import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/system_providers.dart';
 import '../../../core/models/user_profile.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/utils/app_logger.dart';
 
@@ -173,7 +174,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 // Branding Text
                 Text(
-                  'ServisLog+',
+                  AppStrings.auth.loginTitle,
                   style: GoogleFonts.manrope(
                     fontSize: 42,
                     fontWeight: FontWeight.w800,
@@ -189,7 +190,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'PLATFORM WORKSHOP PROFESIONAL',
+                    AppStrings.auth.loginSubtitle,
                     style: GoogleFonts.inter(
                       fontSize: 12,
                       fontWeight: FontWeight.w800,
@@ -200,7 +201,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                 ),
                 const SizedBox(height: 20),
                 Text(
-                  'Manajemen rincian Teknisi, Inventaris,\ndan Pendapatan secara real-time.',
+                  AppStrings.auth.loginDescription,
                   textAlign: TextAlign.center,
                   style: GoogleFonts.inter(
                     fontSize: 14,
@@ -276,7 +277,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
                                 const Icon(SolarIconsBold.login, size: 20),
                                 const SizedBox(width: 16),
                                 Text(
-                                  'Masuk dengan Akun Google',
+                                  AppStrings.auth.signInWithGoogle,
                                   style: GoogleFonts.manrope(
                                     fontSize: 16,
                                     fontWeight: FontWeight.w700,
@@ -292,7 +293,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen>
 
                 // Footer Metadata
                 Text(
-                  'Precision Atelier v1.2 • Protected Enclave',
+                  AppStrings.auth.footerMetadata,
                   style: GoogleFonts.inter(
                     fontSize: 12,
                     fontWeight: FontWeight.w500,

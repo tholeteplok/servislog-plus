@@ -5,6 +5,7 @@ import 'package:solar_icons/solar_icons.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/services/device_session_service.dart';
+import '../../../core/providers/system_providers.dart';
 
 /// ─────────────────────────────────────────────────────────────────────────
 /// Layar yang tampil di perangkat LAMA saat session-nya dicabut.

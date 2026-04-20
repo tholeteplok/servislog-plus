@@ -2,15 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
-import '../../../core/services/encryption_service.dart';
-import '../../../core/services/biometric_service.dart';
-import '../../../core/services/bengkel_service.dart';
-import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/system_providers.dart';
 import '../../../core/providers/objectbox_provider.dart';
 import '../../../core/providers/pengaturan_provider.dart';
 import '../../../core/constants/app_strings.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import '../../../core/services/session_manager.dart';
 import 'sync_restore_screen.dart';
 
 class UnlockScreen extends ConsumerStatefulWidget {
@@ -29,10 +25,6 @@ class UnlockScreen extends ConsumerStatefulWidget {
 
 class _UnlockScreenState extends ConsumerState<UnlockScreen> {
   final _pinController = TextEditingController();
-  final _encryption = EncryptionService();
-  final _biometric = BiometricService();
-  final _bengkel = BengkelService();
-
   bool _isUnwrapping = false;
   bool _hasBiometric = false;
   bool _showRestore = false;
@@ -45,9 +37,11 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
   }
 
   Future<void> _checkBiometric() async {
-    final savedKey = await _encryption.getSavedDerivedKey(widget.bengkelId);
+    final encryption = ref.read(encryptionServiceProvider);
+    final biometric = ref.read(biometricServiceProvider);
+    final savedKey = await encryption.getSavedDerivedKey(widget.bengkelId);
     if (savedKey != null) {
-      final available = await _biometric.isAvailable();
+      final available = await biometric.isAvailable();
       if (available) {
         setState(() => _hasBiometric = true);
         _tryBiometricUnlock();
@@ -91,30 +85,34 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
   }
 
   Future<void> _tryBiometricUnlock() async {
-    final success = await _biometric.authenticate(
+    final encryption = ref.read(encryptionServiceProvider);
+    final biometric = ref.read(biometricServiceProvider);
+    final bengkel = ref.read(bengkelServiceProvider);
+
+    final success = await biometric.authenticate(
       reason: AppStrings.auth.reasonUnlock,
     );
 
     if (success) {
       setState(() => _isUnwrapping = true);
       try {
-        final savedKey = await _encryption.getSavedDerivedKey(widget.bengkelId);
-        final wrappedKey = await _bengkel.getWrappedMasterKey(widget.bengkelId);
+        final savedKey = await encryption.getSavedDerivedKey(widget.bengkelId);
+        final wrappedKey = await bengkel.getWrappedMasterKey(widget.bengkelId);
 
         if (savedKey != null && wrappedKey != null) {
-          final ok = await _encryption.unwrapWithSavedKey(wrappedKey, savedKey);
+          final ok = await encryption.unwrapWithSavedKey(wrappedKey, savedKey);
           if (ok) {
             // SEC-02: Reset failures on success
-            await _biometric.resetFailures();
+            await biometric.resetFailures();
             
-            await _encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
+            await encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
             await _handleSuccessfulUnlock();
             return;
           }
         }
         setState(() => _errorText = AppStrings.error.keyRecoveryFailed);
       } catch (e) {
-        setState(() => _errorText = 'Error: $e');
+        setState(() => _errorText = AppStrings.error.specific(e.toString()));
       } finally {
         setState(() => _isUnwrapping = false);
       }
@@ -125,26 +123,30 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
     final pin = _pinController.text;
     if (pin.length != 6) return;
 
+    final encryption = ref.read(encryptionServiceProvider);
+    final biometric = ref.read(biometricServiceProvider);
+    final bengkel = ref.read(bengkelServiceProvider);
+
     setState(() {
       _isUnwrapping = true;
       _errorText = '';
     });
 
     try {
-      final wrappedKey = await _bengkel.getWrappedMasterKey(widget.bengkelId);
+      final wrappedKey = await bengkel.getWrappedMasterKey(widget.bengkelId);
 
       if (wrappedKey == null) {
         throw Exception(AppStrings.auth.bengkelNoMasterKey);
       }
 
-      final success = await _encryption.unwrapAndSaveMasterKey(
+      final success = await encryption.unwrapAndSaveMasterKey(
         wrappedKey,
         pin,
         widget.bengkelId,
         onMigrationComplete: (newWrappedKey) async {
           try {
             final uid = ref.read(authServiceProvider).currentUser?.uid ?? 'unknown';
-            await _bengkel.updateMasterKey(
+            await bengkel.updateMasterKey(
               bengkelId: widget.bengkelId,
               wrappedKey: newWrappedKey,
               userId: uid,
@@ -157,30 +159,30 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
 
       if (success) {
         // SEC-02: Reset failures on success
-        await _biometric.resetFailures();
+        await biometric.resetFailures();
 
         // Auto-link biometric for next time if enabled and supported
         final settings = ref.read(settingsProvider);
         if (settings.isBiometricEnabled) {
-          final isSupported = await _biometric.isAvailable();
+          final isSupported = await biometric.isAvailable();
           if (isSupported) {
             // SEC-03: Check if key exists first to prevent unnecessary overwrites
-            final existingKey = await _encryption.getSavedDerivedKey(widget.bengkelId);
+            final existingKey = await encryption.getSavedDerivedKey(widget.bengkelId);
             if (existingKey == null) {
-              await _encryption.saveDerivedKeyForBiometric(pin, widget.bengkelId);
+              await encryption.saveDerivedKeyForBiometric(pin, widget.bengkelId);
               debugPrint('🔗 Biometric auto-linked for workshop ${widget.bengkelId}');
             }
           }
         }
 
-        await _encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
+        await encryption.init(); // LGK-07: Ensure in-memory encrypter is ready
         await _handleSuccessfulUnlock();
       } else {
         setState(() => _errorText = AppStrings.auth.pinIncorrect);
         _pinController.clear();
       }
     } catch (e) {
-      setState(() => _errorText = e.toString().replaceAll('Exception: ', ''));
+      setState(() => _errorText = AppStrings.error.specific(e.toString().replaceAll('Exception: ', '')));
     } finally {
       setState(() => _isUnwrapping = false);
     }
@@ -303,7 +305,7 @@ class _UnlockScreenState extends ConsumerState<UnlockScreen> {
                 TextButton(
                   onPressed: () => ref.read(authServiceProvider).signOut(),
                   child: Text(
-                    AppStrings.common.logoutAccount,
+                    AppStrings.common.logout,
                     style: GoogleFonts.inter(
                       color: isDark ? Colors.white38 : Colors.black38,
                     ),

@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../core/constants/app_colors.dart';
+import '../../core/constants/app_strings.dart';
 import '../../core/widgets/atelier_header.dart';
 import '../../core/providers/master_providers.dart';
 import '../../domain/entities/service_master.dart';
@@ -34,7 +35,7 @@ class _CreateServiceMasterScreenState
       text: widget.itemToEdit?.basePrice.toString() ?? '0',
     );
     _kategoriController = TextEditingController(
-      text: widget.itemToEdit?.category ?? 'Umum',
+      text: widget.itemToEdit?.category ?? AppStrings.catalog.catUmum,
     );
   }
 
@@ -74,8 +75,8 @@ class _CreateServiceMasterScreenState
       body: CustomScrollView(
         slivers: [
           SliverAtelierHeaderSub(
-            title: isEdit ? 'Edit Layanan' : 'Tambah Layanan',
-            subtitle: isEdit ? 'PERBAIKI DATA' : 'TAMBAH DATA BARU',
+            title: isEdit ? AppStrings.catalog.headerEditJasa : AppStrings.catalog.headerAddJasa,
+            subtitle: isEdit ? AppStrings.catalog.subheaderEdit : AppStrings.catalog.subheaderAdd,
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -93,21 +94,21 @@ class _CreateServiceMasterScreenState
                             fontWeight: FontWeight.w700,
                           ),
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Nama Jasa',
-                            prefixIcon: Icon(SolarIconsOutline.penNewSquare),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelJasaName,
+                            prefixIcon: const Icon(SolarIconsOutline.penNewSquare),
                           ),
                           validator: (v) =>
-                              v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                              v?.isEmpty ?? true ? AppStrings.common.requiredField : null,
                         ),
                         const SizedBox(height: 20),
                         TextFormField(
                           controller: _kategoriController,
                           style: GoogleFonts.plusJakartaSans(),
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Kategori',
-                            prefixIcon: Icon(SolarIconsOutline.layers),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelServiceCategory,
+                            prefixIcon: const Icon(SolarIconsOutline.layers),
                           ),
                         ),
                         const SizedBox(height: 20),
@@ -117,14 +118,14 @@ class _CreateServiceMasterScreenState
                             fontWeight: FontWeight.bold,
                             color: AppColors.amethyst,
                           ),
-                          decoration: const InputDecoration(
-                            labelText: 'Harga Jasa',
-                            prefixIcon: Icon(SolarIconsOutline.wadOfMoney),
-                            suffixText: 'IDR',
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelServicePrice,
+                            prefixIcon: const Icon(SolarIconsOutline.wadOfMoney),
+                            suffixText: AppStrings.catalog.currencyIdr,
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) =>
-                              v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                              v?.isEmpty ?? true ? AppStrings.common.requiredField : null,
                         ),
                       ],
                     ),
@@ -140,13 +141,15 @@ class _CreateServiceMasterScreenState
                         elevation: 8,
                       ),
                       child: Text(
-                        isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN LAYANAN',
-                        style: GoogleFonts.plusJakartaSans(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 18,
-                          color: Colors.white,
+                          isEdit
+                              ? AppStrings.catalog.buttonSaveChangeService
+                              : AppStrings.catalog.buttonSaveService,
+                          style: GoogleFonts.plusJakartaSans(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 18,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
                     ),
                   ],
                 ),

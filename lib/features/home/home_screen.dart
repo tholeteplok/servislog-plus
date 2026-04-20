@@ -39,6 +39,7 @@ import '../../core/widgets/atelier_skeleton.dart';
 import '../../core/widgets/atelier_header.dart';
 import '../main/responsive_layout_builder.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../../core/providers/system_providers.dart';
 
 
 class HomeScreen extends ConsumerStatefulWidget {
@@ -1730,7 +1731,7 @@ class _InlineZoneBadge extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final level = ref.watch(accessLevelProvider);
+    final level = ref.watch(currentAccessLevelProvider);
 
     if (level == AccessLevel.full) return const SizedBox.shrink();
 

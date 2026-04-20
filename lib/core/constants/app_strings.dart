@@ -24,6 +24,10 @@ class AppStrings {
   static const AccessStrings access = AccessStrings();
   static const ReminderStrings reminder = ReminderStrings();
   static const SyncStrings sync = SyncStrings();
+  static const NavStrings nav = NavStrings();
+  static const ProfileStrings profile = ProfileStrings();
+  static const SecurityStrings security = SecurityStrings();
+  static const DataCenterStrings dataCenter = DataCenterStrings();
   static const DatePatterns date = DatePatterns();
   static const WhatsAppTemplates whatsapp = WhatsAppTemplates();
 }
@@ -45,6 +49,7 @@ class CommonStrings {
   final aturSekarang = 'Atur Sekarang';
   final useBiometric = 'Gunakan Biometrik';
   final logoutAccount = 'Keluar Akun';
+  final logout = 'Keluar';
   final add = 'Tambahkan';
   final addShort = 'Tambah';
   final fullName = 'Nama Lengkap';
@@ -87,6 +92,12 @@ class CommonStrings {
 
 class AuthStrings {
   const AuthStrings();
+  final loginTitle = 'ServisLog+';
+  final loginSubtitle = 'PLATFORM WORKSHOP PROFESIONAL';
+  final loginDescription = 'Manajemen rincian Teknisi, Inventaris,\ndan Pendapatan secara real-time.';
+  final signInWithGoogle = 'Masuk dengan Akun Google';
+  final footerMetadata = 'Precision Atelier v1.2 • Protected Enclave';
+  
   final reasonUnlock = 'Buka Workshop Encrypted Data';
   final pinRequired = 'Tentukan PIN Workshop';
   final enterPin = 'Masukkan PIN Workshop';
@@ -97,6 +108,28 @@ class AuthStrings {
   final pinIncorrect = 'PIN Workshop salah';
   final restoreChoice = 'Restore Data Cloud?';
   final restoreChoiceDesc = 'Device baru terdeteksi. Ingin memulihkan data dari Cloud?';
+  
+  // Onboarding
+  final welcomeTitle = 'Selamat Datang di ServisLog+';
+  final welcomeSubtitle = 'Satu platform untuk semua kebutuhan manajemen bengkel Anda.';
+  final ownerTitle = 'Saya Pemilik Bengkel';
+  final ownerSubtitle = 'Kelola tim, pantau pendapatan, dan kembangkan bisnis Anda.';
+  final staffTitle = 'Saya Staff / Mekanik';
+  final staffSubtitle = 'Masuk ke ekosistem operasional yang ada sebagai tim profesional.';
+  final badgeExecutive = 'EKSEKUTIF';
+  final badgeOperational = 'OPERASIONAL';
+
+  // Create Bengkel
+  final createBengkelTitle = 'Daftarkan Bengkel';
+  final createBengkelSubtitle = 'Mulai atur bengkel Anda dalam hitungan menit.';
+  final workshopNameLabel = 'Nama Bengkel';
+  final workshopNameHint = 'Contoh: Bengkel Jaya Motor';
+  final workshopIdLabel = 'ID Bengkel';
+  final workshopIdHint = 'Contoh: jaya-motor';
+  final checkingId = 'Memeriksa ketersediaan...';
+  final idAvailable = 'ID tersedia';
+  final idUnavailable = 'ID sudah digunakan';
+  final registerNow = 'Daftarkan Sekarang';
 }
 
 class HomeStrings {
@@ -415,7 +448,95 @@ class HistoryStrings {
 
 class CatalogStrings {
   const CatalogStrings();
-  final inventoryTitle = 'Katalog Barang';
+  final inventoryTitle = 'Inventaris';
+  final inventorySubtitle = 'Kelola stok dan layanan jasa workshop Anda.';
+  final headerEditBarang = 'Edit Inventaris';
+  final headerAddBarang = 'Tambah Inventaris';
+  final headerEditJasa = 'Edit Layanan';
+  final headerAddJasa = 'Tambah Layanan';
+  final headerHistory = 'Riwayat Inventaris';
+  final subheaderEdit = 'PERBAIKI DATA';
+  final subheaderAdd = 'TAMBAH DATA BARU';
+  String subheaderHistory(String name) => 'Detail perubahan stok: $name';
+  
+  final searchBarang = 'Cari item inventaris...';
+  final searchJasa = 'Cari layanan jasa...';
+  final tooltipScanner = 'Pindai Barcode';
+  final tooltipAutoGenerate = 'Auto Generate';
+  final tooltipScanBarcode = 'Scan Barcode';
+  
+  final tabBarang = 'Barang';
+  final tabJasa = 'Layanan Jasa';
+  
+  final emptyBarang = 'Belum ada item inventaris.';
+  final emptyJasa = 'Belum ada data layanan jasa.';
+  final emptyHistory = 'Belum ada riwayat stok';
+  
+  final sortAll = 'Semua';
+  final sortLow = 'Tersedikit';
+  final sortHigh = 'Terbanyak';
+  
+  final statusOutOfStock = 'Stok Habis';
+  final statusLowStock = 'Stok Rendah';
+  final statusInStock = 'Stok Tersedia';
+  final unitPcs = 'pcs';
+  
+  final labelItemName = 'Nama Barang';
+  final labelCategory = 'Kategori Barang';
+  final labelCategoryCaps = 'KATEGORI';
+  
+  final catSparepart = 'Sparepart';
+  final catOli = 'Oli';
+  final catBan = 'Ban';
+  final catAksesoris = 'Aksesoris';
+  final catLainnya = 'Lainnya';
+  final catUmum = 'Umum';
+  final labelSku = 'Kode SKU / Barcode';
+  final labelSkuShort = 'SKU';
+  final labelInitialStock = 'Stok Awal';
+  final labelMinStock = 'Min. Stok';
+  final labelStockCurrent = 'STOK SAAT INI';
+  final labelPurchasePrice = 'Harga Modal (Beli)';
+  final labelSellingPrice = 'Harga Jual';
+  final labelJasaName = 'Nama Jasa';
+  final labelServicePrice = 'Harga Jasa';
+  final labelServiceCategory = 'Kategori Layanan';
+  final currencyIdr = 'IDR';
+  final labelEditMode = 'EDIT MODE';
+  final labelUploadPhoto = 'Unggah Foto';
+  
+  final actionEdit = 'Ubah Data';
+  final actionAddStock = 'Tambah Stok';
+  final actionStockHistory = 'Riwayat Stok';
+  final buttonSaveInventory = 'SIMPAN INVENTARIS';
+  final buttonSaveChangeInventory = 'SIMPAN PERUBAHAN';
+  final buttonSaveService = 'SIMPAN LAYANAN';
+  final buttonSaveChangeService = 'SIMPAN PERUBAHAN';
+  
+  final historyInitial = 'Stok Awal';
+  final historyRestock = 'Restock';
+  final historySale = 'Penjualan';
+  final historyAdjustment = 'Penyesuaian';
+  
+  final dialogAddStockTitle = 'Tambah Stok';
+  String dialogAddStockContent(String name) => 'Masukkan jumlah stok tambahan untuk $name:';
+  final labelQuantity = 'Jumlah';
+  
+  final dialogDeleteTitleBarang = 'Hapus Barang?';
+  final dialogDeleteTitleJasa = 'Hapus Jasa?';
+  String dialogDeleteContentBarang(String name) => 'Apakah Anda yakin ingin menghapus $name dari inventaris?';
+  String dialogDeleteContentJasa(String name) => 'Apakah Anda yakin ingin menghapus $name dari katalog?';
+  
+  final dialogDuplicateNameTitle = 'Nama Sudah Ada';
+  final dialogDuplicateNameContent = 'Nama barang ini sudah ada di Katalog. Gunakan fitur \'Tambah Stok\' pada barang tersebut untuk menghindari data ganda.';
+  final dialogDuplicateSkuTitle = 'Barang Terdaftar';
+  String dialogDuplicateSkuContent(String name) => 'Barang dengan barcode/SKU ini sudah terdaftar sebagai "$name".\n\nApakah Anda ingin menambah stok atau mengubah data barang tersebut?';
+  
+  final dialogPickPhotoTitle = 'AMBIL FOTO BARANG';
+  final snackbarStockAdded = 'Stok berhasil ditambah!';
+  final noteDuplicateBarcode = 'Ditambahkan melalui input barang ganda dengan barcode sama';
+
+  // Legacy/Retained items if any
   final lowStock = 'Stok Menipis';
   final stockValue = 'Nilai Stok';
   final addInventory = 'Tambah Barang';
@@ -441,6 +562,10 @@ class ErrorStrings {
   final pinTooShort = 'PIN minimal 6 digit';
   final sessionExpired = 'Sesi berakhir. Silakan login kembali';
   final keyRecoveryFailed = 'Gagal memulihkan kunci dekripsi (Kunci tidak ditemukan atau data biometrik kedaluwarsa).';
+  final failedToCheckId = 'Gagal memeriksa ketersediaan ID';
+  final biometricRequired = 'Sidik jari/biometrik diperlukan';
+  final pinInvalid = 'PIN harus 6 digit angka';
+  final requiredField = 'Bagian ini wajib diisi';
   
   // Network
   final noConnection = 'Tidak ada koneksi internet';
@@ -457,6 +582,7 @@ class ErrorStrings {
   // Generic
   final generic = 'Terjadi kesalahan. Silakan coba lagi';
   String specific(String error) => 'Terjadi kesalahan: $error';
+  String minChars(int count) => 'Minimal $count karakter';
   
   String stockInsufficient(String itemName, int available) => 
       'Stok $itemName tidak mencukupi. Tersedia: $available';
@@ -474,6 +600,7 @@ class SuccessStrings {
   final backupCreated = 'Cadangan berhasil dibuat';
   final backupRestored = 'Data berhasil dipulihkan';
   final syncCompleted = 'Sinkronisasi selesai';
+  final bengkelCreated = 'Bengkel berhasil didaftarkan';
 }
 
 class AccessStrings {
@@ -555,4 +682,76 @@ class SyncStrings {
         'failed' => failed,
         _ => state,
       };
+}
+
+class NavStrings {
+  const NavStrings();
+  final home = 'Beranda';
+  final inventory = 'Inventaris';
+  final customers = 'Pelanggan';
+  final history = 'Riwayat';
+  final settings = 'Pengaturan';
+  
+  final createService = 'Buat Servis';
+  final sellProduct = 'Jual Barang';
+  final newCustomer = 'Pelanggan Baru';
+  final addProduct = 'Tambah Barang';
+}
+
+class ProfileStrings {
+  const ProfileStrings();
+  final title = 'Profil & Bengkel';
+  final subtitle = 'Ubah identitas bengkel dan kontak owner.';
+  final workshopInfo = 'Informasi Bengkel';
+  final workshopName = 'Nama Bengkel';
+  final workshopAddress = 'Alamat Bengkel';
+  final workshopWA = 'WhatsApp Bengkel';
+  final ownerInfo = 'Informasi Owner';
+  final ownerName = 'Nama Owner';
+  final ownerPhone = 'Nomor HP Owner';
+  final saveSuccess = 'Profil berhasil disimpan';
+}
+
+class SecurityStrings {
+  const SecurityStrings();
+  final title = 'Keamanan & Data';
+  final subtitle = 'Pusat kendali keamanan, sinkronisasi cloud, dan otorisasi perangkat.';
+  final shieldProtection = 'SHIELD PROTECTION';
+  final autoLock30m = 'Auto-Lock 30 Menit';
+  final autoLockDesc = 'Kunci aplikasi otomatis jika tidak digunakan.';
+  final syncCloud = 'SINKRONISASI CLOUD';
+  final lastSyncNever = 'Belum pernah sinkronisasi';
+  final lastSyncJustNow = 'Baru saja diperbarui';
+  String lastSyncMinutesAgo(int mins) => 'Update: $mins menit yang lalu';
+  String lastSyncAt(String time) => 'Update: $time';
+  
+  final logoutConfirmTitle = 'Konfirmasi Keluar';
+  final logoutConfirmMessage = 'Tindakan ini akan mengakhiri sesi aktif Anda di perangkat ini.';
+}
+class DataCenterStrings {
+  const DataCenterStrings();
+  final title = 'Pusat Data Bengkel';
+  final subtitle = 'Simpan otomatis ke internet agar data tidak hilang.';
+  final storageStatus = 'Status Penyimpanan';
+  final workshopInfo = 'Informasi Bengkel';
+  final maintenanceActions = 'Aksi Pemeliharaan';
+  final workshopName = 'Nama Bengkel';
+  final yourStatus = 'Status Anda';
+  final bengkelId = 'Bengkel ID';
+  final idCopied = 'Bengkel ID disalin ke clipboard';
+  final connected = 'Sudah Terhubung';
+  final notConnected = 'Belum Terhubung';
+  final connectedDesc = 'Semua data bengkel Anda sudah aman di internet.';
+  final notConnectedDesc = 'Hubungkan ke bengkel untuk mulai menyimpan data.';
+  final sessionLocked = 'Sesi Terkunci';
+  final sessionLockedDesc = 'Akses ditutup karena terlalu lama offline. Hubungkan internet segera.';
+  final sessionRestricted = 'Sesi Terbatas';
+  final sessionRestrictedDesc = 'Segera hubungkan internet untuk memulihkan akses penuh.';
+  final perkuatKeamanan = 'Perkuat Keamanan Data';
+  final perkuatKeamananDesc = 'Gunakan sistem pengunci terbaru agar data pelanggan lebih aman.';
+  final pelindungData = 'Pelindung Data: Nama dan nomor HP pelanggan disandikan secara rahasia. Hanya Anda yang bisa membukanya.';
+  final migrationTitle = 'Migrasi Data ke Cloud';
+  final migrationDesc = 'Tindakan ini akan mengenkripsi dan mengunggah data lama Anda ke Firestore untuk pertama kali.\nPastikan Anda memiliki koneksi internet yang stabil.';
+  final migrationAction = 'Migrasi Sekarang';
+  final migrationSuccess = 'Migrasi Berhasil! Data Anda kini terenkripsi di Cloud.';
 }

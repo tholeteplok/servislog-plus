@@ -8,14 +8,11 @@ import 'dart:convert';
 import 'package:crypto/crypto.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'device_session_service.dart';
 import 'encryption_service.dart';
 import '../utils/app_logger.dart';
 import '../config/app_config.dart';
-import '../models/user_profile.dart';
-import '../providers/auth_provider.dart';
 
 // 🎯 Policy Constants
 class SessionPolicy {
@@ -673,89 +670,3 @@ class SessionManager {
   }
 }
 
-// 🔄 Riverpod Providers
-
-final secureStorageProvider = Provider<FlutterSecureStorage>((ref) => const FlutterSecureStorage(
-      aOptions: AndroidOptions(),
-      iOptions: IOSOptions(
-          accessibility: KeychainAccessibility.first_unlock_this_device),
-    ));
-
-final firebaseAuthProvider = Provider<FirebaseAuth>((ref) => FirebaseAuth.instance);
-
-final firestoreProvider = Provider<FirebaseFirestore>((ref) => FirebaseFirestore.instance);
-
-// SEC-FIX: encryptionServiceProvider sudah didefinisikan di encryption_service.dart
-final httpClientProvider = Provider<http.Client>((ref) => http.Client());
-
-final connectivityProvider = Provider<Connectivity>((ref) => Connectivity());
-
-final sessionManagerProvider = Provider<SessionManager>((ref) => SessionManager(
-      secureStorage: ref.watch(secureStorageProvider),
-      auth: ref.watch(firebaseAuthProvider),
-      firestore: ref.watch(firestoreProvider),
-      encryptionService: ref.watch(encryptionServiceProvider),
-      deviceSessionService: ref.watch(deviceSessionServiceProvider),
-      httpClient: ref.watch(httpClientProvider),
-      connectivity: ref.watch(connectivityProvider),
-    ));
-
-/// 🛡️ Unified Access Level Provider (H-04 FIX)
-/// Synchronously derives access status from the consolidated AuthStateContainer.
-/// Effectively eliminates race conditions between FirebaseAuth and LocalStorage.
-final accessLevelProvider = Provider<AccessLevel>((ref) {
-  // 1. Block all access during Nuclear Sequence (Wipe)
-  final isWiping = ref.watch(isWipingProvider);
-  if (isWiping) return AccessLevel.blocked;
-
-  final authContainer = ref.watch(authStateProvider).value;
-
-  // 2. Loading / No Value yet
-  if (authContainer == null) return AccessLevel.full; // Treat as full during short loading gaps
-
-  // 3. Unauthenticated 
-  if (authContainer.state == AuthState.unauthenticated) return AccessLevel.blocked;
-
-  // 4. Authenticating / Initial Redirects
-  if (authContainer.state == AuthState.authenticating || 
-      authContainer.state == AuthState.missingProfile) {
-    return AccessLevel.full;
-  }
-
-  // 5. Authenticated & Session Validation
-  final profile = authContainer.profile;
-  if (profile == null) return AccessLevel.blocked;
-
-  // Note: For offline grace periods, we still check the policy but relative to the profile's role
-  // which is already resolved in authStateProvider using Custom Claims (Trusted source).
-  // This removes the need for unsafe manual storage reads for 'user_role'.
-  
-  final status = ref.watch(sessionStatusProvider).value ?? SessionStatus.full;
-  
-  switch (status) {
-    case SessionStatus.full:
-    case SessionStatus.valid:
-      return AccessLevel.full;
-    case SessionStatus.warning:
-      return profile.role == 'owner' ? AccessLevel.readOnlyFinancial : AccessLevel.readOnly;
-    case SessionStatus.blocked:
-    case SessionStatus.invalid:
-      return AccessLevel.blocked;
-  }
-});
-
-final sessionStatusProvider = FutureProvider<SessionStatus>((ref) async {
-  return await ref.watch(sessionManagerProvider).validateSession();
-});
-
-/// Stream status sesi untuk UI reaktif (Pusat Keamanan)
-final sessionStatusStreamProvider = StreamProvider<SessionStatus>((ref) async* {
-  // Emit initial status
-  final manager = ref.read(sessionManagerProvider);
-  yield await manager.validateSession();
-
-  // Reaktif terhadap perubahan auth
-  yield* FirebaseAuth.instance.authStateChanges().asyncMap((_) async {
-    return await manager.validateSession();
-  });
-});

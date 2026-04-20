@@ -44,7 +44,6 @@ import '../../domain/entities/stok_history.dart';
 import '../sync/sync_telemetry.dart';
 import 'encryption_service.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/app_logger.dart';
 
 /// Full-featured Firestore sync service for CRUD operations with collision handling.
@@ -607,8 +606,4 @@ class FirestoreSyncService {
   }
 }
 
-// 🔄 Riverpod Provider
-final firestoreSyncServiceProvider = Provider<FirestoreSyncService>((ref) {
-  final encryption = ref.watch(encryptionServiceProvider);
-  return FirestoreSyncService(encryption: encryption);
-});
+

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../providers/auth_provider.dart';
+import '../providers/system_providers.dart';
 import '../models/user_profile.dart';
 
 /// Widget untuk hide/show berdasarkan permission.

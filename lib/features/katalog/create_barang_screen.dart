@@ -37,11 +37,11 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
   String? _imagePath;
   late String _selectedKategori;
   final List<String> _categories = [
-    'Sparepart',
-    'Oli',
-    'Ban',
-    'Aksesoris',
-    'Lainnya',
+    AppStrings.catalog.catSparepart,
+    AppStrings.catalog.catOli,
+    AppStrings.catalog.catBan,
+    AppStrings.catalog.catAksesoris,
+    AppStrings.catalog.catLainnya,
   ];
 
   @override
@@ -64,7 +64,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
       text: widget.itemToEdit?.minStok.toString() ?? '5',
     );
     _imagePath = widget.itemToEdit?.photoLocalPath;
-    _selectedKategori = widget.itemToEdit?.kategori ?? 'Sparepart';
+    _selectedKategori = widget.itemToEdit?.kategori ?? AppStrings.catalog.catSparepart;
   }
 
   @override
@@ -154,11 +154,13 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
           .restock(
             existingToRestock.uuid,
             restockAmount,
-            'Ditambahkan melalui input barang ganda dengan barcode sama',
+            AppStrings.catalog.noteDuplicateBarcode,
           );
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Stok ${existingToRestock.nama} berhasil ditambah!'),
+          content: Text(
+            '${existingToRestock.nama} ${AppStrings.catalog.snackbarStockAdded}',
+          ),
           behavior: SnackBarBehavior.floating,
           backgroundColor: AppColors.amethyst,
         ),
@@ -204,20 +206,20 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
             const Icon(SolarIconsBold.danger, color: Colors.red),
             const SizedBox(width: 12),
             Text(
-              'Nama Sudah Ada',
+              AppStrings.catalog.dialogDuplicateNameTitle,
               style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900),
             ),
           ],
         ),
         content: Text(
-          'Nama barang ini sudah ada di Katalog. Gunakan fitur \'Tambah Stok\' pada barang tersebut untuk menghindari data ganda.',
+          AppStrings.catalog.dialogDuplicateNameContent,
           style: GoogleFonts.plusJakartaSans(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'MENGERTI',
+              AppStrings.common.understand.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 color: AppColors.amethyst,
@@ -235,18 +237,18 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         title: Text(
-          'Barang Terdaftar',
+          AppStrings.catalog.dialogDuplicateSkuTitle,
           style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.w900),
         ),
         content: Text(
-          'Barang dengan barcode/SKU ini sudah terdaftar sebagai "${existing.nama}".\n\nApakah Anda ingin menambah stok atau mengubah data barang tersebut?',
+          AppStrings.catalog.dialogDuplicateSkuContent(existing.nama),
           style: GoogleFonts.plusJakartaSans(),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              'BATAL',
+              AppStrings.common.cancel.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(color: Colors.grey),
             ),
           ),
@@ -257,7 +259,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
               _proceedSave(existingToRestock: existing, restockAmount: amount);
             },
             child: Text(
-              'TAMBAH STOK',
+              AppStrings.catalog.actionAddStock.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 color: Colors.blue,
@@ -275,7 +277,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
               );
             },
             child: Text(
-              'UBAH DATA',
+              AppStrings.catalog.actionEdit.toUpperCase(),
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 color: AppColors.amethyst,
@@ -297,8 +299,8 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
       body: CustomScrollView(
         slivers: [
           SliverAtelierHeaderSub(
-            title: isEdit ? 'Edit Inventaris' : 'Tambah Inventaris',
-            subtitle: isEdit ? 'PERBAIKI DATA' : 'TAMBAH DATA BARU',
+            title: isEdit ? AppStrings.catalog.headerEditBarang : AppStrings.catalog.headerAddBarang,
+            subtitle: isEdit ? AppStrings.catalog.subheaderEdit : AppStrings.catalog.subheaderAdd,
             showBackButton: true,
             actions: [
               if (isEdit)
@@ -312,7 +314,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Text(
-                    'EDIT MODE',
+                    AppStrings.catalog.labelEditMode,
                     style: GoogleFonts.plusJakartaSans(
                       color: Colors.white,
                       fontWeight: FontWeight.bold,
@@ -367,7 +369,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                         ),
                                         const SizedBox(height: 8),
                                         Text(
-                                          'Unggah Foto',
+                                          AppStrings.catalog.labelUploadPhoto,
                                           style: GoogleFonts.plusJakartaSans(
                                             fontSize: 10,
                                             fontWeight: FontWeight.bold,
@@ -411,16 +413,16 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                             fontWeight: FontWeight.w700,
                           ),
                           textCapitalization: TextCapitalization.words,
-                          decoration: const InputDecoration(
-                            labelText: 'Nama Barang',
-                            prefixIcon: Icon(SolarIconsOutline.box),
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelItemName,
+                            prefixIcon: const Icon(SolarIconsOutline.box),
                           ),
                           validator: (v) =>
-                              v?.isEmpty ?? true ? 'Wajib diisi' : null,
+                              v?.isEmpty ?? true ? AppStrings.common.requiredField : null,
                         ),
                         const SizedBox(height: 24),
                         Text(
-                          'Kategori Barang',
+                          AppStrings.catalog.labelCategory,
                           style: GoogleFonts.plusJakartaSans(
                             fontSize: 12,
                             fontWeight: FontWeight.w900,
@@ -492,7 +494,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                             ),
                           ],
                           decoration: InputDecoration(
-                            labelText: 'Kode SKU / Barcode',
+                            labelText: AppStrings.catalog.labelSku,
                             prefixIcon: const Icon(SolarIconsOutline.scanner),
                             suffixIcon: Row(
                               mainAxisSize: MainAxisSize.min,
@@ -503,7 +505,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                     color: AppColors.amethyst,
                                   ),
                                   onPressed: _autoGenerateSku,
-                                  tooltip: 'Auto Generate',
+                                  tooltip: AppStrings.catalog.tooltipAutoGenerate,
                                   style: IconButton.styleFrom(
                                     minimumSize: const Size(48, 48),
                                   ),
@@ -515,7 +517,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                       color: AppColors.amethyst,
                                     ),
                                     onPressed: _openScanner,
-                                    tooltip: 'Scan Barcode',
+                                    tooltip: AppStrings.catalog.tooltipScanBarcode,
                                     style: IconButton.styleFrom(
                                       minimumSize: const Size(48, 48),
                                     ),
@@ -538,9 +540,9 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                 style: GoogleFonts.plusJakartaSans(
                                   fontWeight: FontWeight.w900,
                                 ),
-                                decoration: const InputDecoration(
-                                  labelText: 'Stok Awal',
-                                  suffixText: 'pcs',
+                                decoration: InputDecoration(
+                                  labelText: AppStrings.catalog.labelInitialStock,
+                                  suffixText: AppStrings.catalog.unitPcs,
                                 ),
                                 validator: (v) {
                                   if (v?.isEmpty ?? true) return null;
@@ -560,14 +562,14 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                               child: TextFormField(
                                 controller: _minStokController,
                                 style: GoogleFonts.plusJakartaSans(),
-                                decoration: const InputDecoration(
-                                  labelText: 'Min. Stok',
-                                  suffixText: 'pcs',
+                                decoration: InputDecoration(
+                                  labelText: AppStrings.catalog.labelMinStock,
+                                  suffixText: AppStrings.catalog.unitPcs,
                                 ),
                                 validator: (v) {
                                   if (v?.isEmpty ?? true) return null;
                                   final n = int.tryParse(v!) ?? 0;
-                                  if (n < 0) return 'Min. stok tidak boleh negatif';
+                                  if (n < 0) return AppStrings.error.minStockZero;
                                   return null;
                                 },
                                 keyboardType: TextInputType.number,
@@ -579,15 +581,15 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                         TextFormField(
                           controller: _hargaBeliController,
                           style: GoogleFonts.plusJakartaSans(),
-                          decoration: const InputDecoration(
-                            labelText: 'Harga Modal (Beli)',
-                            prefixIcon: Icon(SolarIconsOutline.wallet),
-                            suffixText: 'IDR',
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelPurchasePrice,
+                            prefixIcon: const Icon(SolarIconsOutline.wallet),
+                            suffixText: AppStrings.catalog.currencyIdr,
                           ),
                           validator: (v) {
                             if (v?.isEmpty ?? true) return null;
                             final n = int.tryParse(v!) ?? 0;
-                            if (n < 0) return 'Harga tidak boleh negatif';
+                            if (n < 0) return AppStrings.error.minStockZero;
                             return null;
                           },
                           keyboardType: TextInputType.number,
@@ -599,16 +601,16 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                             fontWeight: FontWeight.bold,
                             color: AppColors.amethyst,
                           ),
-                          decoration: const InputDecoration(
-                            labelText: 'Harga Jual',
-                            prefixIcon: Icon(SolarIconsOutline.wadOfMoney),
-                            suffixText: 'IDR',
+                          decoration: InputDecoration(
+                            labelText: AppStrings.catalog.labelSellingPrice,
+                            prefixIcon: const Icon(SolarIconsOutline.wadOfMoney),
+                            suffixText: AppStrings.catalog.currencyIdr,
                           ),
                           keyboardType: TextInputType.number,
                           validator: (v) {
-                            if (v?.isEmpty ?? true) return 'Wajib diisi';
+                            if (v?.isEmpty ?? true) return AppStrings.common.requiredField;
                             final jual = int.tryParse(v!) ?? 0;
-                            if (jual < 0) return 'Harga tidak boleh negatif';
+                            if (jual < 0) return AppStrings.error.minStockZero;
                             final beli =
                                 int.tryParse(_hargaBeliController.text) ?? 0;
                             if (jual < beli) {
@@ -641,14 +643,16 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : Text(
-                              isEdit ? 'SIMPAN PERUBAHAN' : 'SIMPAN INVENTARIS',
-                              style: GoogleFonts.plusJakartaSans(
-                                fontWeight: FontWeight.w900,
-                                fontSize: 18,
-                                color: Colors.white,
+                            : Text(
+                                isEdit
+                                    ? AppStrings.catalog.buttonSaveChangeInventory
+                                    : AppStrings.catalog.buttonSaveInventory,
+                                style: GoogleFonts.plusJakartaSans(
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 18,
+                                  color: Colors.white,
+                                ),
                               ),
-                            ),
                     ),
                     const SizedBox(height: 80),
                   ],
@@ -684,7 +688,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
             ),
             const SizedBox(height: 24),
             Text(
-              'AMBIL FOTO BARANG',
+              AppStrings.catalog.dialogPickPhotoTitle,
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.w900,
                 fontSize: 18,
@@ -695,7 +699,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
               children: [
                 _buildSourceOption(
                   icon: SolarIconsOutline.camera,
-                  label: 'Kamera',
+                  label: AppStrings.common.camera,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(true);
@@ -704,7 +708,7 @@ class _CreateBarangScreenState extends ConsumerState<CreateBarangScreen> {
                 const SizedBox(width: 16),
                 _buildSourceOption(
                   icon: SolarIconsOutline.gallery,
-                  label: 'Galeri',
+                  label: AppStrings.common.gallery,
                   onTap: () {
                     Navigator.pop(context);
                     _pickImage(false);

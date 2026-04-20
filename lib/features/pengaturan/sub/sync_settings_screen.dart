@@ -5,12 +5,13 @@ import 'package:solar_icons/solar_icons.dart';
 import 'package:flutter/services.dart';
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/pengaturan_provider.dart';
-import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/system_providers.dart';
 import '../../../core/services/migration_service.dart';
 import '../../../core/models/user_profile.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/services/session_manager.dart';
 import '../../../core/widgets/atelier_header.dart';
+import '../../../core/constants/app_strings.dart';
 
 class SyncSettingsScreen extends ConsumerStatefulWidget {
   const SyncSettingsScreen({super.key});
@@ -28,20 +29,17 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('Migrasi Data ke Cloud'),
-        content: const Text(
-          'Tindakan ini akan mengenkripsi dan mengunggah data lama Anda ke Firestore untuk pertama kali. '
-          'Pastikan Anda memiliki koneksi internet yang stabil.',
-        ),
+        title: Text(AppStrings.dataCenter.migrationTitle),
+        content: Text(AppStrings.dataCenter.migrationDesc),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context, false),
-            child: const Text('Batal'),
+            child: Text(AppStrings.common.cancel),
           ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(backgroundColor: Colors.amber),
-            child: const Text('Migrasi Sekarang'),
+            child: Text(AppStrings.dataCenter.migrationAction),
           ),
         ],
       ),
@@ -55,10 +53,8 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
       await _migrationService.migrateToEncryption(settings.bengkelId);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text(
-              'Migrasi Berhasil! Data Anda kini terenkripsi di Cloud.',
-            ),
+          SnackBar(
+            content: Text(AppStrings.dataCenter.migrationSuccess),
             backgroundColor: Colors.green,
           ),
         );
@@ -67,7 +63,7 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('Migrasi Gagal: $e'),
+            content: Text('${AppStrings.error.generic}: $e'),
             backgroundColor: Colors.red,
           ),
         );
@@ -85,16 +81,16 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
     final settings = ref.watch(settingsProvider);
     final profile = ref.watch(currentProfileProvider);
 
-    final sessionStatus = ref.watch(sessionStatusStreamProvider).value ?? SessionStatus.full;
+    final sessionStatus = ref.watch(currentSessionStatusProvider).value ?? SessionStatus.full;
     final isActive = settings.bengkelId.isNotEmpty;
 
     return Scaffold(
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          const SliverAtelierHeaderSub(
-            title: 'Pusat Data Bengkel',
-            subtitle: 'Simpan otomatis ke internet agar data tidak hilang.',
+          SliverAtelierHeaderSub(
+            title: AppStrings.dataCenter.title,
+            subtitle: AppStrings.dataCenter.subtitle,
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -103,13 +99,13 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildSectionHeader('Status Penyimpanan'),
+                  _buildSectionHeader(AppStrings.dataCenter.storageStatus),
                   _buildStatusCard(theme, isDark, isActive, sessionStatus),
                   const SizedBox(height: 24),
-                  _buildSectionHeader('Informasi Bengkel'),
+                  _buildSectionHeader(AppStrings.dataCenter.workshopInfo),
                   _buildInfoCard(theme, isDark, settings, profile, settings.bengkelId),
                   const SizedBox(height: 32),
-                  _buildSectionHeader('Aksi Pemeliharaan'),
+                  _buildSectionHeader(AppStrings.dataCenter.maintenanceActions),
                   _buildMigrationButton(theme, isDark),
                   const SizedBox(height: 12),
                   _buildSecurityInfo(theme, isDark),
@@ -139,23 +135,23 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
 
   Widget _buildStatusCard(ThemeData theme, bool isDark, bool isActive, SessionStatus sessionStatus) {
     var statusColor = isActive ? AppColors.success : AppColors.error;
-    var statusTitle = isActive ? 'Sudah Terhubung' : 'Belum Terhubung';
+    var statusTitle = isActive ? AppStrings.dataCenter.connected : AppStrings.dataCenter.notConnected;
     var statusSubtitle = isActive
-        ? 'Semua data bengkel Anda sudah aman di internet.'
-        : 'Hubungkan ke bengkel untuk mulai menyimpan data.';
+        ? AppStrings.dataCenter.connectedDesc
+        : AppStrings.dataCenter.notConnectedDesc;
     var statusIcon = isActive ? SolarIconsOutline.cloudCheck : SolarIconsOutline.cloudCross;
 
     // UX-05: Override UI if session is restricted or blocked
     if (isActive) {
       if (sessionStatus == SessionStatus.blocked || sessionStatus == SessionStatus.invalid) {
         statusColor = AppColors.error;
-        statusTitle = 'Sesi Terkunci';
-        statusSubtitle = 'Akses ditutup karena terlalu lama offline. Hubungkan internet segera.';
+        statusTitle = AppStrings.dataCenter.sessionLocked;
+        statusSubtitle = AppStrings.dataCenter.sessionLockedDesc;
         statusIcon = SolarIconsOutline.shieldWarning;
       } else if (sessionStatus == SessionStatus.warning) {
         statusColor = AppColors.warning;
-        statusTitle = 'Sesi Terbatas';
-        statusSubtitle = 'Segera hubungkan internet untuk memulihkan akses penuh.';
+        statusTitle = AppStrings.dataCenter.sessionRestricted;
+        statusSubtitle = AppStrings.dataCenter.sessionRestrictedDesc;
         statusIcon = SolarIconsOutline.shieldMinimalistic;
       }
     }
@@ -236,7 +232,7 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
           _buildInfoRow(
             theme,
             SolarIconsOutline.shop,
-            'Nama Bengkel',
+            AppStrings.dataCenter.workshopName,
             settings.workshopName,
           ),
           Divider(height: 32, color: theme.colorScheme.outlineVariant),
@@ -245,7 +241,7 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
           _buildInfoRow(
             theme,
             SolarIconsOutline.user,
-            'Status Anda',
+            AppStrings.dataCenter.yourStatus,
             role,
           ),
         ],
@@ -271,9 +267,9 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
               : () {
                   Clipboard.setData(ClipboardData(text: bengkelId));
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('Bengkel ID disalin ke clipboard'),
-                      duration: Duration(seconds: 2),
+                    SnackBar(
+                      content: Text(AppStrings.dataCenter.idCopied),
+                      duration: const Duration(seconds: 2),
                       backgroundColor: AppColors.success,
                     ),
                   );
@@ -362,14 +358,14 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    'Perkuat Keamanan Data',
+                    AppStrings.dataCenter.perkuatKeamanan,
                     style: GoogleFonts.plusJakartaSans(
                       fontWeight: FontWeight.w800,
                       color: isDark ? AppColors.warning : AppColors.warning,
                     ),
                   ),
                   Text(
-                    'Gunakan sistem pengunci terbaru agar data pelanggan lebih aman.',
+                    AppStrings.dataCenter.perkuatKeamananDesc,
                     style: GoogleFonts.plusJakartaSans(
                       fontSize: 12,
                       color: theme.colorScheme.onSurfaceVariant,
@@ -403,7 +399,7 @@ class _SyncSettingsScreenState extends ConsumerState<SyncSettingsScreen> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'Pelindung Data: Nama dan nomor HP pelanggan disandikan secara rahasia. Hanya Anda yang bisa membukanya.',
+              AppStrings.dataCenter.pelindungData,
               style: GoogleFonts.inter(
                 fontSize: 11,
                 color: theme.colorScheme.onSurfaceVariant,

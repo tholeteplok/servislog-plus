@@ -35,7 +35,7 @@ void main() {
       v.owner.targetId = 1;
       box.put(v);
 
-      final list = await container.read(vehicleListProvider.future);
+      final list = container.read(vehicleListProvider).value!;
       
       expect(list.length, 1);
       expect(list.first.model, 'Vario 150');

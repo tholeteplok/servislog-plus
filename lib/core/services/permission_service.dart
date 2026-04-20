@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import '../providers/auth_provider.dart';
+import '../providers/system_providers.dart';
 import '../models/permission_models.dart';
 import '../models/user_profile.dart';
 import '../utils/permission_constants.dart';

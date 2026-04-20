@@ -18,6 +18,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import '../../core/constants/app_strings.dart';
+import '../../core/providers/sync_provider.dart';
 
 import '../../core/constants/app_colors.dart';
 import '../../core/constants/app_icons.dart';
@@ -30,12 +32,10 @@ import '../../core/providers/katalog_provider.dart';
 import '../../core/providers/home_provider.dart';
 import '../../core/providers/pengaturan_provider.dart';
 import '../../core/providers/history_provider.dart';
-import '../../core/providers/auth_provider.dart';
-import '../../core/providers/sync_provider.dart';
+import '../../core/providers/system_providers.dart';
 import '../../core/services/auth_service.dart';
 import '../../core/services/drive_backup_service.dart';
 import '../../core/services/device_session_service.dart';
-import '../../core/services/session_manager.dart';
 import '../../core/widgets/standard_dialog.dart';
 import '../home/home_screen.dart';
 import '../pelanggan/pelanggan_screen.dart';
@@ -86,32 +86,32 @@ class _NavItem {
   });
 }
 
-const _navItems = [
-  _NavItem(
-    index: 0,
-    icon: AppIcons.navHome,
-    iconSelected: AppIcons.navHomeSelected,
-    label: 'Beranda',
-  ),
-  _NavItem(
-    index: 1,
-    icon: AppIcons.navInventory,
-    iconSelected: AppIcons.navInventorySelected,
-    label: 'Inventaris',
-  ),
-  _NavItem(
-    index: 2,
-    icon: AppIcons.navCustomers,
-    iconSelected: AppIcons.navCustomersSelected,
-    label: 'Pelanggan',
-  ),
-  _NavItem(
-    index: 3,
-    icon: AppIcons.navHistory,
-    iconSelected: AppIcons.navHistorySelected,
-    label: 'Riwayat',
-  ),
-];
+List<_NavItem> get _navItems => [
+      _NavItem(
+        index: 0,
+        icon: AppIcons.navHome,
+        iconSelected: AppIcons.navHomeSelected,
+        label: AppStrings.nav.home,
+      ),
+      _NavItem(
+        index: 1,
+        icon: AppIcons.navInventory,
+        iconSelected: AppIcons.navInventorySelected,
+        label: AppStrings.nav.inventory,
+      ),
+      _NavItem(
+        index: 2,
+        icon: AppIcons.navCustomers,
+        iconSelected: AppIcons.navCustomersSelected,
+        label: AppStrings.nav.customers,
+      ),
+      _NavItem(
+        index: 3,
+        icon: AppIcons.navHistory,
+        iconSelected: AppIcons.navHistorySelected,
+        label: AppStrings.nav.history,
+      ),
+    ];
 
 // ─────────────────────────────────────────────────────────────
 // MAIN SCREEN — ADAPTIVE ENTRY POINT
@@ -142,7 +142,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
       if (ref.read(isWipingProvider)) return;
       
       // 1. Invalidate providers to update UI status indicators
-      ref.invalidate(sessionStatusProvider);
+      ref.invalidate(currentSessionStatusProvider);
       ref.invalidate(deviceSessionStatusProvider);
 
       // 2. Trigger background handshake if needed (age > 30m)
@@ -258,7 +258,7 @@ class _MainScreenState extends ConsumerState<MainScreen> {
     ref.read(stokListProvider.notifier).search('');
     ref.invalidate(serviceMasterListProvider);
     ref.read(historySearchQueryProvider.notifier).set('');
-    ref.read(historySearchActiveProvider.notifier).set(false);
+    ref.read(historySearchActiveProvider.notifier).state = false;
   }
 
   void _navigateTo(int index) {
@@ -270,6 +270,19 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   void _openCreateTransaction() {
+    final services = ref.read(serviceMasterListProvider).valueOrNull ?? [];
+    
+    if (services.isEmpty) {
+      _showEmptyCatalogDialog(
+        context: context,
+        ref: ref,
+        title: 'Katalog Kosong',
+        message: 'Anda belum memiliki daftar jasa servis. Tambahkan jasa servis terlebih dahulu di menu Inventaris.',
+        icon: LucideIcons.wrench,
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreateTransactionScreen()),
@@ -277,9 +290,127 @@ class _MainScreenState extends ConsumerState<MainScreen> {
   }
 
   void _openCreateSale() {
+    final inventory = ref.read(stokListProvider);
+    
+    if (inventory.isEmpty) {
+      _showEmptyCatalogDialog(
+        context: context,
+        ref: ref,
+        title: 'Stok Kosong',
+        message: 'Belum ada barang di inventaris Anda. Tambahkan barang terlebih dahulu untuk mulai berjualan.',
+        icon: LucideIcons.package,
+      );
+      return;
+    }
+
     Navigator.push(
       context,
       MaterialPageRoute(builder: (_) => const CreateSaleScreen()),
+    );
+  }
+
+  /// Show friendly dialog when catalog is empty
+  Future<void> _showEmptyCatalogDialog({
+    required BuildContext context,
+    required WidgetRef ref,
+    required String title,
+    required String message,
+    required IconData icon,
+  }) async {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    await showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(28),
+        ),
+        backgroundColor: isDark ? AppColors.surfaceLow : Colors.white,
+        contentPadding: const EdgeInsets.fromLTRB(24, 24, 24, 16),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppColors.amethyst.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, color: AppColors.amethyst, size: 32),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 20,
+                fontWeight: FontWeight.w800,
+                color: isDark ? Colors.white : AppColors.obsidianBase,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.manrope(
+                fontSize: 14,
+                color: isDark ? Colors.white70 : Colors.black54,
+                height: 1.5,
+              ),
+            ),
+          ],
+        ),
+        actionsPadding: const EdgeInsets.fromLTRB(24, 0, 24, 16),
+        actions: [
+          Row(
+            children: [
+              Expanded(
+                child: TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  style: TextButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'Nanti Saja',
+                    style: GoogleFonts.manrope(
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.white60 : Colors.black54,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pop(dialogContext);
+                    // Pindah ke tab Inventaris (Index 1)
+                    _navigateTo(1);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.amethyst,
+                    foregroundColor: Colors.white,
+                    elevation: 0,
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                  ),
+                  child: Text(
+                    'Ke Inventaris',
+                    style: GoogleFonts.manrope(fontWeight: FontWeight.w700),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 
@@ -458,7 +589,7 @@ class _CompactLayoutState extends State<_CompactLayout> {
               break;
             case 3:
               final isActive = widget.ref.read(historySearchActiveProvider);
-              widget.ref.read(historySearchActiveProvider.notifier).set(!isActive);
+              widget.ref.read(historySearchActiveProvider.notifier).state = !isActive;
               if (isActive) widget.ref.read(historySearchQueryProvider.notifier).set('');
               break;
           }
@@ -802,14 +933,14 @@ class _RailActionSection extends StatelessWidget {
         children: [
           _ActionButton(
             icon: AppIcons.service,
-            label: 'Buat Servis',
+            label: AppStrings.nav.createService,
             gradient: true,
             onTap: onCreateTransaction,
           ),
           const SizedBox(height: 6),
           _ActionButton(
             icon: SolarIconsOutline.cartLarge,
-            label: 'Jual Barang',
+            label: AppStrings.nav.sellProduct,
             gradient: false,
             isDark: isDark,
             onTap: onCreateSale,
@@ -823,14 +954,14 @@ class _RailActionSection extends StatelessWidget {
       children: [
         _RailIconAction(
           icon: AppIcons.service,
-          tooltip: 'Buat Servis',
+          tooltip: AppStrings.nav.createService,
           onTap: onCreateTransaction,
           accent: true,
         ),
         const SizedBox(height: 6),
         _RailIconAction(
           icon: SolarIconsOutline.cartLarge,
-          tooltip: 'Jual Barang',
+          tooltip: AppStrings.nav.sellProduct,
           onTap: onCreateSale,
           accent: false,
           isDark: isDark,
@@ -1226,11 +1357,11 @@ class _BottomBar extends StatelessWidget {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            _buildItem(context, 0, SolarIconsOutline.home, 'Beranda'),
-            _buildItem(context, 1, SolarIconsOutline.box, 'Inventaris'),
+            _buildItem(context, 0, SolarIconsOutline.home, AppStrings.nav.home),
+            _buildItem(context, 1, SolarIconsOutline.box, AppStrings.nav.inventory),
             const SizedBox(width: 40),
-            _buildItem(context, 2, SolarIconsOutline.usersGroupTwoRounded, 'Pelanggan'),
-            _buildItem(context, 3, SolarIconsOutline.history, 'Riwayat'),
+            _buildItem(context, 2, SolarIconsOutline.usersGroupTwoRounded, AppStrings.nav.customers),
+            _buildItem(context, 3, SolarIconsOutline.history, AppStrings.nav.history),
           ],
         ),
       ),

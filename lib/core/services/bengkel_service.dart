@@ -4,8 +4,6 @@ import 'encryption_service.dart';
 import '../sync/sync_telemetry.dart';
 import 'device_session_service.dart';
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
 /// Service untuk mengelola Bengkel: generate ID, claim, join, dan lookup.
 class BengkelService {
   final FirebaseFirestore _firestore;
@@ -251,10 +249,3 @@ class BengkelService {
   }
 }
 
-final bengkelServiceProvider = Provider<BengkelService>((ref) {
-  return BengkelService(
-    firestore: FirebaseFirestore.instance,
-    encryption: ref.watch(encryptionServiceProvider),
-    deviceSession: ref.watch(deviceSessionServiceProvider),
-  );
-});

@@ -1,5 +1,4 @@
 import 'package:flutter/foundation.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../utils/app_logger.dart';
 import 'package:pointycastle/pointycastle.dart';
 import 'package:pointycastle/digests/sha256.dart';
@@ -363,6 +362,3 @@ class DecryptionResult {
   }
 }
 
-final encryptionServiceProvider = Provider<EncryptionService>((ref) {
-  return EncryptionService();
-});

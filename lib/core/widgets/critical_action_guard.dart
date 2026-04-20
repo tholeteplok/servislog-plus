@@ -5,8 +5,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/session_manager.dart';
-import '../services/biometric_service.dart';
 import '../providers/pengaturan_provider.dart';
+import '../providers/system_providers.dart';
 import 'security_dialogs.dart';
 
 // 🛡️ Critical Action Guard Widget
@@ -45,7 +45,7 @@ class CriticalActionGuard extends ConsumerStatefulWidget {
 
     // 0. QUICK CHECK (REACTIVE/CACHED)
     // Avoid blocking UI if access is already known to be blocked.
-    final currentAccess = ref.read(accessLevelProvider);
+    final currentAccess = ref.read(currentAccessLevelProvider);
     if (currentAccess == AccessLevel.blocked) {
       if (context.mounted) showBlockedDialog(context);
       return false;
@@ -60,12 +60,12 @@ class CriticalActionGuard extends ConsumerStatefulWidget {
         onTimeout: () {
           debugPrint('⚠️ CriticalActionGuard: Session validation timeout');
           // If timeout, fallback to current cached state
-          return ref.read(accessLevelProvider);
+          return ref.read(currentAccessLevelProvider);
         },
       );
     } catch (e) {
       debugPrint('❌ CriticalActionGuard: Session validation error: $e');
-      accessLevel = ref.read(accessLevelProvider);
+      accessLevel = ref.read(currentAccessLevelProvider);
     }
 
     if (accessLevel == AccessLevel.blocked) {

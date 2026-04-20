@@ -14,6 +14,9 @@ void main() {
 
   setUp(() {
     fakeDb = FakeObjectBoxProvider();
+    final box = fakeDb.pelangganBox as FakeBox<Pelanggan>;
+    box.queryPredicate = (item, cond) => !(item as Pelanggan).isDeleted;
+
     fakeSyncWorker = FakeSyncWorker();
 
     container = createContainer(

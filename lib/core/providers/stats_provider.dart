@@ -1,4 +1,4 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/transaction.dart';
 import '../../domain/entities/sale.dart';
 import '../../domain/entities/stok.dart';
@@ -7,7 +7,9 @@ import 'sale_providers.dart';
 import 'stok_provider.dart';
 import 'package:intl/intl.dart';
 
-part 'stats_provider.g.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+// Models
+// ─────────────────────────────────────────────────────────────────────────────
 
 class TrendData {
   final String label;
@@ -29,7 +31,6 @@ class StaffPerformance {
   final String name;
   final int count;
   final int revenue;
-
   final int totalBonus;
 
   StaffPerformance({
@@ -90,198 +91,198 @@ class TransactionStats {
   });
 }
 
-@riverpod
-class Stats extends _$Stats {
-  @override
-  TransactionStats build() {
-    final transactionListAsync = ref.watch(transactionListProvider);
-    final saleListAsync = ref.watch(saleListProvider);
-    final stokList = ref.watch(stokListProvider);
-    
-    // Default stats while loading
-    final defaultStats = TransactionStats(
-      lowStockCount: stokList.where((s) => s.isLowStock).length,
-      emptyStockCount: stokList.where((s) => s.jumlah <= 0).length,
-    );
-    
-    return transactionListAsync.maybeWhen(
-      data: (transactions) => saleListAsync.maybeWhen(
-        data: (sales) => _calculateStats(transactions, sales, stokList),
-        orElse: () => defaultStats,
-      ),
-      orElse: () => defaultStats,
-    );
+// ─────────────────────────────────────────────────────────────────────────────
+// Business Logic Functions
+// ─────────────────────────────────────────────────────────────────────────────
+
+TransactionStats calculateStats(
+  List<Transaction> transactions,
+  List<Sale> sales,
+  List<Stok> stokList,
+) {
+  DateTime now = DateTime.now();
+  DateTime todayStart = DateTime(now.year, now.month, now.day);
+  DateTime weekStart = now.subtract(const Duration(days: 7));
+  DateTime monthStart = DateTime(now.year, now.month, 1);
+
+  int daily = 0, weekly = 0, monthly = 0;
+  int todayProfitVal = 0, weeklyProfitVal = 0, monthlyProfitVal = 0;
+  int todayVisitors = 0, todayWaiting = 0, todayProcessing = 0;
+
+  Map<int, int> hourlyRevenueMap = {};
+  Map<int, int> hourlyProfitMap = {};
+  Map<String, int> dailyRevenueMap = {};
+  Map<String, int> dailyProfitMap = {};
+
+  Map<String, int> topServicesMap = {};
+  Map<String, int> topServicesRevenueMap = {};
+  Map<String, int> topProductsMap = {};
+  Map<String, int> topProductsRevenueMap = {};
+  Map<String, StaffPerformance> staffMap = {};
+
+  Map<String, int> payToday = {};
+  Map<String, int> pay7D = {};
+  Map<String, int> pay30D = {};
+
+  void updatePaymentStats(Map<String, int> map, String? method, int amount) {
+    if (method == null || method.isEmpty) return;
+    map[method] = (map[method] ?? 0) + amount;
   }
 
-  TransactionStats _calculateStats(
-    List<Transaction> transactions,
-    List<Sale> sales,
-    List<Stok> stokList,
-  ) {
-    DateTime now = DateTime.now();
-    DateTime todayStart = DateTime(now.year, now.month, now.day);
-    DateTime weekStart = now.subtract(const Duration(days: 7));
-    DateTime monthStart = DateTime(now.year, now.month, 1);
-
-    int daily = 0, weekly = 0, monthly = 0;
-    int todayProfitVal = 0, weeklyProfitVal = 0, monthlyProfitVal = 0;
-    int todayVisitors = 0, todayWaiting = 0, todayProcessing = 0;
-
-    Map<int, int> hourlyRevenueMap = {};
-    Map<int, int> hourlyProfitMap = {};
-    Map<String, int> dailyRevenueMap = {};
-    Map<String, int> dailyProfitMap = {};
-
-    Map<String, int> topServicesMap = {};
-    Map<String, int> topServicesRevenueMap = {};
-    Map<String, int> topProductsMap = {};
-    Map<String, int> topProductsRevenueMap = {};
-    Map<String, StaffPerformance> staffMap = {};
-
-    Map<String, int> payToday = {};
-    Map<String, int> pay7D = {};
-    Map<String, int> pay30D = {};
-
-    void updatePaymentStats(Map<String, int> map, String? method, int amount) {
-      if (method == null || method.isEmpty) return;
-      map[method] = (map[method] ?? 0) + amount;
-    }
-
-    // Process Transactions
-    for (var t in transactions) {
-      if (t.serviceStatus == ServiceStatus.lunas) {
-        if (t.createdAt.isAfter(todayStart)) {
-          daily += t.totalAmount;
-          todayProfitVal += t.totalProfit;
-          todayVisitors++;
-          updatePaymentStats(payToday, t.paymentMethod, t.totalAmount);
-        }
-        if (t.createdAt.isAfter(weekStart)) {
-          weekly += t.totalAmount;
-          weeklyProfitVal += t.totalProfit;
-          updatePaymentStats(pay7D, t.paymentMethod, t.totalAmount);
-        }
-        if (t.createdAt.isAfter(monthStart)) {
-          monthly += t.totalAmount;
-          monthlyProfitVal += t.totalProfit;
-          updatePaymentStats(pay30D, t.paymentMethod, t.totalAmount);
-        }
-
-        // Trends (Hourly for today)
-        if (t.createdAt.isAfter(todayStart)) {
-          int hour = t.createdAt.hour;
-          hourlyRevenueMap[hour] = (hourlyRevenueMap[hour] ?? 0) + t.totalAmount;
-          hourlyProfitMap[hour] = (hourlyProfitMap[hour] ?? 0) + t.totalProfit;
-        }
-
-        String dayKey = DateFormat('dd/MM').format(t.createdAt);
-        dailyRevenueMap[dayKey] = (dailyRevenueMap[dayKey] ?? 0) + t.totalAmount;
-        dailyProfitMap[dayKey] = (dailyProfitMap[dayKey] ?? 0) + t.totalProfit;
-
-        // Top Items (Services)
-        for (var item in t.items) {
-          if (item.isService) {
-            topServicesMap[item.name] = (topServicesMap[item.name] ?? 0) + 1;
-            topServicesRevenueMap[item.name] = (topServicesRevenueMap[item.name] ?? 0) + item.price;
-          } else {
-            topProductsMap[item.name] = (topProductsMap[item.name] ?? 0) + 1;
-            topProductsRevenueMap[item.name] = (topProductsRevenueMap[item.name] ?? 0) + item.price;
-          }
-        }
-
-        // Staff (Mechanic)
-        if (t.mechanic.target != null) {
-          String sName = t.mechanic.target!.name;
-          final existing = staffMap[sName];
-          staffMap[sName] = StaffPerformance(
-            name: sName,
-            count: (existing?.count ?? 0) + 1,
-            revenue: (existing?.revenue ?? 0) + t.totalAmount,
-            totalBonus: (existing?.totalBonus ?? 0) + t.totalMechanicBonus,
-          );
-        }
-      } else {
-        if (t.createdAt.isAfter(todayStart)) {
-          if (t.serviceStatus == ServiceStatus.antri) todayWaiting++;
-          if (t.serviceStatus == ServiceStatus.dikerjakan) todayProcessing++;
-        }
-      }
-    }
-
-    // Process Sales
-    for (var s in sales) {
-      if (s.createdAt.isAfter(todayStart)) {
-        daily += s.totalPrice;
-        todayProfitVal += s.totalProfit;
+  // Process Transactions
+  for (var t in transactions) {
+    if (t.serviceStatus == ServiceStatus.lunas) {
+      if (t.createdAt.isAfter(todayStart)) {
+        daily += t.totalAmount;
+        todayProfitVal += t.totalProfit;
         todayVisitors++;
-        updatePaymentStats(payToday, s.paymentMethod, s.totalPrice);
+        updatePaymentStats(payToday, t.paymentMethod, t.totalAmount);
       }
-      if (s.createdAt.isAfter(weekStart)) {
-        weekly += s.totalPrice;
-        weeklyProfitVal += s.totalProfit;
-        updatePaymentStats(pay7D, s.paymentMethod, s.totalPrice);
+      if (t.createdAt.isAfter(weekStart)) {
+        weekly += t.totalAmount;
+        weeklyProfitVal += t.totalProfit;
+        updatePaymentStats(pay7D, t.paymentMethod, t.totalAmount);
       }
-      if (s.createdAt.isAfter(monthStart)) {
-        monthly += s.totalPrice;
-        monthlyProfitVal += s.totalProfit;
-        updatePaymentStats(pay30D, s.paymentMethod, s.totalPrice);
+      if (t.createdAt.isAfter(monthStart)) {
+        monthly += t.totalAmount;
+        monthlyProfitVal += t.totalProfit;
+        updatePaymentStats(pay30D, t.paymentMethod, t.totalAmount);
       }
 
-      String dayKey = DateFormat('dd/MM').format(s.createdAt);
-      dailyRevenueMap[dayKey] = (dailyRevenueMap[dayKey] ?? 0) + s.totalPrice;
-      dailyProfitMap[dayKey] = (dailyProfitMap[dayKey] ?? 0) + s.totalProfit;
+      if (t.createdAt.isAfter(todayStart)) {
+        int hour = t.createdAt.hour;
+        hourlyRevenueMap[hour] = (hourlyRevenueMap[hour] ?? 0) + t.totalAmount;
+        hourlyProfitMap[hour] = (hourlyProfitMap[hour] ?? 0) + t.totalProfit;
+      }
 
-      topProductsMap[s.itemName] = (topProductsMap[s.itemName] ?? 0) + 1;
-      topProductsRevenueMap[s.itemName] = (topProductsRevenueMap[s.itemName] ?? 0) + s.totalPrice;
+      String dayKey = DateFormat('dd/MM').format(t.createdAt);
+      dailyRevenueMap[dayKey] = (dailyRevenueMap[dayKey] ?? 0) + t.totalAmount;
+      dailyProfitMap[dayKey] = (dailyProfitMap[dayKey] ?? 0) + t.totalProfit;
+
+      for (var item in t.items) {
+        if (item.isService) {
+          topServicesMap[item.name] = (topServicesMap[item.name] ?? 0) + 1;
+          topServicesRevenueMap[item.name] = (topServicesRevenueMap[item.name] ?? 0) + item.price;
+        } else {
+          topProductsMap[item.name] = (topProductsMap[item.name] ?? 0) + 1;
+          topProductsRevenueMap[item.name] = (topProductsRevenueMap[item.name] ?? 0) + item.price;
+        }
+      }
+
+      if (t.mechanic.target != null) {
+        String sName = t.mechanic.target!.name;
+        final existing = staffMap[sName];
+        staffMap[sName] = StaffPerformance(
+          name: sName,
+          count: (existing?.count ?? 0) + 1,
+          revenue: (existing?.revenue ?? 0) + t.totalAmount,
+          totalBonus: (existing?.totalBonus ?? 0) + t.totalMechanicBonus,
+        );
+      }
+    } else {
+      if (t.createdAt.isAfter(todayStart)) {
+        if (t.serviceStatus == ServiceStatus.antri) todayWaiting++;
+        if (t.serviceStatus == ServiceStatus.dikerjakan) todayProcessing++;
+      }
+    }
+  }
+
+  // Process Sales
+  for (var s in sales) {
+    if (s.createdAt.isAfter(todayStart)) {
+      daily += s.totalPrice;
+      todayProfitVal += s.totalProfit;
+      todayVisitors++;
+      updatePaymentStats(payToday, s.paymentMethod, s.totalPrice);
+    }
+    if (s.createdAt.isAfter(weekStart)) {
+      weekly += s.totalPrice;
+      weeklyProfitVal += s.totalProfit;
+      updatePaymentStats(pay7D, s.paymentMethod, s.totalPrice);
+    }
+    if (s.createdAt.isAfter(monthStart)) {
+      monthly += s.totalPrice;
+      monthlyProfitVal += s.totalProfit;
+      updatePaymentStats(pay30D, s.paymentMethod, s.totalPrice);
     }
 
-    // Convert Trends to Lists
-    List<TrendData> hourlyTrend = List.generate(24, (h) => TrendData(
-      label: '$h:00',
-      revenue: hourlyRevenueMap[h] ?? 0,
-      profit: hourlyProfitMap[h] ?? 0,
-    ));
+    String dayKey = DateFormat('dd/MM').format(s.createdAt);
+    dailyRevenueMap[dayKey] = (dailyRevenueMap[dayKey] ?? 0) + s.totalPrice;
+    dailyProfitMap[dayKey] = (dailyProfitMap[dayKey] ?? 0) + s.totalProfit;
 
-    List<TrendData> dailyTrend = dailyRevenueMap.keys.map((day) => TrendData(
-      label: day,
-      revenue: dailyRevenueMap[day] ?? 0,
-      profit: dailyProfitMap[day] ?? 0,
-    )).toList()..sort((a, b) => a.label.compareTo(b.label));
-
-    // Final sorting for other stats
-    List<TopItem> topServices = topServicesMap.entries
-        .map((e) => TopItem(name: e.key, count: e.value, revenue: topServicesRevenueMap[e.key] ?? 0))
-        .toList()..sort((a, b) => b.count.compareTo(a.count));
-
-    List<TopItem> topProducts = topProductsMap.entries
-        .map((e) => TopItem(name: e.key, count: e.value, revenue: topProductsRevenueMap[e.key] ?? 0))
-        .toList()..sort((a, b) => b.count.compareTo(a.count));
-
-    List<StaffPerformance> staffPerformance = staffMap.values.toList()
-        ..sort((a, b) => b.revenue.compareTo(a.revenue));
-
-    return TransactionStats(
-      todayPendapatan: daily,
-      weeklyPendapatan: weekly,
-      monthlyPendapatan: monthly,
-      todayProfit: todayProfitVal,
-      weeklyProfit: weeklyProfitVal,
-      monthlyProfit: monthlyProfitVal,
-      todayVisitorCount: todayVisitors,
-      todayActiveCount: todayWaiting + todayProcessing,
-      todayWaitingCount: todayWaiting,
-      todayProcessingCount: todayProcessing,
-      lowStockCount: stokList.where((s) => s.isLowStock).length,
-      emptyStockCount: stokList.where((s) => s.jumlah <= 0).length,
-      totalOrders: transactions.length + sales.length,
-      hourlyTrend: hourlyTrend,
-      dailyTrend: dailyTrend,
-      topServices: topServices,
-      topProducts: topProducts,
-      staffPerformance: staffPerformance,
-      paymentStatsToday: payToday,
-      paymentStats7D: pay7D,
-      paymentStats30D: pay30D,
-    );
+    topProductsMap[s.itemName] = (topProductsMap[s.itemName] ?? 0) + 1;
+    topProductsRevenueMap[s.itemName] = (topProductsRevenueMap[s.itemName] ?? 0) + s.totalPrice;
   }
+
+  List<TrendData> hourlyTrend = List.generate(24, (h) => TrendData(
+    label: '$h:00',
+    revenue: hourlyRevenueMap[h] ?? 0,
+    profit: hourlyProfitMap[h] ?? 0,
+  ));
+
+  List<TrendData> dailyTrend = dailyRevenueMap.keys.map((day) => TrendData(
+    label: day,
+    revenue: dailyRevenueMap[day] ?? 0,
+    profit: dailyProfitMap[day] ?? 0,
+  )).toList()..sort((a, b) => a.label.compareTo(b.label));
+
+  List<TopItem> topServices = topServicesMap.entries
+      .map((e) => TopItem(name: e.key, count: e.value, revenue: topServicesRevenueMap[e.key] ?? 0))
+      .toList()..sort((a, b) => b.count.compareTo(a.count));
+
+  List<TopItem> topProducts = topProductsMap.entries
+      .map((e) => TopItem(name: e.key, count: e.value, revenue: topProductsRevenueMap[e.key] ?? 0))
+      .toList()..sort((a, b) => b.count.compareTo(a.count));
+
+  List<StaffPerformance> staffPerformance = staffMap.values.toList()
+      ..sort((a, b) => b.revenue.compareTo(a.revenue));
+
+  return TransactionStats(
+    todayPendapatan: daily,
+    weeklyPendapatan: weekly,
+    monthlyPendapatan: monthly,
+    todayProfit: todayProfitVal,
+    weeklyProfit: weeklyProfitVal,
+    monthlyProfit: monthlyProfitVal,
+    todayVisitorCount: todayVisitors,
+    todayActiveCount: todayWaiting + todayProcessing,
+    todayWaitingCount: todayWaiting,
+    todayProcessingCount: todayProcessing,
+    lowStockCount: stokList.where((s) => s.isLowStock).length,
+    emptyStockCount: stokList.where((s) => s.jumlah <= 0).length,
+    totalOrders: transactions.length + sales.length,
+    hourlyTrend: hourlyTrend,
+    dailyTrend: dailyTrend,
+    topServices: topServices,
+    topProducts: topProducts,
+    staffPerformance: staffPerformance,
+    paymentStatsToday: payToday,
+    paymentStats7D: pay7D,
+    paymentStats30D: pay30D,
+  );
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final statsProvider = Provider<TransactionStats>((ref) {
+  final transactionListAsync = ref.watch(transactionListProvider);
+  final saleListAsync = ref.watch(saleListProvider);
+  final stokList = ref.watch(stokListProvider);
+  
+  final defaultStats = TransactionStats(
+    lowStockCount: stokList.where((s) => s.isLowStock).length,
+    emptyStockCount: stokList.where((s) => s.jumlah <= 0).length,
+  );
+  
+  // Use .when for cleaner logic in standard Providers
+  return transactionListAsync.when(
+    data: (transactions) => saleListAsync.maybeWhen(
+      data: (sales) => calculateStats(transactions, sales, stokList),
+      orElse: () => defaultStats,
+    ),
+    loading: () => defaultStats,
+    error: (e, s) => defaultStats,
+  );
+});

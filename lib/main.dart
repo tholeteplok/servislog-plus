@@ -6,9 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'core/providers/objectbox_provider.dart';
-import 'core/providers/system_providers.dart';
 import 'core/providers/pengaturan_provider.dart';
-import 'core/providers/auth_provider.dart';
+import 'core/providers/system_providers.dart';
 import 'core/providers/inactivity_monitor_provider.dart';
 import 'core/constants/app_theme.dart';
 import 'core/models/user_profile.dart';
@@ -18,7 +17,6 @@ import 'features/auth/screens/onboarding_intro_screen.dart';
 import 'features/auth/screens/onboarding_screen.dart';
 import 'features/auth/screens/unlock_screen.dart';
 import 'features/auth/screens/splash_screen.dart';
-import 'core/services/encryption_service.dart';
 import 'package:flutter_phoenix/flutter_phoenix.dart';
 import 'package:device_info_plus/device_info_plus.dart';
 import 'core/sync/sync_telemetry.dart';
@@ -57,9 +55,6 @@ void main() async {
 
   // Initialize Shared Preferences
   final prefs = await SharedPreferences.getInstance();
-
-  // Initialize Encryption
-  await EncryptionService().init();
 
   runApp(
     ProviderScope(
@@ -231,12 +226,13 @@ class AuthGate extends ConsumerWidget {
             return const OnboardingScreen();
           case AuthState.authenticated:
             final bengkelId = container.profile?.bengkelId;
-            final encryption = EncryptionService();
+            final encryption = ref.watch(encryptionServiceProvider);
+            
             if (bengkelId != null && !encryption.isInitialized) {
               return UnlockScreen(
                 bengkelId: bengkelId,
                 onUnlocked: () async {
-                  // Re-initialize encryption context and trigger reload
+                  // Re-initialize encryption context using the SHARED instance
                   await encryption.init();
                   if (context.mounted) {
                     ref.invalidate(authStateProvider);

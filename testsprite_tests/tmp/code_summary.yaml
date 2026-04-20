@@ -1,0 +1,72 @@
+version: "2"
+type: frontend
+tech_stack:
+  - Dart
+  - Flutter
+  - Riverpod
+  - ObjectBox
+  - Firebase Auth
+  - Cloud Firestore
+routes:
+  - path: /login
+    file: lib/features/auth/screens/login_screen.dart
+    auth_required: false
+    description: User authentication entry point via Email/Password or Biometric.
+  - path: /onboarding
+    file: lib/features/auth/screens/onboarding_screen.dart
+    auth_required: true
+    description: Initial setup to create or join a bengkel (workshop).
+  - path: /unlock
+    file: lib/features/auth/screens/unlock_screen.dart
+    auth_required: true
+    description: Secure screen to unlock local encrypted session.
+  - path: /main
+    file: lib/features/main/adaptive_layout.dart
+    auth_required: true
+    description: Main dashboard and navigation wrapper for core features.
+  - path: /transaction
+    file: lib/features/transactions/screens/transaction_list_screen.dart
+    auth_required: true
+    description: List of service transactions.
+features:
+  - name: User Authentication
+    description: Secure login system using Firebase Auth and encrypted local storage.
+    files:
+      - lib/features/auth/screens/login_screen.dart
+      - lib/core/providers/system_providers.dart
+    entry_route: /login
+    user_interactions:
+      - Fill email input
+      - Fill password input
+      - Click Login button
+      - Alternately authenticate via Biometrics
+    api_calls:
+      - method: POST
+        endpoint: firebase_auth/signInWithEmailAndPassword
+    auth_required: false
+  - name: Bengkel Registration
+    description: Registering a new workshop unit.
+    files:
+      - lib/features/auth/screens/create_bengkel_screen.dart
+      - lib/core/services/bengkel_service.dart
+    entry_route: /onboarding
+    user_interactions:
+      - Enter Bengkel name
+      - Provide Setup PIN
+      - Submit to create workshop
+    api_calls:
+      - method: POST
+        endpoint: firestore.collection('bengkel')
+    auth_required: true
+  - name: End-to-End Encryption Setup
+    description: Setup and unlock AES-256 GCM encrypted databases.
+    files:
+      - lib/features/auth/screens/unlock_screen.dart
+      - lib/core/services/encryption_service.dart
+    entry_route: /unlock
+    user_interactions:
+      - Input PIN
+      - Tap Unlock Button
+    api_calls: []
+    auth_required: true
+known_limitations: []

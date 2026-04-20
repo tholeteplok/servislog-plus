@@ -1,19 +1,13 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import '../services/firestore_sync_service.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../services/sync_worker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'objectbox_provider.dart';
-import 'auth_provider.dart';
-import 'pengaturan_provider.dart'; // FIX: import settings untuk syncWifiOnly
-import '../services/device_session_service.dart';
-import '../services/session_manager.dart';
+import 'system_providers.dart';
+import 'pengaturan_provider.dart';
 
-part 'sync_provider.g.dart';
-
-@Riverpod(keepAlive: true)
-FirestoreSyncService firestoreSyncService(FirestoreSyncServiceRef ref) {
-  return FirestoreSyncService();
-}
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Sync State Models
+// ─────────────────────────────────────────────────────────────────────────────
 
 class SyncStatusState {
   final SyncWorkerState state;
@@ -27,28 +21,35 @@ class SyncStatusState {
   }) {
     return SyncStatusState(
       state: state ?? this.state,
-      lastSyncedAt:
-          lastSyncedAt ?? this.lastSyncedAt,
+      lastSyncedAt: lastSyncedAt ?? this.lastSyncedAt,
     );
   }
 }
 
-@riverpod
-class SyncStatus extends _$SyncStatus {
-  @override
-  SyncStatusState build() => SyncStatusState(state: SyncWorkerState.idle);
+// ─────────────────────────────────────────────────────────────────────────────
+// 🕹️ Sync Notifiers
+// ─────────────────────────────────────────────────────────────────────────────
+
+class SyncStatusNotifier extends StateNotifier<SyncStatusState> {
+  SyncStatusNotifier() : super(SyncStatusState(state: SyncWorkerState.idle));
 
   void setState(SyncWorkerState newState) {
     state = state.copyWith(
       state: newState,
-      lastSyncedAt:
-          newState == SyncWorkerState.success ? DateTime.now() : state.lastSyncedAt,
+      lastSyncedAt: newState == SyncWorkerState.success ? DateTime.now() : state.lastSyncedAt,
     );
   }
 }
 
-@Riverpod(keepAlive: true)
-SyncWorker? syncWorker(SyncWorkerRef ref) {
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final syncStatusProvider = StateNotifierProvider<SyncStatusNotifier, SyncStatusState>((ref) {
+  return SyncStatusNotifier();
+});
+
+final syncWorkerProvider = Provider<SyncWorker?>((ref) {
   final profile = ref.watch(currentProfileProvider);
   if (profile == null || profile.bengkelId.isEmpty) return null;
 
@@ -57,12 +58,7 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
   final deviceService = ref.watch(deviceSessionServiceProvider);
   final sessionManager = ref.watch(sessionManagerProvider);
 
-  // FIX [PERINGATAN]: Baca setting syncWifiOnly dan teruskan ke SyncWorker.
-  // Jika user mengubah setting ini, provider akan rebuild dan worker baru
-  // akan dibuat dengan setting yang benar.
-  // FIX: settingsProvider is AutoDispose (cannot be ref.watch in keepAlive providers).
-  // We read once at build time; the SyncWorker will be recreated if this
-  // provider is invalidated due to any other keepAlive dependency changing.
+  // Read settings once; the worker will be recreated if profile changes
   final settings = ref.read(settingsProvider);
 
   final worker = SyncWorker(
@@ -72,9 +68,11 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
     sessionManager: sessionManager,
     bengkelId: profile.bengkelId,
     userId: FirebaseAuth.instance.currentUser?.uid,
-    syncWifiOnly: settings.syncWifiOnly, // ← setting kini diteruskan
+    syncWifiOnly: settings.syncWifiOnly,
     onStateChanged: (state) {
-      ref.read(syncStatusProvider.notifier).setState(state);
+      if (ref.exists(syncStatusProvider)) {
+        ref.read(syncStatusProvider.notifier).setState(state);
+      }
     },
   );
 
@@ -85,4 +83,4 @@ SyncWorker? syncWorker(SyncWorkerRef ref) {
   });
 
   return worker;
-}
+});

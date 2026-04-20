@@ -371,6 +371,37 @@ exports.setRole = functions.https.onCall(async (data, context) => {
 
 
 // ─────────────────────────────────────────────────────────────
+// PHASE 1.1c: onBengkelCreate Cloud Function
+// Automatically assigns the 'owner' role to the creator of a new Bengkel.
+// ─────────────────────────────────────────────────────────────
+
+exports.onBengkelCreate = functions.firestore
+  .document('bengkel/{bengkelId}')
+  .onCreate(async (snap, context) => {
+    const data = snap.data();
+    const ownerUid = data.ownerUid;
+    const bengkelId = context.params.bengkelId;
+
+    if (ownerUid && bengkelId) {
+      try {
+        // 1. Set Custom Claims
+        await admin.auth().setCustomUserClaims(ownerUid, { role: 'owner', bengkelId: bengkelId });
+        
+        // 2. Update user profile
+        await db.collection('users').doc(ownerUid).set({
+           role: 'owner',
+           bengkelId: bengkelId,
+           updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+        
+        console.log(`[onBengkelCreate] Granted owner role to ${ownerUid} for bengkel ${bengkelId}`);
+      } catch (error) {
+        console.error('[onBengkelCreate] Error granting owner role:', error);
+      }
+    }
+  });
+
+// ─────────────────────────────────────────────────────────────
 // CLEANUP: Rate Limit Data (dipanggil otomatis setiap jam)
 // Menghapus data rate limiting yang sudah kedaluwarsa (> 5 menit)
 // agar Firestore tidak penuh dengan data sementara.

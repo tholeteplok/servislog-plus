@@ -6,12 +6,14 @@ import 'package:intl/intl.dart';
 
 import '../../../core/constants/app_colors.dart';
 import '../../../core/providers/pengaturan_provider.dart';
+import '../../../core/providers/system_providers.dart';
 import '../../../core/services/device_session_service.dart';
 import '../../../core/widgets/standard_dialog.dart';
 import '../../../core/providers/sync_provider.dart';
 import '../../../core/services/sync_worker.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../core/widgets/atelier_header.dart';
+import '../../../core/constants/app_strings.dart';
 
 class SecurityDataCenterScreen extends ConsumerWidget {
   const SecurityDataCenterScreen({super.key});
@@ -25,10 +27,9 @@ class SecurityDataCenterScreen extends ConsumerWidget {
       body: CustomScrollView(
         physics: const BouncingScrollPhysics(),
         slivers: [
-          const SliverAtelierHeaderSub(
-            title: 'Keamanan & Data',
-            subtitle:
-                'Pusat kendali keamanan, sinkronisasi cloud, dan otorisasi perangkat.',
+          SliverAtelierHeaderSub(
+            title: AppStrings.security.title,
+            subtitle: AppStrings.security.subtitle,
             showBackButton: true,
           ),
           SliverPadding(
@@ -67,8 +68,8 @@ class ShieldSection extends ConsumerWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(
-          title: 'SHIELD PROTECTION',
+        SectionHeader(
+          title: AppStrings.security.shieldProtection,
           icon: LucideIcons.shieldCheck,
           color: AppColors.success,
         ),
@@ -105,8 +106,8 @@ class ShieldSection extends ConsumerWidget {
               ),
               const SizedBox(height: 20),
               SettingToggle(
-                title: 'Auto-Lock 30 Menit',
-                subtitle: 'Kunci aplikasi otomatis jika tidak digunakan.',
+                title: AppStrings.security.autoLock30m,
+                subtitle: AppStrings.security.autoLockDesc,
                 value: settings.autoLock30m,
                 icon: LucideIcons.timer,
                 onChanged: (v) => ref.read(settingsProvider.notifier).setAutoLock30m(v),
@@ -132,24 +133,25 @@ class SyncSection extends ConsumerWidget {
     final syncStatusState = ref.watch(syncStatusProvider);
     final settings = ref.watch(settingsProvider);
 
-    String lastSyncText = 'Belum pernah sinkronisasi';
+    String lastSyncText = AppStrings.security.lastSyncNever;
     if (syncStatusState.lastSyncedAt != null) {
       final now = DateTime.now();
       final diff = now.difference(syncStatusState.lastSyncedAt!);
       if (diff.inMinutes < 1) {
-        lastSyncText = 'Baru saja diperbarui';
+        lastSyncText = AppStrings.security.lastSyncJustNow;
       } else if (diff.inHours < 1) {
-        lastSyncText = 'Update: ${diff.inMinutes} menit yang lalu';
+        lastSyncText = AppStrings.security.lastSyncMinutesAgo(diff.inMinutes);
       } else {
-        lastSyncText = 'Update: ${DateFormat('HH:mm').format(syncStatusState.lastSyncedAt!)}';
+        lastSyncText = AppStrings.security.lastSyncAt(
+            DateFormat('HH:mm').format(syncStatusState.lastSyncedAt!));
       }
     }
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionHeader(
-          title: 'SINKRONISASI CLOUD',
+        SectionHeader(
+          title: AppStrings.security.syncCloud,
           icon: LucideIcons.refreshCw,
           color: AppColors.info,
         ),
@@ -513,7 +515,7 @@ class ActiveDeviceTile extends ConsumerWidget {
                 ),
               ),
               _SecondaryButton(
-                label: 'Keluar',
+                label: AppStrings.common.logout,
                 onPressed: () => _showNuclearDialog(context, ref),
               ),
             ],
@@ -542,9 +544,9 @@ class ActiveDeviceTile extends ConsumerWidget {
             size: 36,
           ),
         ),
-        title: 'Konfirmasi Keluar',
-        message: 'Tindakan ini akan mengakhiri sesi aktif Anda di perangkat ini.',
-        primaryActionLabel: 'Logout',
+        title: AppStrings.security.logoutConfirmTitle,
+        message: AppStrings.security.logoutConfirmMessage,
+        primaryActionLabel: AppStrings.common.logout,
         primaryActionColor: AppColors.error,
         onPrimaryAction: () async {
           Navigator.pop(ctx);
@@ -554,7 +556,7 @@ class ActiveDeviceTile extends ConsumerWidget {
             Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
           }
         },
-        secondaryActionLabel: 'Batal',
+        secondaryActionLabel: AppStrings.common.cancel,
       ),
     );
   }

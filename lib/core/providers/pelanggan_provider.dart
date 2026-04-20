@@ -1,23 +1,18 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'objectbox_provider.dart';
 import 'sync_provider.dart';
 import '../../domain/entities/pelanggan.dart';
 import '../../data/repositories/pelanggan_repository.dart';
 
-part 'pelanggan_provider.g.dart';
+class PelangganListNotifier extends StateNotifier<List<Pelanggan>> {
+  final Ref ref;
+  PelangganListNotifier(this.ref) : super([]) {
+    _init();
+  }
 
-@riverpod
-PelangganRepository pelangganRepository(PelangganRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return PelangganRepository(db.store.box<Pelanggan>());
-}
-
-@riverpod
-class PelangganList extends _$PelangganList {
-  @override
-  List<Pelanggan> build() {
-    final repository = ref.watch(pelangganRepositoryProvider);
-    return repository.getAll();
+  void _init() {
+    final repository = ref.read(pelangganRepositoryProvider);
+    state = repository.getAll();
   }
 
   void load() {
@@ -35,8 +30,6 @@ class PelangganList extends _$PelangganList {
     final repository = ref.read(pelangganRepositoryProvider);
     final syncWorker = ref.read(syncWorkerProvider);
     
-    // H-P03 FIX: Dapatkan data sebelum dihapus untuk mendapatkan UUID 
-    // agar sinkronisasi ke Cloud (Firestore) bisa dilakukan.
     final pelanggan = repository.getAll().firstWhere((p) => p.id == id, orElse: () => Pelanggan(nama: '', telepon: ''));
     if (pelanggan.uuid.isNotEmpty && repository.softDelete(id)) {
       syncWorker?.enqueue(entityType: 'pelanggan', entityUuid: pelanggan.uuid);
@@ -61,11 +54,28 @@ class PelangganList extends _$PelangganList {
 
   void updatePhoto(int id, String? path) {
     final repository = ref.read(pelangganRepositoryProvider);
-    final p = repository.getAll().firstWhere((element) => element.id == id);
-    p.photoLocalPath = path;
-    repository.save(p);
-    load();
+    final customers = repository.getAll();
+    final index = customers.indexWhere((element) => element.id == id);
+    if (index != -1) {
+      final p = customers[index];
+      p.photoLocalPath = path;
+      repository.save(p);
+      load();
+    }
   }
 
   void addItem(Pelanggan p) => add(p);
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final pelangganRepositoryProvider = Provider<PelangganRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return PelangganRepository(db.store.box<Pelanggan>());
+});
+
+final pelangganListProvider = StateNotifierProvider<PelangganListNotifier, List<Pelanggan>>((ref) {
+  return PelangganListNotifier(ref);
+});

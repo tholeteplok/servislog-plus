@@ -1,14 +1,15 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../domain/entities/transaction.dart';
 import 'pengaturan_provider.dart';
 import 'transaction_providers.dart';
 
-part 'reminder_provider.g.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
 
 /// Provider untuk daftar transaksi yang memerlukan pengingat servis.
 /// Memastikan hanya mengambil transaksi terbaru untuk setiap kendaraan yang sudah LUNAS.
-@riverpod
-List<Transaction> reminderTransactions(ReminderTransactionsRef ref) {
+final reminderTransactionsProvider = Provider<List<Transaction>>((ref) {
   final transactionsAsync = ref.watch(transactionListProvider);
   final settings = ref.watch(settingsProvider);
   final threshold = settings.reminderThresholdDays;
@@ -52,10 +53,9 @@ List<Transaction> reminderTransactions(ReminderTransactionsRef ref) {
     },
     orElse: () => [],
   );
-}
+});
 
 /// Provider untuk jumlah total pengingat aktif (untuk ditampilkan di Bento Card).
-@riverpod
-int reminderCount(ReminderCountRef ref) {
+final reminderCountProvider = Provider<int>((ref) {
   return ref.watch(reminderTransactionsProvider).length;
-}
+});

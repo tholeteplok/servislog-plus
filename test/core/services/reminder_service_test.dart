@@ -85,7 +85,7 @@ void main() {
       fakeDb.transactionBox.putMany([tx1, tx2, tx3]);
 
       // Ensure data is loaded
-      final list = await container.read(transactionListProvider.future);
+      final list = container.read(transactionListProvider).value!;
       expect(list.length, 3, reason: 'Total transactions should be 3');
       
       final reminders = container.read(reminderTransactionsProvider);
@@ -126,7 +126,7 @@ void main() {
       fakeDb.transactionBox.putMany([txOld, txNew]);
 
       // Ensure data is loaded
-      final list = await container.read(transactionListProvider.future);
+      final list = container.read(transactionListProvider).value!;
       expect(list.length, 2, reason: 'Total transactions should be 2');
 
       final reminders = container.read(reminderTransactionsProvider);

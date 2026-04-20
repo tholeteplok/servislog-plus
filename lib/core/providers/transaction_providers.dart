@@ -1,4 +1,4 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../objectbox.g.dart';
 import '../../domain/entities/transaction.dart';
 import '../../data/repositories/transaction_repository.dart';
@@ -7,28 +7,28 @@ import '../../domain/entities/sync_queue_item.dart';
 import 'objectbox_provider.dart';
 import 'sync_provider.dart';
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Transaction Notifiers
+// ─────────────────────────────────────────────────────────────────────────────
 
-part 'transaction_providers.g.dart';
+class TransactionListNotifier extends StateNotifier<AsyncValue<List<Transaction>>> {
+  final Ref ref;
+  Transaction? _lastDeleted;
+  Transaction? get lastDeleted => _lastDeleted;
 
-@riverpod
-TransactionRepository transactionRepository(TransactionRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return TransactionRepository(db.transactionBox);
-}
-
-@riverpod
-class TransactionList extends _$TransactionList {
-  @override
-  FutureOr<List<Transaction>> build() async {
-    final repository = ref.watch(transactionRepositoryProvider);
-    return repository.getAll();
+  TransactionListNotifier(this.ref) : super(const AsyncLoading()) {
+    _init();
   }
 
-  // ─── FIX [KRITIS]: Semua mutasi dibungkus AsyncValue.guard ───────────────
+  void _init() {
+    final repository = ref.read(transactionRepositoryProvider);
+    state = AsyncData(repository.getAll());
+  }
 
-  // ── LGK-02 HELPER: Sinkronisasi PaginatedTransactionList setelah setiap mutasi ──
   void _syncPaginated() {
-    ref.invalidate(paginatedTransactionListProvider);
+    if (ref.exists(paginatedTransactionListProvider)) {
+      ref.read(paginatedTransactionListProvider.notifier).refresh();
+    }
   }
 
   Future<void> addTransaction(Transaction transaction) async {
@@ -38,14 +38,10 @@ class TransactionList extends _$TransactionList {
       final syncWorker = ref.read(syncWorkerProvider);
       transaction.calculateTotals();
       repository.save(transaction);
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: transaction.uuid,
-        priority: SyncPriority.critical,
-      );
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: transaction.uuid, priority: SyncPriority.critical);
       return repository.getAll();
     });
-    _syncPaginated(); // LGK-02: keep HomeScreen in sync
+    _syncPaginated();
   }
 
   Future<void> updateTransaction(Transaction transaction) async {
@@ -55,19 +51,14 @@ class TransactionList extends _$TransactionList {
       final syncWorker = ref.read(syncWorkerProvider);
       transaction.calculateTotals();
       repository.save(transaction);
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: transaction.uuid,
-        priority: SyncPriority.normal,
-      );
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: transaction.uuid, priority: SyncPriority.normal);
       return repository.getAll();
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
 
   Future<void> promoteTransactionStatus(Transaction transaction) async {
     if (transaction.serviceStatus == ServiceStatus.selesai) return;
-
     if (transaction.serviceStatus == ServiceStatus.antri) {
       transaction.serviceStatus = ServiceStatus.dikerjakan;
       transaction.startTime = DateTime.now();
@@ -75,28 +66,19 @@ class TransactionList extends _$TransactionList {
       transaction.serviceStatus = ServiceStatus.selesai;
       transaction.endTime = DateTime.now();
     }
-
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(transactionRepositoryProvider);
       final syncWorker = ref.read(syncWorkerProvider);
       repository.save(transaction);
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: transaction.uuid,
-        priority: SyncPriority.normal,
-      );
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: transaction.uuid, priority: SyncPriority.normal);
       return repository.getAll();
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
 
-  Future<void> updateTransactionStatus(
-    Transaction transaction,
-    ServiceStatus newStatus,
-  ) async {
+  Future<void> updateTransactionStatus(Transaction transaction, ServiceStatus newStatus) async {
     transaction.serviceStatus = newStatus;
-
     if (newStatus == ServiceStatus.dikerjakan) {
       transaction.startTime ??= DateTime.now();
     } else if (newStatus == ServiceStatus.selesai) {
@@ -109,28 +91,17 @@ class TransactionList extends _$TransactionList {
       final syncWorker = ref.read(syncWorkerProvider);
       transaction.calculateTotals();
       repository.save(transaction);
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: transaction.uuid,
-        priority: SyncPriority.critical,
-      );
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: transaction.uuid, priority: SyncPriority.critical);
       return repository.getAll();
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
 
-  Future<void> finalizeTransaction(
-    Transaction transaction,
-    String paymentMethod,
-  ) async {
+  Future<void> finalizeTransaction(Transaction transaction, String paymentMethod) async {
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final db = ref.read(dbProvider);
       final syncWorker = ref.read(syncWorkerProvider);
-
-      // Kumpulkan item yang perlu di-enqueue setelah transaction selesai.
-      // FIX [PERINGATAN]: enqueue() TIDAK boleh dipanggil di dalam
-      // runInTransaction karena akan menulis ke syncQueueBox secara nested.
       final itemsToSync = <({String type, String uuid})>[];
 
       db.store.runInTransaction(TxMode.write, () {
@@ -138,20 +109,14 @@ class TransactionList extends _$TransactionList {
           if (!item.isService && item.stok.target != null) {
             final stok = db.stokBox.get(item.stok.target!.id);
             if (stok != null) {
-              // 🛡️ K-5: Optimistic/Pragmatic Check
               if (stok.jumlah < item.quantity) {
-                throw Exception(
-                  'Gagal: Stok "${stok.nama}" tidak mencukupi (${stok.jumlah} tersedia).',
-                );
+                throw Exception('Gagal: Stok "${stok.nama}" tidak mencukupi (${stok.jumlah} tersedia).');
               }
-
               final oldQty = stok.jumlah;
               stok.jumlah -= item.quantity;
               stok.updatedAt = DateTime.now();
-              stok.version++; // 🛡️ Increment version for sync conflict detection
-
+              stok.version++;
               db.stokBox.put(stok);
-
               final history = StokHistory(
                 stokUuid: stok.uuid,
                 type: 'SALE_FROM_SERVICE',
@@ -161,73 +126,49 @@ class TransactionList extends _$TransactionList {
                 note: 'Otomatis dari transaksi ${transaction.trxNumber}',
               );
               db.stokHistoryBox.put(history);
-
-              // Catat untuk di-enqueue setelah transaction commit
               itemsToSync.add((type: 'stok', uuid: stok.uuid));
               itemsToSync.add((type: 'stok_history', uuid: history.uuid));
             }
           }
         }
-
-        // Update transaction status dan version
         transaction.serviceStatus = ServiceStatus.lunas;
         transaction.paymentMethod = paymentMethod;
         transaction.endTime ??= DateTime.now();
         transaction.updatedAt = DateTime.now();
-        transaction.version++; // 🛡️ Increment version
+        transaction.version++;
         transaction.calculateTotals();
-
         db.transactionBox.put(transaction);
       });
 
-      // Enqueue SETELAH transaction ObjectBox commit
       for (final item in itemsToSync) {
         syncWorker?.enqueue(entityType: item.type, entityUuid: item.uuid);
       }
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: transaction.uuid,
-        priority: SyncPriority.critical,
-      );
-
-      final repository = ref.read(transactionRepositoryProvider);
-      return repository.getAll();
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: transaction.uuid, priority: SyncPriority.critical);
+      return ref.read(transactionRepositoryProvider).getAll();
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
 
   Future<void> deleteTransaction(int id, String uuid) async {
     final stateBefore = state.valueOrNull ?? [];
-    _lastDeleted = stateBefore.firstWhere(
-      (t) => t.id == id,
-      orElse: () => stateBefore.first,
-    );
+    _lastDeleted = stateBefore.firstWhere((t) => t.id == id, orElse: () => stateBefore.first);
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(transactionRepositoryProvider);
       final syncWorker = ref.read(syncWorkerProvider);
       if (repository.softDelete(id)) {
-        syncWorker?.enqueue(
-          entityType: 'transaction',
-          entityUuid: uuid,
-          priority: SyncPriority.normal,
-        );
+        syncWorker?.enqueue(entityType: 'transaction', entityUuid: uuid, priority: SyncPriority.normal);
         return repository.getAll();
       }
       return stateBefore;
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
-
-  // ── Undo Support ─────────────────────────────────────────────
-  Transaction? _lastDeleted;
-  Transaction? get lastDeleted => _lastDeleted;
 
   Future<void> undoDelete() async {
     final tx = _lastDeleted;
     if (tx == null) return;
     _lastDeleted = null;
-
     state = const AsyncLoading();
     state = await AsyncValue.guard(() async {
       final repository = ref.read(transactionRepositoryProvider);
@@ -236,16 +177,14 @@ class TransactionList extends _$TransactionList {
       repository.save(tx);
       return repository.getAll();
     });
-    _syncPaginated(); // LGK-02
+    _syncPaginated();
   }
 }
 
-// ─────────────────────────────────────────────────────────────
-// PAGINATED TRANSACTION LIST (Phase 2 — Performance)
-// Digunakan oleh HomeScreen untuk load-more / infinite scroll.
-// ─────────────────────────────────────────────────────────────
+// ─────────────────────────────────────────────────────────────────────────────
+// Paginated Transaction Notifier
+// ─────────────────────────────────────────────────────────────────────────────
 
-/// State model untuk halaman transaksi yang dipaginasi.
 class PaginatedTransactionState {
   final List<Transaction> items;
   final bool isLoadingMore;
@@ -278,91 +217,50 @@ class PaginatedTransactionState {
   }
 }
 
-@riverpod
-class PaginatedTransactionList extends _$PaginatedTransactionList {
+class PaginatedTransactionListNotifier extends StateNotifier<PaginatedTransactionState> {
+  final Ref ref;
   static const int _pageSize = 30;
+  int? _lastDeletedId;
 
-  @override
-  PaginatedTransactionState build() {
-    // Load halaman pertama dengan aman setelah build pertama selesai
+  PaginatedTransactionListNotifier(this.ref) : super(const PaginatedTransactionState()) {
     Future.microtask(() => refresh());
-    return const PaginatedTransactionState();
   }
 
   Future<void> _loadPage(int page, {bool isRefresh = false}) async {
     try {
       final repository = ref.read(transactionRepositoryProvider);
-
       if (!isRefresh && state.isLoadingMore) return;
       if (!isRefresh && !state.hasMore) return;
-
       state = state.copyWith(isLoadingMore: true);
-
-      final results = repository.getAll(
-        limit: _pageSize,
-        offset: page * _pageSize,
-      );
-
+      final results = repository.getAll(limit: _pageSize, offset: page * _pageSize);
       final isLastPage = results.length < _pageSize;
       final newItems = isRefresh ? results : [...state.items, ...results];
-
-      state = state.copyWith(
-        items: newItems,
-        isLoadingMore: false,
-        hasMore: !isLastPage,
-        currentPage: page,
-        isInitialLoading: false,
-      );
+      state = state.copyWith(items: newItems, isLoadingMore: false, hasMore: !isLastPage, currentPage: page, isInitialLoading: false);
     } catch (e) {
-      // Pastikan state tidak nyangkut di loading jika error
-      state = state.copyWith(
-        isLoadingMore: false,
-        isInitialLoading: false,
-      );
+      state = state.copyWith(isLoadingMore: false, isInitialLoading: false);
     }
   }
 
-  /// Load next page (dipanggil saat user scroll ke bawah)
   Future<void> loadMore() async {
     if (state.isLoadingMore || !state.hasMore) return;
     await _loadPage(state.currentPage + 1);
   }
 
-  /// Refresh dari awal (dipanggil saat pull-to-refresh atau setelah mutasi)
   Future<void> refresh() async {
     state = state.copyWith(isInitialLoading: true);
     await _loadPage(0, isRefresh: true);
   }
 
-  // ── DELETE & UNDO (Phase 4 — UX) ───────────────────────────
-  // ✅ FIX #4: Simpan ID saja, bukan objek in-memory, agar undoDelete()
-  // selalu me-restore data terkini dari DB (bukan snapshot stale).
-  int? _lastDeletedId;
-
   Future<void> deleteTransaction(int id, String uuid) async {
     final stateBefore = state;
-    final trxIndex = state.items.indexWhere((t) => t.id == id);
-    if (trxIndex == -1) return;
-
+    if (!state.items.any((t) => t.id == id)) return;
     _lastDeletedId = id;
-
-    // Fast UI update: filter out deleted item
-    state = state.copyWith(
-      items: state.items.where((t) => t.id != id).toList(),
-    );
-
-    // Sync to DB
+    state = state.copyWith(items: state.items.where((t) => t.id != id).toList());
     final repository = ref.read(transactionRepositoryProvider);
     final syncWorker = ref.read(syncWorkerProvider);
-
     if (repository.softDelete(id)) {
-      syncWorker?.enqueue(
-        entityType: 'transaction',
-        entityUuid: uuid,
-        priority: SyncPriority.normal,
-      );
+      syncWorker?.enqueue(entityType: 'transaction', entityUuid: uuid, priority: SyncPriority.normal);
     } else {
-      // Rollback if DB failed
       state = stateBefore;
     }
   }
@@ -371,28 +269,34 @@ class PaginatedTransactionList extends _$PaginatedTransactionList {
     final id = _lastDeletedId;
     if (id == null) return;
     _lastDeletedId = null;
-
-    // ✅ FIX #4: Fetch dari DB untuk memastikan data terkini (bukan in-memory stale)
     final repository = ref.read(transactionRepositoryProvider);
     final tx = repository.getById(id);
-    if (tx == null) return; // sudah benar-benar dihapus, tidak bisa undo
-
+    if (tx == null) return;
     tx.isDeleted = false;
     tx.updatedAt = DateTime.now();
     repository.save(tx);
-
     await refresh();
   }
 }
 
-@riverpod
-List<Transaction> customerTransactions(
-  CustomerTransactionsRef ref,
-  int pelangganId,
-) {
+// ─────────────────────────────────────────────────────────────────────────────
+// 📡 Standard Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final transactionRepositoryProvider = Provider<TransactionRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return TransactionRepository(db.transactionBox);
+});
+
+final transactionListProvider = StateNotifierProvider<TransactionListNotifier, AsyncValue<List<Transaction>>>((ref) {
+  return TransactionListNotifier(ref);
+});
+
+final paginatedTransactionListProvider = StateNotifierProvider<PaginatedTransactionListNotifier, PaginatedTransactionState>((ref) {
+  return PaginatedTransactionListNotifier(ref);
+});
+
+final customerTransactionsProvider = Provider.family<List<Transaction>, int>((ref, pelangganId) {
   final repository = ref.watch(transactionRepositoryProvider);
   return repository.getByPelangganId(pelangganId);
-}
-
-// DIHAPUS: stokHistoryRepository — provider ini kini ada di stok_provider.dart.
-// Gunakan: import 'stok_provider.dart'; dan ref.watch(stokHistoryRepositoryProvider)
+});

@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:solar_icons/solar_icons.dart';
 import '../../../core/constants/app_theme_extension.dart';
 import '../../../core/providers/pengaturan_provider.dart';
-import '../../../core/providers/auth_provider.dart';
+import '../../../core/providers/system_providers.dart';
 import '../../../core/utils/phone_formatter.dart';
 import '../../../core/widgets/atelier_header.dart';
 import '../../auth/screens/login_screen.dart';
+import '../../../core/constants/app_strings.dart';
 
 class ProfilScreen extends ConsumerStatefulWidget {
   const ProfilScreen({super.key});
@@ -65,8 +66,8 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     if (mounted) {
       setState(() => _isSaving = false);
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Profil berhasil disimpan'),
+        SnackBar(
+          content: Text(AppStrings.profile.saveSuccess),
           backgroundColor: Colors.green,
         ),
       );
@@ -81,9 +82,9 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
       backgroundColor: theme.colorScheme.surface,
       body: CustomScrollView(
         slivers: [
-          const SliverAtelierHeaderSub(
-            title: 'Profil & Bengkel',
-            subtitle: 'Ubah identitas bengkel dan kontak owner.',
+          SliverAtelierHeaderSub(
+            title: AppStrings.profile.title,
+            subtitle: AppStrings.profile.subtitle,
             showBackButton: true,
           ),
           SliverToBoxAdapter(
@@ -94,14 +95,14 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Informasi Bengkel', style: theme.sectionLabelStyle),
+                    Text(AppStrings.profile.workshopInfo, style: theme.sectionLabelStyle),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _namaBengkelCtrl,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Bengkel *',
-                        prefixIcon: Icon(Icons.storefront),
+                      decoration: InputDecoration(
+                        labelText: AppStrings.profile.workshopName,
+                        prefixIcon: const Icon(Icons.storefront),
                       ),
                       validator: (v) => v == null || v.isEmpty
                           ? 'Nama bengkel wajib diisi'
@@ -111,18 +112,18 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                     TextFormField(
                       controller: _alamatBengkelCtrl,
                       textCapitalization: TextCapitalization.sentences,
-                      decoration: const InputDecoration(
-                        labelText: 'Alamat Bengkel',
-                        prefixIcon: Icon(Icons.location_on_outlined),
+                      decoration: InputDecoration(
+                        labelText: AppStrings.profile.workshopAddress,
+                        prefixIcon: const Icon(Icons.location_on_outlined),
                       ),
                       maxLines: 2,
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _waBengkelCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'WhatsApp Bengkel',
-                        prefixIcon: Icon(Icons.phone),
+                      decoration: InputDecoration(
+                        labelText: AppStrings.profile.workshopWA,
+                        prefixIcon: const Icon(Icons.phone),
                         hintText: '62812...',
                       ),
                       keyboardType: TextInputType.phone,
@@ -130,14 +131,14 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                     ),
 
                     const SizedBox(height: 32),
-                    Text('Informasi Owner', style: theme.sectionLabelStyle),
+                    Text(AppStrings.profile.ownerInfo, style: theme.sectionLabelStyle),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _namaOwnerCtrl,
                       textCapitalization: TextCapitalization.words,
-                      decoration: const InputDecoration(
-                        labelText: 'Nama Owner *',
-                        prefixIcon: Icon(Icons.person_outline),
+                      decoration: InputDecoration(
+                        labelText: AppStrings.profile.ownerName,
+                        prefixIcon: const Icon(Icons.person_outline),
                       ),
                       validator: (v) => v == null || v.isEmpty
                           ? 'Nama owner wajib diisi'
@@ -146,9 +147,9 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _phoneOwnerCtrl,
-                      decoration: const InputDecoration(
-                        labelText: 'Nomor HP/WA Owner',
-                        prefixIcon: Icon(Icons.phone_android),
+                      decoration: InputDecoration(
+                        labelText: AppStrings.profile.ownerPhone,
+                        prefixIcon: const Icon(Icons.phone_android),
                       ),
                       keyboardType: TextInputType.phone,
                       inputFormatters: [IndonesianPhoneFormatter()],
@@ -170,7 +171,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                                 ),
                               )
                             : const Icon(Icons.save),
-                        label: const Text('Simpan Perubahan'),
+                        label: Text(AppStrings.common.saveChanges),
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -183,7 +184,7 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
                           SolarIconsOutline.logout,
                           color: Colors.red,
                         ),
-                        label: const Text('Keluar dari Akun'),
+                        label: Text(AppStrings.common.logoutAccount),
                         style: OutlinedButton.styleFrom(
                           foregroundColor: Colors.red,
                           side: const BorderSide(color: Colors.red),
@@ -207,19 +208,19 @@ class _ProfilScreenState extends ConsumerState<ProfilScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Keluar dari Akun'),
+        title: Text(AppStrings.common.logoutAccount),
         content: const Text(
           'Apakah Anda yakin ingin keluar? Semua data lokal akan dibersihkan demi keamanan.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Batal'),
+            child: Text(AppStrings.common.cancel),
           ),
           TextButton(
             style: TextButton.styleFrom(foregroundColor: Colors.red),
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Keluar'),
+            child: Text(AppStrings.common.logout),
           ),
         ],
       ),

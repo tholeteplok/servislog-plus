@@ -3,9 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import '../../../core/constants/app_strings.dart';
 import '../../../core/constants/app_colors.dart';
-import '../../../core/providers/auth_provider.dart';
-import '../../../core/services/bengkel_service.dart';
+import '../../../core/providers/system_providers.dart';
 import 'create_bengkel_screen.dart';
 
 class OnboardingScreen extends ConsumerStatefulWidget {
@@ -18,7 +18,6 @@ class OnboardingScreen extends ConsumerStatefulWidget {
 class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   final _joinController = TextEditingController();
   final _pinController = TextEditingController();
-  final _bengkelService = BengkelService();
   bool _isJoining = false;
   bool _obscurePin = true;
   String? _joinError;
@@ -40,18 +39,16 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       backgroundColor: isDark ? AppColors.obsidianBase : AppColors.atelierBase,
       body: Stack(
         children: [
-          // Background Glow
+          // Ambient Background Glows (Matching Login Screen Consistency)
           Positioned(
             top: -150,
-            left: -150,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: AppColors.precisionViolet.withValues(alpha: isDark ? 0.05 : 0.03),
-              ),
-            ),
+            left: -100,
+            child: _buildGlowCircle(isDark, size: 400),
+          ),
+          Positioned(
+            bottom: -50,
+            right: -100,
+            child: _buildGlowCircle(isDark, size: 300),
           ),
           
           SafeArea(
@@ -64,50 +61,49 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                   children: [
                     const SizedBox(height: 60),
                     Text(
-                      'Selamat Datang! 👋',
+                      AppStrings.auth.welcomeTitle.replaceAll(' ', '\n'), // Visual break
                       style: GoogleFonts.manrope(
                         fontSize: 34,
                         fontWeight: FontWeight.w800,
+                        height: 1.1,
                         letterSpacing: -1,
                         color: isDark ? Colors.white : AppColors.obsidianBase,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
                     Text(
-                      'Pilih konfigurasi akses untuk memulai eksplorasi platform ServisLog+.',
+                      AppStrings.auth.welcomeSubtitle,
                       style: GoogleFonts.inter(
-                        fontSize: 16,
+                        fontSize: 15,
                         height: 1.5,
                         fontWeight: FontWeight.w500,
                         color: isDark ? Colors.white54 : Colors.black54,
                       ),
                     ),
-                    const SizedBox(height: 48),
+                    const SizedBox(height: 80), // More space for overlapping assets
                     
                     _OptionCard(
                       isDark: isDark,
-                      icon: SolarIconsBold.shop,
-                      iconColor: AppColors.precisionViolet,
-                      title: 'Buat Workshop Baru',
-                      subtitle: 'Bertindak sebagai Owner dengan otorisasi penuh untuk manajemen tim dan keuangan.',
-                      badge: 'EKSEKUTIF',
-                      badgeColor: AppColors.precisionViolet,
+                      imageAsset: 'assets/illustrations/owner_icons.png',
+                      accentColor: AppColors.precisionViolet,
+                      title: AppStrings.auth.ownerTitle,
+                      subtitle: AppStrings.auth.ownerSubtitle,
+                      badge: AppStrings.auth.badgeExecutive,
                       onTap: () => Navigator.push(
                         context,
                         MaterialPageRoute(builder: (_) => const CreateBengkelScreen()),
                       ),
                     ),
                     
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 60), // Space between cards to avoid overlap collisions
                     
                     _OptionCard(
                       isDark: isDark,
-                      icon: SolarIconsBold.usersGroupTwoRounded,
-                      iconColor: AppColors.neonGreen,
-                      title: 'Gabung ke Workshop',
-                      subtitle: 'Bergabung ke workshop yang ada sebagai Administrasi atau Teknisi ahli.',
-                      badge: 'OPERASIONAL',
-                      badgeColor: AppColors.neonGreen,
+                      imageAsset: 'assets/illustrations/staff_icons.png',
+                      accentColor: AppColors.neonGreen,
+                      title: AppStrings.auth.staffTitle,
+                      subtitle: AppStrings.auth.staffSubtitle,
+                      badge: AppStrings.auth.badgeOperational,
                       onTap: () => _showJoinDialog(context, isDark),
                     ),
                     
@@ -117,7 +113,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       child: Column(
                         children: [
                           Text(
-                            'Identitas akun tidak sesuai?',
+                            AppStrings.auth.loginDescription.split('\n').first,
                             style: GoogleFonts.inter(
                               fontSize: 13,
                               color: isDark ? Colors.white24 : Colors.black26,
@@ -127,11 +123,11 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                           TextButton(
                             onPressed: () => ref.read(authServiceProvider).signOut(),
                             child: Text(
-                              'Log Out dari Akun',
+                              '${AppStrings.common.logout} ${AppStrings.common.item}', // 'Keluar Akun' approx
                               style: GoogleFonts.manrope(
                                 fontSize: 14,
                                 fontWeight: FontWeight.w700,
-                                color: AppColors.precisionViolet..withValues(alpha: 0.8),
+                                color: AppColors.precisionViolet.withValues(alpha: 0.8),
                               ),
                             ),
                           ),
@@ -149,13 +145,24 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
     );
   }
 
+  Widget _buildGlowCircle(bool isDark, {required double size}) {
+    return Container(
+      width: size,
+      height: size,
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        color: AppColors.precisionViolet.withValues(alpha: isDark ? 0.05 : 0.03),
+      ),
+    );
+  }
+
   void _showJoinDialog(BuildContext context, bool isDark) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: isDark ? AppColors.surfaceLow : Colors.white,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(32),
       ),
       builder: (context) => Padding(
         padding: EdgeInsets.only(
@@ -180,7 +187,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 32),
             Text(
-              'Gabung ke Workshop',
+              AppStrings.auth.staffTitle,
               style: GoogleFonts.manrope(
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
@@ -190,7 +197,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
             ),
             const SizedBox(height: 8),
             Text(
-              'Masukkan ID Workshop dan Kode PIN otentikasi yang diberikan oleh Owner.',
+              AppStrings.auth.staffSubtitle,
               style: GoogleFonts.inter(
                 fontSize: 14,
                 height: 1.5,
@@ -205,8 +212,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                     TextField(
                       controller: _joinController,
                       decoration: InputDecoration(
-                        labelText: 'ID Workshop',
-                        hintText: 'Contoh: PREMIUM-XXXXXX',
+                        labelText: AppStrings.auth.workshopIdLabel,
+                        hintText: AppStrings.auth.workshopIdHint,
                         prefixIcon: const Icon(SolarIconsOutline.key),
                         errorText: _joinError,
                         filled: true,
@@ -244,8 +251,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                       keyboardType: TextInputType.number,
                       maxLength: 6,
                       decoration: InputDecoration(
-                        labelText: 'Kode PIN Workshop',
-                        hintText: '6 digit angka sandi',
+                        labelText: AppStrings.auth.enterPin,
+                        hintText: AppStrings.auth.workshopIdHint, // Reusing hint pattern
                         prefixIcon: const Icon(SolarIconsOutline.lock),
                         counterText: '',
                         errorText: _pinError,
@@ -300,8 +307,8 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         final pin = _pinController.text.trim();
                         if (id.isEmpty || pin.length != 6) {
                           setState(() {
-                            _joinError = id.isEmpty ? 'ID Workshop wajib diisi' : null;
-                            _pinError = pin.length != 6 ? 'PIN harus 6 digit' : null;
+                            _joinError = id.isEmpty ? AppStrings.error.requiredField : null;
+                            _pinError = pin.length != 6 ? AppStrings.error.pinTooShort : null;
                           });
                           return;
                         }
@@ -323,7 +330,7 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
                         child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
                       )
                     : Text(
-                        'Konfirmasi & Bergabung',
+                        AppStrings.common.confirm,
                         style: GoogleFonts.manrope(
                           fontWeight: FontWeight.w800,
                           fontSize: 16,
@@ -344,10 +351,10 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) throw Exception('Sesi berakhir, silahkan login kembali.');
       
-      await _bengkelService.joinBengkel(
+      await ref.read(bengkelServiceProvider).joinBengkel(
         bengkelId: bengkelId,
         uid: user.uid,
-        name: user.displayName ?? 'Staf',
+        name: user.displayName ?? AppStrings.common.item,
         email: user.email ?? '',
         role: 'staff',
         pin: pin,
@@ -362,9 +369,9 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
         setState(() {
           final err = e.toString().toLowerCase();
           if (err.contains('tidak ditemukan')) {
-            _joinError = 'ID Workshop tidak valid';
+            _joinError = AppStrings.auth.idUnavailable;
           } else if (err.contains('pin salah')) {
-            _pinError = 'PIN otentikasi salah';
+            _pinError = AppStrings.auth.pinIncorrect;
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
@@ -382,127 +389,172 @@ class _OnboardingScreenState extends ConsumerState<OnboardingScreen> {
   }
 }
 
-class _OptionCard extends StatelessWidget {
+class _OptionCard extends StatefulWidget {
   final bool isDark;
-  final IconData icon;
-  final Color iconColor;
+  final String imageAsset;
+  final Color accentColor;
   final String title;
   final String subtitle;
   final String badge;
-  final Color badgeColor;
   final VoidCallback onTap;
 
   const _OptionCard({
     required this.isDark,
-    required this.icon,
-    required this.iconColor,
+    required this.imageAsset,
+    required this.accentColor,
     required this.title,
     required this.subtitle,
     required this.badge,
-    required this.badgeColor,
     required this.onTap,
   });
 
   @override
+  State<_OptionCard> createState() => _OptionCardState();
+}
+
+class _OptionCardState extends State<_OptionCard> with SingleTickerProviderStateMixin {
+  late AnimationController _floatController;
+  bool _isHovered = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _floatController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 3),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _floatController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
-        child: Container(
-          padding: const EdgeInsets.all(28),
-          decoration: BoxDecoration(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.04)
-                : Colors.white,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.06)
-                  : Colors.grey.shade200,
-            ),
-            boxShadow: isDark ? [] : [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.02),
-                blurRadius: 30,
-                offset: const Offset(0, 10),
-              )
-            ],
-          ),
-          child: Row(
-            children: [
-              Container(
-                width: 64,
-                height: 64,
-                decoration: BoxDecoration(
-                  color: iconColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(20),
-                  border: Border.all(
-                    color: iconColor.withValues(alpha: 0.15),
-                  ),
+    const double cardWidth = double.infinity;
+    const double imageSize = 140;
+
+    return GestureDetector(
+      onTapDown: (_) => setState(() => _isHovered = true),
+      onTapUp: (_) => setState(() => _isHovered = false),
+      onTapCancel: () => setState(() => _isHovered = false),
+      onTap: widget.onTap,
+      child: AnimatedScale(
+        scale: _isHovered ? 0.98 : 1.0,
+        duration: const Duration(milliseconds: 150),
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            // Card Container
+            Container(
+              width: cardWidth,
+              padding: const EdgeInsets.fromLTRB(28, 70, 28, 28),
+              decoration: BoxDecoration(
+                gradient: AppColors.glassGradient(widget.isDark ? Brightness.dark : Brightness.light),
+                borderRadius: BorderRadius.circular(32),
+                border: Border.all(
+                  color: widget.isDark
+                      ? Colors.white.withValues(alpha: 0.08)
+                      : Colors.grey.shade200,
                 ),
-                child: Icon(icon, color: iconColor, size: 32),
+                boxShadow: widget.isDark ? [] : [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.02),
+                    blurRadius: 30,
+                    offset: const Offset(0, 10),
+                  )
+                ],
               ),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Wrap(
-                      crossAxisAlignment: WrapCrossAlignment.center,
-                      spacing: 10,
-                      runSpacing: 8,
-                      children: [
-                        Text(
-                          title,
-                          style: GoogleFonts.manrope(
-                            fontSize: 19,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.5,
-                            color: isDark ? Colors.white : AppColors.obsidianBase,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: widget.accentColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: widget.accentColor.withValues(alpha: 0.15),
                           ),
                         ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: badgeColor.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            badge,
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w900,
-                              letterSpacing: 1,
-                              color: badgeColor,
-                            ),
+                        child: Text(
+                          widget.badge,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 1,
+                            color: widget.accentColor,
                           ),
                         ),
-                      ],
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    widget.title,
+                    style: GoogleFonts.manrope(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
+                      color: widget.isDark ? Colors.white : AppColors.obsidianBase,
                     ),
-                    const SizedBox(height: 8),
-                    Text(
-                      subtitle,
+                  ),
+                  const SizedBox(height: 8),
+                  Padding(
+                    padding: const EdgeInsets.only(right: 20),
+                    child: Text(
+                      widget.subtitle,
                       style: GoogleFonts.inter(
                         fontSize: 14,
                         height: 1.5,
                         fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white38 : Colors.black45,
+                        color: widget.isDark ? Colors.white38 : Colors.black45,
                       ),
                     ),
-                  ],
+                  ),
+                ],
+              ),
+            ),
+
+            // Overlapping Illustration with Floating Animation
+            Positioned(
+              top: -imageSize / 2, // 50% overlap
+              right: 20,
+              child: AnimatedBuilder(
+                animation: _floatController,
+                builder: (context, child) {
+                  return Transform.translate(
+                    offset: Offset(0, 8 * Curves.easeInOut.transform(_floatController.value) - 4),
+                    child: child,
+                  );
+                },
+                child: Image.asset(
+                  widget.imageAsset,
+                  height: imageSize,
+                  width: imageSize,
+                  fit: BoxFit.contain,
                 ),
               ),
-              Icon(
-                Icons.arrow_forward_ios_rounded,
-                size: 16,
-                color: isDark ? Colors.white24 : Colors.black12,
+            ),
+
+            // Interaction Indicator
+            Positioned(
+              bottom: 24,
+              right: 24,
+              child: Icon(
+                Icons.arrow_forward_rounded,
+                size: 24,
+                color: widget.accentColor.withValues(alpha: 0.4),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 }
+

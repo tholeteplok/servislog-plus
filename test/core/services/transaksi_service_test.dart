@@ -40,7 +40,7 @@ void main() {
         vehiclePlate: 'B 1234',
       ));
 
-      final list = await container.read(transactionListProvider.future);
+      final list = container.read(transactionListProvider).value!;
       
       expect(list.length, 1);
       expect(list.first.trxNumber, 'TX-001');

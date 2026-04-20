@@ -11,6 +11,7 @@ import 'package:path_provider/path_provider.dart';
 import '../providers/objectbox_provider.dart';
 import '../providers/sync_provider.dart';
 import 'encryption_service.dart';
+import '../providers/system_providers.dart';
 
 // ──────────────────────────────────────────────────────────────
 // DATA MODEL
@@ -392,53 +393,3 @@ class DeviceSessionService {
     }
   }
 }
-
-// ──────────────────────────────────────────────────────────────
-// RIVERPOD PROVIDERS
-// ──────────────────────────────────────────────────────────────
-
-final deviceSessionServiceProvider = Provider<DeviceSessionService>((ref) {
-  return DeviceSessionService(
-    firestore: FirebaseFirestore.instance,
-    auth: FirebaseAuth.instance,
-    deviceInfoPlugin: DeviceInfoPlugin(),
-    encryption: ref.watch(encryptionServiceProvider),
-  );
-});
-
-/// State global untuk menandai proses penghapusan data sedang berjalan
-final isWipingProvider = StateProvider<bool>((ref) => false);
-
-/// Stream validitas sesi perangkat ini.
-/// Hanya aktif jika user sudah login.
-final deviceSessionStatusProvider = StreamProvider<DeviceSessionStatus>((ref) {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return Stream.value(DeviceSessionStatus.unknown);
-
-  final service = ref.watch(deviceSessionServiceProvider);
-  return service.watchSessionValidity(user.uid);
-});
-
-/// Stream histori login pengguna dari Firestore.
-final loginHistoryStreamProvider = StreamProvider<List<DeviceInfo>>((ref) {
-  final user = FirebaseAuth.instance.currentUser;
-  if (user == null) return Stream.value([]);
-
-  return FirebaseFirestore.instance
-      .collection('users')
-      .doc(user.uid)
-      .snapshots()
-      .map((snapshot) {
-    if (!snapshot.exists) return [];
-    final history = snapshot.data()?['loginHistory'] as List<dynamic>? ?? [];
-    return history
-        .map((e) => DeviceInfo.fromFirestore(e as Map<String, dynamic>))
-        .toList();
-  });
-});
-
-/// Provider untuk mengambil Device ID perangkat saat ini.
-final currentDeviceIdProvider = FutureProvider<String>((ref) async {
-  final service = ref.watch(deviceSessionServiceProvider);
-  return service.getOrCreateDeviceId();
-});

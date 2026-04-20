@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:servislog_core/core/services/session_manager.dart';
+import 'package:servislog_core/core/providers/system_providers.dart';
 import '../../mocks/manual_mocks.dart';
 import '../../helpers/test_utils.dart';
 import '../../helpers/di_override.dart';

@@ -71,9 +71,9 @@ void main() {
       fakeDb.saleBox.put(saleToday);
       fakeDb.stokBox.putMany([stokLow, stokEmpty, stokOk]);
 
-      // Wait for underlying data providers to load
-      await container.read(transactionListProvider.future);
-      await container.read(saleListProvider.future);
+      // Trigger data load
+      container.read(transactionListProvider);
+      container.read(saleListProvider);
 
       final stats = container.read(statsProvider);
 
@@ -134,9 +134,9 @@ void main() {
       
       fakeDb.transactionBox.putMany([txRecent, txWeek, txMonth]);
       
-      // Wait for data load
-      await container.read(transactionListProvider.future);
-      await container.read(saleListProvider.future);
+      // Trigger data load
+      container.read(transactionListProvider);
+      container.read(saleListProvider);
       
       final stats = container.read(statsProvider);
       
@@ -153,8 +153,8 @@ void main() {
           sharedPreferencesProvider.overrideWithValue(await SharedPreferences.getInstance()),
         ]);
         
-        await container.read(transactionListProvider.future);
-        await container.read(saleListProvider.future);
+        container.read(transactionListProvider);
+        container.read(saleListProvider);
         
         final stats = container.read(statsProvider);
         expect(stats.todayPendapatan, 0);

@@ -1,5 +1,5 @@
-import 'package:riverpod_annotation/riverpod_annotation.dart';
-import 'package:objectbox/objectbox.dart'; // untuk TxMode
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:objectbox/objectbox.dart';
 import '../../domain/entities/sale.dart';
 import '../../data/repositories/sale_repository.dart';
 import '../../domain/entities/stok_history.dart';
@@ -7,25 +7,25 @@ import 'objectbox_provider.dart';
 import 'sync_provider.dart';
 import '../../domain/entities/sync_queue_item.dart';
 
-part 'sale_providers.g.dart';
+// ─────────────────────────────────────────────────────────────────────────────
+// Notifiers
+// ─────────────────────────────────────────────────────────────────────────────
 
-@riverpod
-SaleRepository saleRepository(SaleRepositoryRef ref) {
-  final db = ref.watch(dbProvider);
-  return SaleRepository(db.saleBox);
-}
+class SaleListNotifier extends StateNotifier<AsyncValue<List<Sale>>> {
+  final Ref ref;
 
-@riverpod
-class SaleList extends _$SaleList {
-  @override
-  FutureOr<List<Sale>> build() {
-    final repository = ref.watch(saleRepositoryProvider);
-    return repository.getAll();
+  SaleListNotifier(this.ref) : super(const AsyncValue.loading()) {
+    _init();
+  }
+
+  void _init() {
+    final repository = ref.read(saleRepositoryProvider);
+    state = AsyncValue.data(repository.getAll());
   }
 
   void loadSales() {
     final repository = ref.read(saleRepositoryProvider);
-    state = AsyncData(repository.getAll());
+    state = AsyncValue.data(repository.getAll());
   }
 
   Future<void> addSale(Sale sale) async {
@@ -42,11 +42,8 @@ class SaleList extends _$SaleList {
     loadSales();
   }
 
-  // ── LGK-01 FIX: Validasi stok di layer provider (bukan hanya UI) ──
-  // Menggunakan ObjectBox transaction agar atomic: stok tidak bisa negatif
-  // bahkan jika dua device memproses Sale secara bersamaan.
   Future<void> addSaleWithFinalization(Sale sale, String paymentMethod) async {
-    state = const AsyncLoading();
+    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final db = ref.read(dbProvider);
       final repository = ref.read(saleRepositoryProvider);
@@ -55,7 +52,6 @@ class SaleList extends _$SaleList {
       final itemsToSync = <({String type, String uuid})>[];
 
       db.store.runInTransaction(TxMode.write, () {
-        // Guard stok jika Sale memiliki referensi stok (via stokUuid)
         if (sale.stokUuid != null) {
           final stokList = db.stokBox
               .getAll()
@@ -93,7 +89,6 @@ class SaleList extends _$SaleList {
         repository.save(sale); 
       });
 
-      // Enqueue SETELAH ObjectBox commit
       for (final item in itemsToSync) {
         syncWorker?.enqueue(entityType: item.type, entityUuid: item.uuid);
       }
@@ -111,7 +106,7 @@ class SaleList extends _$SaleList {
     List<Sale> sales,
     String paymentMethod,
   ) async {
-    state = const AsyncLoading();
+    state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final db = ref.read(dbProvider);
       final repository = ref.read(saleRepositoryProvider);
@@ -178,7 +173,6 @@ class SaleList extends _$SaleList {
     final repository = ref.read(saleRepositoryProvider);
     final syncWorker = ref.read(syncWorkerProvider);
     
-    // M-P05 FIX: Dapatkan data sebelum dihapus untuk mendapatkan UUID.
     final items = repository.getAll();
     final sale = items.cast<Sale?>().firstWhere((e) => e?.id == id, orElse: () => null);
 
@@ -189,8 +183,20 @@ class SaleList extends _$SaleList {
   }
 }
 
-@riverpod
-List<Sale> customerSales(CustomerSalesRef ref, String customerName) {
+// ─────────────────────────────────────────────────────────────────────────────
+// Providers
+// ─────────────────────────────────────────────────────────────────────────────
+
+final saleRepositoryProvider = Provider<SaleRepository>((ref) {
+  final db = ref.watch(dbProvider);
+  return SaleRepository(db.saleBox);
+});
+
+final saleListProvider = StateNotifierProvider<SaleListNotifier, AsyncValue<List<Sale>>>((ref) {
+  return SaleListNotifier(ref);
+});
+
+final customerSalesProvider = Provider.family<List<Sale>, String>((ref, customerName) {
   final repository = ref.watch(saleRepositoryProvider);
   return repository.getByCustomerName(customerName);
-}
+});
