@@ -36,6 +36,7 @@ class SettingsState {
   final int monthlyTarget;
   final bool hasSeenOnboarding;
   final bool hasCheckedBackupDiscovery;
+  final String? lastSyncAt;
 
   SettingsState({
     required this.workshopName,
@@ -64,6 +65,7 @@ class SettingsState {
     this.monthlyTarget = 10000000,
     this.hasSeenOnboarding = false,
     this.hasCheckedBackupDiscovery = false,
+    this.lastSyncAt,
   });
 
   SettingsState copyWith({
@@ -93,6 +95,7 @@ class SettingsState {
     int? monthlyTarget,
     bool? hasSeenOnboarding,
     bool? hasCheckedBackupDiscovery,
+    String? lastSyncAt,
   }) {
     return SettingsState(
       workshopName: workshopName ?? this.workshopName,
@@ -121,6 +124,7 @@ class SettingsState {
       monthlyTarget: monthlyTarget ?? this.monthlyTarget,
       hasSeenOnboarding: hasSeenOnboarding ?? this.hasSeenOnboarding,
       hasCheckedBackupDiscovery: hasCheckedBackupDiscovery ?? this.hasCheckedBackupDiscovery,
+      lastSyncAt: lastSyncAt ?? this.lastSyncAt,
     );
   }
 }
@@ -162,6 +166,7 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
       monthlyTarget: prefs.getInt(AppSettings.monthlyTarget) ?? 10000000,
       hasSeenOnboarding: prefs.getBool(AppSettings.hasSeenOnboarding) ?? false,
       hasCheckedBackupDiscovery: prefs.getBool(AppSettings.hasCheckedBackupDiscovery) ?? false,
+      lastSyncAt: prefs.getString(AppSettings.lastSyncAt),
     );
   }
 
@@ -279,6 +284,13 @@ class SettingsNotifier extends StateNotifier<SettingsState> {
     final validValue = value.clamp(10000, 999999999);
     await _prefs.setInt(AppSettings.monthlyTarget, validValue);
     state = state.copyWith(monthlyTarget: validValue);
+  }
+
+  Future<void> updateLastSyncTime() async {
+    final now = DateTime.now();
+    final formatted = DateFormat('yyyy-MM-ddTHH:mm:ss').format(now);
+    await _prefs.setString(AppSettings.lastSyncAt, formatted);
+    state = state.copyWith(lastSyncAt: formatted);
   }
 
   Future<void> reload() async {

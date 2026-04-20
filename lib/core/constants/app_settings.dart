@@ -73,4 +73,8 @@ class AppSettings {
 
   /// Flag indicating if the app has already checked for cloud backups during setup.
   static const String hasCheckedBackupDiscovery = 'has_checked_backup_discovery';
+
+  /// Timestamp of the last successful cloud sync (ISO8601 String).
+  static const String lastSyncAt = 'last_sync_at';
 }
+

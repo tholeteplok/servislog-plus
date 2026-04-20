@@ -221,13 +221,16 @@ class SyncWorker {
       );
 
       final hasErrors = _db.syncQueueBox
-              .query(SyncQueueItem_.status.equals('pending'))
+              .query(SyncQueueItem_.status.equals('failed') |
+                  (SyncQueueItem_.status.equals('pending') &
+                      SyncQueueItem_.retryCount.greaterThan(0)))
               .build()
               .count() >
           0;
 
       onStateChanged?.call(
           hasErrors ? SyncWorkerState.error : SyncWorkerState.success);
+
     } catch (e, stack) {
       SyncTelemetry().log(SyncEvent(
         type: 'queue_processing_error',

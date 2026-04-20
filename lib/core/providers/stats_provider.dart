@@ -220,11 +220,34 @@ TransactionStats calculateStats(
     profit: hourlyProfitMap[h] ?? 0,
   ));
 
-  List<TrendData> dailyTrend = dailyRevenueMap.keys.map((day) => TrendData(
-    label: day,
-    revenue: dailyRevenueMap[day] ?? 0,
-    profit: dailyProfitMap[day] ?? 0,
-  )).toList()..sort((a, b) => a.label.compareTo(b.label));
+  // Prepare Weekly Trend (Exactly Last 7 Days, one bar per day)
+  List<TrendData> weeklyTrend = [];
+  for (int i = 6; i >= 0; i--) {
+    DateTime d = now.subtract(Duration(days: i));
+    String key = DateFormat('dd/MM').format(d);
+    weeklyTrend.add(TrendData(
+      label: key,
+      revenue: dailyRevenueMap[key] ?? 0,
+      profit: dailyProfitMap[key] ?? 0,
+    ));
+  }
+
+  // Prepare Daily Trend (Full History, sorted)
+  final dailyTrendEntries = dailyRevenueMap.entries.toList()
+    ..sort((a, b) {
+      final aParts = a.key.split('/');
+      final bParts = b.key.split('/');
+      final aDate = DateTime(now.year, int.parse(aParts[1]), int.parse(aParts[0]));
+      final bDate = DateTime(now.year, int.parse(bParts[1]), int.parse(bParts[0]));
+      return aDate.compareTo(bDate);
+    });
+
+  List<TrendData> dailyTrend = dailyTrendEntries.map((e) => TrendData(
+    label: e.key,
+    revenue: e.value,
+    profit: dailyProfitMap[e.key] ?? 0,
+  )).toList();
+
 
   List<TopItem> topServices = topServicesMap.entries
       .map((e) => TopItem(name: e.key, count: e.value, revenue: topServicesRevenueMap[e.key] ?? 0))
@@ -236,6 +259,7 @@ TransactionStats calculateStats(
 
   List<StaffPerformance> staffPerformance = staffMap.values.toList()
       ..sort((a, b) => b.revenue.compareTo(a.revenue));
+
 
   return TransactionStats(
     todayPendapatan: daily,
@@ -253,7 +277,9 @@ TransactionStats calculateStats(
     totalOrders: transactions.length + sales.length,
     hourlyTrend: hourlyTrend,
     dailyTrend: dailyTrend,
+    weeklyTrend: weeklyTrend,
     topServices: topServices,
+
     topProducts: topProducts,
     staffPerformance: staffPerformance,
     paymentStatsToday: payToday,

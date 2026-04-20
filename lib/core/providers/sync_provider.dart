@@ -31,12 +31,26 @@ class SyncStatusState {
 // ─────────────────────────────────────────────────────────────────────────────
 
 class SyncStatusNotifier extends StateNotifier<SyncStatusState> {
-  SyncStatusNotifier() : super(SyncStatusState(state: SyncWorkerState.idle));
+  final Ref ref;
+  SyncStatusNotifier(this.ref) : super(SyncStatusState(state: SyncWorkerState.idle)) {
+    // Initialize from persisted settings if available
+    final lastSyncAtStr = ref.read(settingsProvider).lastSyncAt;
+    if (lastSyncAtStr != null) {
+      state = state.copyWith(lastSyncedAt: DateTime.tryParse(lastSyncAtStr));
+    }
+  }
 
-  void setState(SyncWorkerState newState) {
+  Future<void> setState(SyncWorkerState newState) async {
+    final now = DateTime.now();
+    
+    // If successful, persist the time
+    if (newState == SyncWorkerState.success) {
+      await ref.read(settingsProvider.notifier).updateLastSyncTime();
+    }
+
     state = state.copyWith(
       state: newState,
-      lastSyncedAt: newState == SyncWorkerState.success ? DateTime.now() : state.lastSyncedAt,
+      lastSyncedAt: newState == SyncWorkerState.success ? now : state.lastSyncedAt,
     );
   }
 }
@@ -46,8 +60,9 @@ class SyncStatusNotifier extends StateNotifier<SyncStatusState> {
 // ─────────────────────────────────────────────────────────────────────────────
 
 final syncStatusProvider = StateNotifierProvider<SyncStatusNotifier, SyncStatusState>((ref) {
-  return SyncStatusNotifier();
+  return SyncStatusNotifier(ref);
 });
+
 
 final syncWorkerProvider = Provider<SyncWorker?>((ref) {
   final profile = ref.watch(currentProfileProvider);

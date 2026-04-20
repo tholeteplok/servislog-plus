@@ -521,7 +521,34 @@ class _PendapatanTabState extends ConsumerState<PendapatanTab> {
                     },
                   ),
                 ),
-                titlesData: const FlTitlesData(show: false),
+                titlesData: FlTitlesData(
+                  show: true,
+                  rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  leftTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                  bottomTitles: AxisTitles(
+                    sideTitles: SideTitles(
+                      showTitles: true,
+                      reservedSize: 22,
+                      getTitlesWidget: (value, meta) {
+                        if (value.toInt() >= 0 && value.toInt() < trendData.length) {
+                          return Padding(
+                            padding: const EdgeInsets.only(top: 8.0),
+                            child: Text(
+                              trendData[value.toInt()].label,
+                              style: GoogleFonts.plusJakartaSans(
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white38 : Colors.black38,
+                              ),
+                            ),
+                          );
+                        }
+                        return const SizedBox.shrink();
+                      },
+                    ),
+                  ),
+                ),
                 gridData: const FlGridData(show: false),
                 borderData: FlBorderData(show: false),
                 barGroups: trendData.asMap().entries.map((e) {
@@ -536,9 +563,9 @@ class _PendapatanTabState extends ConsumerState<PendapatanTab> {
                           colors: [AppColors.precisionViolet, Color(0xFF8A79FF)],
                         ),
                         width: _selectedRange == StatRange.week
-                            ? 12
+                            ? 20 // Lebar lebih besar untuk 7 hari
                             : (_selectedRange == StatRange.today ? 4 : 6),
-                        borderRadius: BorderRadius.circular(2),
+                        borderRadius: const BorderRadius.vertical(top: Radius.circular(4)),
                         backDrawRodData: BackgroundBarChartRodData(
                           show: true,
                           toY: _calculateMaxY(trendData),

@@ -61,7 +61,10 @@ class _CreateTransactionScreenState
 
   String? _localPhotoPath;
   int? _selectedRecommendationTime;
+  int? _selectedKmIncrement;
+  int? _selectedMonthIncrement;
   bool _isProcessing = false;
+
 
   // WIZARD STATE
   final PageController _pageController = PageController();
@@ -131,7 +134,16 @@ class _CreateTransactionScreenState
         );
       }
     }
+    _currentOdometerController.addListener(_recalculateRecommendation);
   }
+
+  void _recalculateRecommendation() {
+    if (_selectedKmIncrement != null) {
+      final current = int.tryParse(_currentOdometerController.text) ?? 0;
+      _recommendationKmController.text = (current + _selectedKmIncrement!).toString();
+    }
+  }
+
 
   @override
   void dispose() {
@@ -917,25 +929,82 @@ class _CreateTransactionScreenState
                 label: AppStrings.transaction.byTime,
                 isSelected: _selectedRecommendationTime != null,
                 onSelected: (v) {
-                  setState(() => _selectedRecommendationTime = v ? 3 : null);
+                  setState(() {
+                    _selectedRecommendationTime = v ? 3 : null;
+                    _selectedMonthIncrement = v ? 3 : null;
+                  });
                 },
               ),
               const SizedBox(width: 12),
               _buildModernFilterChip(
                 label: AppStrings.transaction.byDistance,
-                isSelected: _recommendationKmController.text.isNotEmpty,
+                isSelected: _selectedKmIncrement != null || _recommendationKmController.text.isNotEmpty,
                 onSelected: (v) {
-                  if (v) {
-                    _recommendationKmController.text = '2000';
-                  } else {
-                    _recommendationKmController.clear();
-                  }
-                  setState(() {});
+                  setState(() {
+                    if (v) {
+                      _selectedKmIncrement = 2000; // Default increment
+                      _recalculateRecommendation();
+                    } else {
+                      _selectedKmIncrement = null;
+                      _recommendationKmController.clear();
+                    }
+                  });
                 },
               ),
             ],
           ),
+          if (_selectedRecommendationTime != null) ...[
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [1, 2, 3, 6, 12].map((m) {
+                  final label = '$m bln';
+                  final isSel = _selectedMonthIncrement == m;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(label, style: const TextStyle(fontSize: 11)),
+                      selected: isSel,
+                      onSelected: (v) => setState(() {
+                        _selectedMonthIncrement = v ? m : null;
+                        _selectedRecommendationTime = _selectedMonthIncrement;
+                      }),
+                      selectedColor: AppColors.amethyst.withValues(alpha: 0.2),
+                      checkmarkColor: AppColors.amethyst,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
+          if (_selectedKmIncrement != null || _recommendationKmController.text.isNotEmpty) ...[
+            const SizedBox(height: 12),
+            SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: Row(
+                children: [1000, 2000, 3000, 5000].map((k) {
+                  final label = '+${NumberFormat('#,###', 'id_ID').format(k)}';
+                  final isSel = _selectedKmIncrement == k;
+                  return Padding(
+                    padding: const EdgeInsets.only(right: 8),
+                    child: ChoiceChip(
+                      label: Text(label, style: const TextStyle(fontSize: 11)),
+                      selected: isSel,
+                      onSelected: (v) => setState(() {
+                        _selectedKmIncrement = v ? k : null;
+                        _recalculateRecommendation();
+                      }),
+                      selectedColor: AppColors.amethyst.withValues(alpha: 0.2),
+                      checkmarkColor: AppColors.amethyst,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ],
           const SizedBox(height: 16),
+
           if (_selectedRecommendationTime != null || _recommendationKmController.text.isNotEmpty)
             _buildFieldCard(
               child: Column(

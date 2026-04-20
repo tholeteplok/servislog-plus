@@ -8,7 +8,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:solar_icons/solar_icons.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'create_transaction_screen.dart';
+
 import '../../core/providers/transaction_providers.dart';
 import '../../core/providers/master_providers.dart';
 import '../../core/constants/app_colors.dart';
@@ -359,161 +361,133 @@ class _HomeScreenState extends ConsumerState<HomeScreen> with TickerProviderStat
           ),
 
 
-          // ── ASYMMETRIC BENTO GRID (Now Below Header) ──
           if (!isSearching)
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(24, 24, 24, 0),
               sliver: SliverToBoxAdapter(
-                child: Column(
+                child: StaggeredGrid.count(
+                  crossAxisCount: 2,
+                  mainAxisSpacing: 12,
+                  crossAxisSpacing: 12,
                   children: [
-                    Row(
-                      children: [
-                        Expanded(
-                          flex: 2,
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const StatistikScreen(),
-                              ),
-                            ),
-                            child: _BentoCard(
-                              title: AppStrings.home.todayRevenue,
-                              value: _formatCurrencyShort(
-                                stats.todayPendapatan.toDouble(),
-                              ),
-                              subValue: AppStrings.home.totalRevenueLabel,
-                              icon: SolarIconsBold.wadOfMoney,
-                              color: theme.colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          flex: 1,
-                          child: GestureDetector(
-                            onTap: () => Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => const ReminderScreen(),
-                              ),
-                            ),
-                            child: _BentoCard(
-                              title: AppStrings.home.reminder,
-                              value: ref
-                                  .watch(reminderCountProvider)
-                                  .toString(),
-                              subValue: AppStrings.home.upcoming,
-                              icon: SolarIconsBold.bell,
-                              color: Colors.orange,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _BentoCard(
-                            title: AppStrings.home.visitors,
-                            value: stats.todayVisitorCount.toString(),
-                            subValue:
-                                '${stats.todayActiveCount} ${AppStrings.home.processed}',
-                            icon: SolarIconsBold.usersGroupTwoRounded,
-                            color: Colors.blue,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Expanded(
-                          child: GestureDetector(
-                            onTap: () {
-                              // 1. Set sort filter to Low to High (Tersedikit)
-                              ref
-                                  .read(stokSortNotifierProvider.notifier)
-                                  .setSort(StokSort.lowToHigh);
-
-                              // 2. Ensure Katalog sub-tab is on 'Barang'
-                              ref
-                                  .read(katalogActiveTabProvider.notifier)
-                                  .set(0);
-
-                              // 3. Switch global tab to index 2 (Katalog)
-                              ref
-                                  .read(navigationProvider.notifier)
-                                  .setIndex(1);
-                            },
-                            child: _BentoCard(
-                              title: AppStrings.home.inventory,
-                              icon: (stats.lowStockCount +
-                                          stats.emptyStockCount >
-                                      0)
-                                  ? SolarIconsBold.box
-                                  : SolarIconsBold.checkCircle,
-                              color: (stats.lowStockCount +
-                                          stats.emptyStockCount >
-                                      0)
-                                  ? Colors.orange
-                                  : Colors.green,
-                              border: null, // No-Line Rule
-                              valueWidget: (stats.lowStockCount +
-                                          stats.emptyStockCount >
-                                      0)
-                                  ? Row(
-                                      children: [
-                                        if (stats.lowStockCount > 0) ...[
-                                          Text(
-                                            stats.lowStockCount.toString(),
-                                            style:
-                                                GoogleFonts.manrope(
-                                                  fontSize: 20,
-                                                  fontWeight: FontWeight.w800,
-                                                  color:
-                                                      Colors.orange.shade700,
-                                                ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                        ],
-                                        if (stats.emptyStockCount > 0) ...[
-                                          Text(
-                                            stats.emptyStockCount.toString(),
-                                            style: GoogleFonts.manrope(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.w800,
-                                              color: Colors.red.shade700,
-                                            ),
-                                          ),
-                                        ],
-                                      ],
-                                    )
-                                  : Row(
-                                      children: [
-                                        const Icon(
-                                          SolarIconsBold.checkCircle,
-                                          color: Colors.green,
-                                          size: 20,
+                    // --- 1. STOK (HIGHEST PRIORITY) ---
+                    StaggeredGridTile.count(
+                      crossAxisCellCount: (stats.lowStockCount + stats.emptyStockCount > 2) ? 2 : 1,
+                      mainAxisCellCount: 1,
+                      child: GestureDetector(
+                        onTap: () {
+                          ref.read(stokSortNotifierProvider.notifier).setSort(StokSort.lowToHigh);
+                          ref.read(katalogActiveTabProvider.notifier).set(0);
+                          ref.read(navigationProvider.notifier).setIndex(1);
+                        },
+                        child: _BentoCard(
+                          title: AppStrings.home.inventory,
+                          icon: (stats.lowStockCount + stats.emptyStockCount > 0)
+                              ? SolarIconsBold.box
+                              : SolarIconsBold.checkCircle,
+                          color: (stats.lowStockCount + stats.emptyStockCount > 0)
+                              ? Colors.orange
+                              : Colors.green,
+                          valueWidget: (stats.lowStockCount + stats.emptyStockCount > 0)
+                              ? Row(
+                                  children: [
+                                    if (stats.lowStockCount > 0) ...[
+                                      Text(
+                                        stats.lowStockCount.toString(),
+                                        style: GoogleFonts.manrope(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.orange.shade700,
                                         ),
-                                        const SizedBox(width: 4),
-                                        Text(
-                                          AppStrings.home.inventorySafe,
-                                          style: GoogleFonts.manrope(
-                                            fontSize: 18,
-                                            fontWeight: FontWeight.w800,
-                                            color: Colors.green,
-                                          ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                    ],
+                                    if (stats.emptyStockCount > 0) ...[
+                                      Text(
+                                        stats.emptyStockCount.toString(),
+                                        style: GoogleFonts.manrope(
+                                          fontSize: 24,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.red.shade700,
                                         ),
-                                      ],
+                                      ),
+                                    ],
+                                  ],
+                                )
+                              : Row(
+                                  children: [
+                                    const Icon(SolarIconsBold.checkCircle, color: Colors.green, size: 20),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      AppStrings.home.inventorySafe,
+                                      style: GoogleFonts.manrope(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.w800,
+                                        color: Colors.green,
+                                      ),
                                     ),
-                              subValue: AppStrings.home.inventoryStatus,
-                            ),
-                          ),
+                                  ],
+                                ),
+                          subValue: AppStrings.home.inventoryStatus,
                         ),
-                      ],
+                      ),
+                    ),
+
+                    // --- 2. REMINDER ---
+                    StaggeredGridTile.count(
+                      crossAxisCellCount: 1,
+                      mainAxisCellCount: 1,
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const ReminderScreen()),
+                        ),
+                        child: _BentoCard(
+                          title: AppStrings.home.reminder,
+                          value: ref.watch(reminderCountProvider).toString(),
+                          subValue: AppStrings.home.upcoming,
+                          icon: SolarIconsBold.bell,
+                          color: Colors.orange,
+                        ),
+                      ),
+                    ),
+
+                    // --- 3. PENDAPATAN ---
+                    StaggeredGridTile.count(
+                      crossAxisCellCount: (stats.todayPendapatan > 1000000) ? 2 : 1,
+                      mainAxisCellCount: 1,
+                      child: GestureDetector(
+                        onTap: () => Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (_) => const StatistikScreen()),
+                        ),
+                        child: _BentoCard(
+                          title: AppStrings.home.todayRevenue,
+                          value: _formatCurrencyShort(stats.todayPendapatan.toDouble()),
+                          subValue: AppStrings.home.totalRevenueLabel,
+                          icon: SolarIconsBold.wadOfMoney,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+
+                    // --- 4. PENGUNJUNG ---
+                    StaggeredGridTile.count(
+                      crossAxisCellCount: 1,
+                      mainAxisCellCount: 1,
+                      child: _BentoCard(
+                        title: AppStrings.home.visitors,
+                        value: stats.todayVisitorCount.toString(),
+                        subValue: '${stats.todayActiveCount} ${AppStrings.home.processed}',
+                        icon: SolarIconsBold.usersGroupTwoRounded,
+                        color: Colors.blue,
+                      ),
                     ),
                   ],
                 ),
               ),
             ),
+
 
 
           // ── SEARCH RESULTS OR NORMAL VIEW ──
@@ -1059,7 +1033,8 @@ class _BentoCard extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
      return Container(
-      height: 90,
+      padding: const EdgeInsets.symmetric(vertical: 4),
+
       decoration: BoxDecoration(
         color: isDark
             ? theme.colorScheme.surfaceContainerHighest.withValues(alpha: 0.5)
